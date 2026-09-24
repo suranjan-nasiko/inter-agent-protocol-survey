@@ -79,9 +79,11 @@ present for an affiliation" error. The file drops that one line from the stub.
 ## The JAIR class files
 
 `manuscript/jair.cls`, `acmauthoryear.bbx`, `acmauthoryear.cbx`, and
-`acmdatamodel.dbx` are the Journal of Artificial Intelligence Research AuthorKit
-files, vendored unmodified. They are not covered by this repository's license
-and remain under their original terms.
+`acmdatamodel.dbx` come from the Journal of Artificial Intelligence Research
+AuthorKit (https://www.jair.org). They are copied unmodified, only so that
+`make pdf` works from a fresh clone. They are not part of this work and are
+not covered by the MIT or CC BY 4.0 licenses above. JAIR's own terms apply to
+them. For the current version, download the AuthorKit from JAIR.
 
 ## License
 
