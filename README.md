@@ -85,7 +85,6 @@ and remain under their original terms.
 
 ## License
 
-<!-- PROPOSED, NOT YET DECIDED. See LICENSE and data/LICENSE. -->
 Code under `scripts/` and the `Makefile` are released under the MIT License
 (`LICENSE`). The data under `data/` is released under Creative Commons
 Attribution 4.0 (`data/LICENSE`). The paper text under `manuscript/` is
