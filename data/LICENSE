@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-4.0
+
+The files in this directory (protocol-scores.yaml, threat-coverage.yaml,
+industry-adoption.yaml) are licensed under the Creative Commons Attribution 4.0
+International License.
+
+Copyright (c) 2026 Suranjan Goswami, Manu Ghulyani, Karan Bharadwaj,
+Roland R. Rodriguez Jr., Faouzi El Yagoubi, Alejandro Quintero, and
+Ranwa Al Mallah
+
+You may share and adapt the data for any purpose, including commercially,
+provided you give appropriate credit by citing the survey these files
+accompany.
+
+Full legal code: https://creativecommons.org/licenses/by/4.0/legalcode

@@ -1,0 +1,234 @@
+# Threat-surface coverage matrix source: populates manuscript/tables/table3-threat-surface.tex.
+#
+# Reference threat-class set (the "12" Axis 8 scores against):
+#   prompt_injection_protocol_boundary
+#   agent_impersonation
+#   message_replay
+#   capability_escalation
+#   delegation_token_theft
+#   registry_poisoning
+#   agentcard_supply_chain
+#   message_tampering
+#   side_channel_privacy_leak
+#   denial_of_service
+#   cross_agent_privilege_confusion
+#   audit_log_tampering
+#
+# Cell vocabulary:
+#   addressed    : explicit spec-level mitigation
+#   partial      : referenced but not normative, or addressed by recommendation only
+#   not_addressed: no spec coverage
+#   na           : does not apply to the protocol's scope
+#
+# Each cell carries an optional `citation` (bibkey from refs/references.bib) and a
+# `note` (short evidence string).
+#
+# ---------------------------------------------------------------------------
+# Severity bands (added 2026-09-11, in response to reviewer comment that a bare
+# count equates a low-severity mitigation with a high-severity one and so says
+# nothing about residual risk).
+#
+# The band is OUR assignment, not an AIVSS score. AIVSS (the OWASP AI
+# Vulnerability Scoring System) scores a concrete vulnerability in a concrete
+# deployment; we are banding a threat *class* against a specification, which
+# has no CVE, no exploit-maturity signal, and no environment. We borrow AIVSS's
+# structural point (agentic risk is dominated by loss of control over agent
+# *actions*, not only over data) and apply three stated criteria:
+#
+#   A1 action control  : does exploitation let the attacker cause the agent to
+#                        act, as opposed to only observing data?
+#   A2 recoverability  : is the compromise detectable and reversible after the
+#                        fact from evidence the protocol itself retains?
+#   A3 blast radius    : does one successful exploit reach beyond the pair of
+#                        agents involved (systemic vs. per-session)?
+#
+#   critical (weight 3): A1 yes, and (A2 no or A3 yes)
+#   high     (weight 2): A1 yes but bounded, or A2 no on its own
+#   moderate (weight 1): A1 no (confidentiality or availability only), A2 yes
+#
+# Weights are integers so that the weighted view stays inspectable by hand, and
+# they are published here rather than buried in a script so a reader who
+# disputes a band can re-run the table with their own. Axis 8 itself remains the
+# unweighted count: see manuscript/sections/04-rubric.tex, Axis 8.
+# ---------------------------------------------------------------------------
+
+severity:
+  prompt_injection_protocol_boundary:
+    band: critical
+    weight: 3
+    rationale: "A1 yes (the injected text becomes the agent's instruction), A2 no (the trace looks like ordinary reasoning), A3 yes (one poisoned tool result reaches every agent downstream of it)."
+  agent_impersonation:
+    band: critical
+    weight: 3
+    rationale: "A1 yes (the attacker acts as a trusted peer), A2 no (log entries carry the impersonated identity), A3 yes (one stolen identity is reusable against every counterparty)."
+  message_replay:
+    band: high
+    weight: 2
+    rationale: "A1 yes (a prior action is re-executed) but bounded to actions the original message could take; A2 partly (duplicate detection is possible from timestamps)."
+  capability_escalation:
+    band: critical
+    weight: 3
+    rationale: "A1 yes (the agent performs an action outside its grant), A2 no (the call is well-formed and authorised at the transport layer), A3 yes where the ambiguous descriptor is published."
+  delegation_token_theft:
+    band: critical
+    weight: 3
+    rationale: "A1 yes (full transfer of the principal's authority), A2 no (the authorisation server sees a valid token), A3 yes (the token is replayable across the whole chain)."
+  registry_poisoning:
+    band: critical
+    weight: 3
+    rationale: "A1 yes (every consumer of the poisoned descriptor is redirected), A3 yes (systemic by construction: the registry is shared infrastructure)."
+  agentcard_supply_chain:
+    band: high
+    weight: 2
+    rationale: "A1 yes and A3 yes, but exploitation presupposes publish access to the card or its build path, which is a narrower precondition than reaching a registry read path."
+  message_tampering:
+    band: high
+    weight: 2
+    rationale: "A1 yes (a modified instruction is acted on), A2 partly; the band is high rather than critical because the mitigation is transport encryption, which is near-universal in deployment even where the spec is silent."
+  side_channel_privacy_leak:
+    band: moderate
+    weight: 1
+    rationale: "A1 no (metadata observation confers no action), A2 yes in principle. Severity is real but confidentiality-only, which is the distinction the band is there to make."
+  denial_of_service:
+    band: moderate
+    weight: 1
+    rationale: "A1 no, A2 yes (the outage is observable and the system recovers when the load stops). Availability loss without loss of control."
+  cross_agent_privilege_confusion:
+    band: high
+    weight: 2
+    rationale: "A1 yes (one principal's authority is applied to another's request), A2 partly, A3 bounded to the tenants sharing the confused agent."
+  audit_log_tampering:
+    band: high
+    weight: 2
+    rationale: "A1 no directly, A2 no by definition (it removes the evidence that any other exploit occurred), which is why it bands above the confidentiality-only classes."
+
+protocols:
+  - a2a
+  - mcp
+  - acp
+  - agntcy
+  - anp
+  - coral
+  - loka
+  - acnbp
+
+matrix:
+  a2a:
+    prompt_injection_protocol_boundary: { coverage: not_addressed, citation: a2asecbench }
+    agent_impersonation:                { coverage: partial,       citation: a2a_weaknesses, note: "OAuth bearer; no AgentCard sig" }
+    message_replay:                     { coverage: partial,       citation: spec_a2a,       note: "push-notification verify only" }
+    capability_escalation:              { coverage: not_addressed, citation: a2asecbench }
+    delegation_token_theft:             { coverage: not_addressed, citation: a2a_weaknesses }
+    registry_poisoning:                 { coverage: not_addressed, citation: a2asecbench,    note: "well-known endpoint is host-controlled" }
+    agentcard_supply_chain:             { coverage: not_addressed, citation: a2asecbench }
+    message_tampering:                  { coverage: addressed,     citation: spec_a2a,       note: "HTTPS transport" }
+    side_channel_privacy_leak:          { coverage: not_addressed, citation: agentleak }
+    denial_of_service:                  { coverage: partial,       note: "transport-layer only" }
+    cross_agent_privilege_confusion:    { coverage: not_addressed, citation: authz_propagation }
+    audit_log_tampering:                { coverage: not_addressed, note: "SSE event log unsigned" }
+
+  mcp:
+    prompt_injection_protocol_boundary: { coverage: not_addressed, citation: zhan2024injecagent }
+    agent_impersonation:                { coverage: partial,       citation: spec_mcp,       note: "OAuth 2.1 over HTTP; stdio is process-trust" }
+    message_replay:                     { coverage: partial,       note: "OAuth token expiry only" }
+    capability_escalation:              { coverage: not_addressed, citation: protocol_exploits, note: "tool poisoning" }
+    delegation_token_theft:             { coverage: not_addressed, citation: agentic_jwt }
+    registry_poisoning:                 { coverage: not_addressed, note: "config-mediated discovery" }
+    agentcard_supply_chain:             { coverage: na,            note: "MCP has no AgentCard" }
+    message_tampering:                  { coverage: addressed,     citation: spec_mcp,       note: "TLS for HTTP transport" }
+    side_channel_privacy_leak:          { coverage: not_addressed }
+    denial_of_service:                  { coverage: not_addressed }
+    cross_agent_privilege_confusion:    { coverage: na,            note: "MCP is vertical (agent-to-tool)" }
+    audit_log_tampering:                { coverage: not_addressed }
+
+  # ACP rescored 2026-09-03 from the OpenAPI spec.
+  # The prior row credited "OAuth scopes" for impersonation; the spec declares
+  # no securitySchemes whatsoever, so that drops to not_addressed. Axis 8 = 1.
+  acp:
+    prompt_injection_protocol_boundary: { coverage: not_addressed, citation: spec_acp }
+    agent_impersonation:                { coverage: not_addressed, citation: spec_acp,       note: "OpenAPI declares no securitySchemes; auth deferred to reverse proxy" }
+    message_replay:                     { coverage: not_addressed, citation: spec_acp }
+    capability_escalation:              { coverage: not_addressed, citation: spec_acp }
+    delegation_token_theft:             { coverage: not_addressed, citation: spec_acp,       note: "no delegation primitive to steal from" }
+    registry_poisoning:                 { coverage: not_addressed, citation: spec_acp,       note: "unsigned .well-known/agent.yml manifest" }
+    agentcard_supply_chain:             { coverage: not_addressed, citation: spec_acp,       note: "manifest analogue is unsigned; not na, the threat applies" }
+    message_tampering:                  { coverage: addressed,     citation: spec_acp,       note: "TLS, from prose not spec text" }
+    side_channel_privacy_leak:          { coverage: not_addressed, citation: spec_acp }
+    denial_of_service:                  { coverage: not_addressed, citation: spec_acp }
+    cross_agent_privilege_confusion:    { coverage: not_addressed, citation: spec_acp,       note: "four composition patterns, no authority model" }
+    audit_log_tampering:                { coverage: not_addressed, citation: spec_acp,       note: "OTel traces, no integrity primitive" }
+
+  # AGNTCY rescored 2026-09-03 across SLIM/OASF/ADS/Identity
+  # The prior row read the transport as
+  # QUIC/mTLS and missed MLS (RFC 9420) content encryption, Sigstore record
+  # signing, CID content addressing, and the three publish-time scanners.
+  # Axis 8 = 6.
+  agntcy:
+    prompt_injection_protocol_boundary: { coverage: partial,       citation: spec_agntcy,    note: "mcp-scanner behavioral analysis at publish time, not a protocol-boundary control" }
+    agent_impersonation:                { coverage: addressed,     citation: spec_agntcy,    note: "DID naming (did:key/web/plc) + MLS credentials + SPIFFE SVIDs" }
+    message_replay:                     { coverage: addressed,     citation: spec_agntcy,    note: "MLS epoch ratcheting; removed members cannot decrypt later messages" }
+    capability_escalation:              { coverage: not_addressed, citation: spec_agntcy }
+    delegation_token_theft:             { coverage: not_addressed, citation: spec_agntcy,    note: "short-lived OAuth bearer tokens mitigate window, not pattern" }
+    registry_poisoning:                 { coverage: addressed,     citation: spec_agntcy,    note: "Cosign/Sigstore record signing + JWKS domain name verification + CID content addressing" }
+    agentcard_supply_chain:             { coverage: addressed,     citation: spec_agntcy,    note: "mcp-scanner on source repo, skill-scanner on skill bundle, a2a-scanner on embedded AgentCard" }
+    message_tampering:                  { coverage: addressed,     citation: spec_agntcy,    note: "MLS content encryption independent of TLS; zero-trust routing nodes forward opaque blobs" }
+    side_channel_privacy_leak:          { coverage: not_addressed, citation: spec_agntcy }
+    denial_of_service:                  { coverage: partial,       citation: spec_agntcy,    note: "connection tables + keepalive health tracking" }
+    cross_agent_privilege_confusion:    { coverage: addressed,     citation: spec_agntcy,    note: "MLS group membership scoping, moderator-controlled add/remove" }
+    audit_log_tampering:                { coverage: partial,       citation: spec_agntcy,    note: "OCI referrer ScanReport persistence + OTel; no tamper-evident log spec" }
+
+  anp:
+    prompt_injection_protocol_boundary: { coverage: not_addressed, citation: spec_anp,       note: "out of scope" }
+    agent_impersonation:                { coverage: addressed,     citation: spec_anp,       note: "DID + VC challenge-response" }
+    message_replay:                     { coverage: addressed,     citation: spec_anp,       note: "signed-payload nonce" }
+    capability_escalation:              { coverage: not_addressed, citation: spec_anp,       note: "VC scoping partial" }
+    delegation_token_theft:             { coverage: partial,       citation: did_vc_agents,  note: "VC-bound but no chain spec" }
+    registry_poisoning:                 { coverage: addressed,     citation: spec_anp,       note: "DID resolver verifiability" }
+    agentcard_supply_chain:             { coverage: na }
+    message_tampering:                  { coverage: addressed,     citation: spec_anp,       note: "VC signatures" }
+    side_channel_privacy_leak:          { coverage: not_addressed }
+    denial_of_service:                  { coverage: not_addressed }
+    cross_agent_privilege_confusion:    { coverage: not_addressed }
+    audit_log_tampering:                { coverage: addressed,     citation: spec_anp,       note: "non-repudiation logs built-in" }
+
+  coral:
+    prompt_injection_protocol_boundary: { coverage: not_addressed }
+    agent_impersonation:                { coverage: addressed,     citation: spec_coral,     note: "DID + Solana wallet sig" }
+    message_replay:                     { coverage: not_addressed }
+    capability_escalation:              { coverage: partial,       citation: spec_coral,     note: "Team Contract sig" }
+    delegation_token_theft:             { coverage: partial,       citation: spec_coral }
+    registry_poisoning:                 { coverage: not_addressed, note: "Coral Server is server-mediated" }
+    agentcard_supply_chain:             { coverage: na }
+    message_tampering:                  { coverage: partial,       citation: spec_coral,     note: "on-chain payments only" }
+    side_channel_privacy_leak:          { coverage: not_addressed }
+    denial_of_service:                  { coverage: not_addressed }
+    cross_agent_privilege_confusion:    { coverage: addressed,     citation: spec_coral,     note: "thread-scoped privileges" }
+    audit_log_tampering:                { coverage: addressed,     citation: spec_coral,     note: "blockchain audit trail" }
+
+  loka:
+    prompt_injection_protocol_boundary: { coverage: partial,       citation: spec_loka,      note: "DECP filter, partial" }
+    agent_impersonation:                { coverage: addressed,     citation: spec_loka,      note: "DID + Ed25519/Dilithium" }
+    message_replay:                     { coverage: addressed,     citation: spec_loka,      note: "timestamp + signed intent" }
+    capability_escalation:              { coverage: partial,       citation: spec_loka,      note: "VC + contract policy" }
+    delegation_token_theft:             { coverage: partial,       citation: spec_loka }
+    registry_poisoning:                 { coverage: addressed,     citation: spec_loka,      note: "decentralized SSI registry" }
+    agentcard_supply_chain:             { coverage: not_addressed }
+    message_tampering:                  { coverage: addressed,     citation: spec_loka,      note: "PQ-MITM hardening" }
+    side_channel_privacy_leak:          { coverage: partial,       citation: spec_loka,      note: "Contextual Ethics policies" }
+    denial_of_service:                  { coverage: not_addressed }
+    cross_agent_privilege_confusion:    { coverage: addressed,     citation: spec_loka,      note: "Contextual Ethics" }
+    audit_log_tampering:                { coverage: addressed,     citation: spec_loka,      note: "immutable blockchain audit" }
+
+  acnbp:
+    prompt_injection_protocol_boundary: { coverage: addressed,     citation: spec_acnbp,     note: "MAESTRO foundation-model layer" }
+    agent_impersonation:                { coverage: addressed,     citation: spec_acnbp,     note: "X.509 + OCSP + ECC" }
+    message_replay:                     { coverage: addressed,     citation: spec_acnbp,     note: "nonce + timestamp + sequence" }
+    capability_escalation:              { coverage: addressed,     citation: spec_acnbp,     note: "ZKP capability attestation" }
+    delegation_token_theft:             { coverage: addressed,     citation: spec_acnbp,     note: "Capability Binding ceremony" }
+    registry_poisoning:                 { coverage: addressed,     citation: spec_acnbp,     note: "signed ANRIs + BFT" }
+    agentcard_supply_chain:             { coverage: addressed,     citation: spec_acnbp,     note: "protocolExtension whitelist" }
+    message_tampering:                  { coverage: addressed,     citation: spec_acnbp,     note: "signatures + HMAC" }
+    side_channel_privacy_leak:          { coverage: partial,       citation: spec_acnbp,     note: "ring signatures" }
+    denial_of_service:                  { coverage: addressed,     citation: spec_acnbp,     note: "rate limits + PoW + LB" }
+    cross_agent_privilege_confusion:    { coverage: partial,       citation: spec_acnbp,     note: "agent quarantine" }
+    audit_log_tampering:                { coverage: addressed,     citation: spec_acnbp,     note: "cryptographically protected logs" }

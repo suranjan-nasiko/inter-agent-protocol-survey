@@ -1,0 +1,135 @@
+% JAIR reproducibility checklist. The item text is the AuthorKit's, copied
+% unmodified so a reviewer can diff it against the template; only the answers
+% and the short justifications are ours.
+%
+% This is a survey, so two of the four blocks do not apply, and saying so is
+% part of the answer. The paper runs no algorithm and reports no measured
+% quantity of its own, so the computational-experiments block is answered "no"
+% at the gate. It does introduce a data set, the rubric score file, so the
+% data-set block is answered in full. Do not soften a "no" here into a
+% "partially" to make the appendix look better: the gate questions are the
+% ones a reader uses to calibrate the rest.
+
+% The heading names JAIR in the submission build, because the checklist is the
+% journal's own instrument and the AuthorKit's wording. The arXiv build drops
+% the venue name: the checklist is still worth publishing, and the preprint
+% should not assert where it was submitted. \ifarxiv is set in main.tex.
+\ifarxiv
+  \section{Reproducibility Checklist}
+\else
+  \section{Reproducibility Checklist for JAIR}
+\fi
+\label{sec:appendix:repro}
+
+Select the answers that apply to your research, one per item.
+
+\subsection*{All articles:}
+
+\begin{enumerate}
+    \item All claims investigated in this work are clearly stated.
+    [\textbf{yes}]
+    \item Clear explanations are given how the work reported substantiates the claims.
+    [\textbf{yes}]
+    \item Limitations or technical assumptions are stated clearly and explicitly.
+    [\textbf{yes}]
+    \item Conceptual outlines and/or pseudo-code descriptions of the AI methods introduced in this work are provided, and important implementation details are discussed.
+    [\textbf{yes}]
+    \item
+    Motivation is provided for all design choices, including algorithms, implementation choices, parameters, data sets and experimental protocols beyond metrics.
+    [\textbf{yes}]
+\end{enumerate}
+
+\noindent The rubric's ten axes, their ordinal levels, and the scoring
+procedure are stated in \S\ref{sec:rubric}, and each axis level is anchored to
+a specification property rather than to a judgement of quality. The
+limitations are gathered in \S\ref{sec:rubric:limits} and are not confined
+there: the single-rater design and the absence of an inter-rater agreement
+statistic are stated in the abstract, in \S\ref{sec:rubric:calibration}, and
+again in the conclusion. The three proposed extensions of
+\S\ref{sec:proposals} are specification sketches, not validated standards,
+and are labelled as such wherever they are introduced.
+
+\subsection*{Articles containing theoretical contributions:}
+Does this paper make theoretical contributions?
+[\textbf{no}]
+
+\noindent The survey proves nothing. The three proposed extensions of
+\S\ref{sec:proposals} state observable invariants that a receiver can check,
+but those are specification requirements, not theorems, and the paper does
+not claim them as results.
+
+\subsection*{Articles reporting on computational experiments:}
+Does this paper include computational experiments? [\textbf{no}]
+
+\noindent No algorithm is run and no performance quantity is measured. Every
+number in the paper is either a rubric score assigned by a rater reading a
+specification (\S\ref{sec:rubric:method}), a count over those scores, or a
+result quoted from the cited source with attribution. The quoted empirical
+results, such as the leakage rates in \S\ref{sec:security}, are other
+authors' measurements and are reproducible only against their artifacts, not
+ours.
+
+\subsection*{Articles using data sets:}
+Does this work rely on one or more data sets (possibly obtained from a
+benchmark generator or similar software artifact)?
+[\textbf{yes}]
+
+\begin{enumerate}
+    \item
+    All newly introduced data sets
+    are included in an online appendix
+    or will be made publicly available upon publication of the paper.
+    The online appendix follows best practices for long-term accessibility with a license
+    that allows free usage for research purposes.
+    [\textbf{yes}]
+    \item The newly introduced data set comes with a license that
+    allows free usage for reproducibility purposes.
+    [\textbf{yes}]
+    \item The newly introduced data set comes with a license that
+    allows free usage for research purposes in general.
+    [\textbf{yes}]
+    \item All data sets drawn from the literature or other public sources (potentially including authors' own previously published work) are accompanied by appropriate citations.
+    [\textbf{yes}]
+    \item All data sets drawn from the existing literature (potentially including authors' own previously published work) are publicly available. [\textbf{yes}]
+    \item All new data sets and data sets that are not publicly available are described in detail, including relevant statistics, the data collection process and annotation process if relevant.
+    [\textbf{yes}]
+    \item
+    All methods used for preprocessing, augmenting, batching or splitting data sets (e.g., in the context of hold-out or cross-validation)
+    are described in detail. [\textbf{NA}]
+\end{enumerate}
+
+\noindent The newly introduced data set is the rubric itself as data:
+\texttt{protocol-scores.yaml} (one entry per protocol and axis, each carrying
+the score, a one-sentence evidence summary, and the citation the score rests
+on), \texttt{threat-coverage.yaml}, and \texttt{industry-adoption.yaml}. It is
+Contribution C4 (\S\ref{sec:intro:contributions}). Its collection procedure is
+the scoring procedure of \S\ref{sec:rubric:method}, which is the annotation
+protocol for this data set and is stated as a numbered sequence there. The
+companion repository also carries the scripts that turn the three files into
+Table~\ref{tab:rubric-matrix}, Table~\ref{tab:threat-surface},
+Table~\ref{tab:industry-adoption}, Table~\ref{tab:severity-coverage},
+Figure~\ref{fig:heatmap}, Figure~\ref{fig:radar}, and
+Figure~\ref{fig:taxonomy}, so every generated artifact in the paper is
+re-derivable from the data. The repository is at \companionrepo.
+
+The last item is \textbf{NA} because there is no split. The data set is a
+census, not a sample: every axis of every scored protocol is populated, so
+there is nothing held out and nothing to cross-validate. Which protocols
+enter the set, and why the thirteen are these thirteen, is stated in
+\S\ref{sec:taxonomy} rather than left to the reader.
+
+\subsection*{Explanations on any of the answers above (optional):}
+
+Two answers deserve a caveat that a yes or no cannot carry.
+
+On the data-set license: the companion repository will carry a permissive
+license at publication, and the paper's claim is a commitment to that, not a
+report of a released artifact. The three answers about licensing should be
+read that way until the repository is public.
+
+On coverage over time: the survey declares a 2026-Q1 cutoff on page 1, and
+protocol specifications move faster than a review cycle. Two protocols in the
+scored set, IBM ACP and AGNTCY/SLIM, were scored in a later pass than the
+other six and are dated separately in \texttt{protocol-scores.yaml}
+(\S\ref{sec:comparison:matrix}). Reproducing a score means reading the
+specification version the entry names, not the current one.

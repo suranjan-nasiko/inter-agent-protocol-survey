@@ -1,0 +1,440 @@
+\section{Governance, Licensing, and Standards Bodies}
+\label{sec:governance}
+
+Governance is the third sub-axis of the rubric's composite
+Axis 10 (\S\ref{sec:rubric:axis10}) and the dimension on which
+the adoption pattern of \S\ref{sec:adoption:synthesis}
+diverges most clearly from the technical rigour of the
+rubric. The adoption density of A2A and MCP, despite their
+modest scores on the security and authorisation axes, is
+substantially explained by their institutional positioning
+under the Linux Foundation Agentic AI Foundation~\cite{lf_aaif};
+the limited adoption of ACNBP and LOKA, despite their
+technical strength, is substantially explained by the
+absence of a formal SDO standing behind either
+specification. Section~\ref{sec:governance} unpacks this
+institutional layer: who controls each protocol's
+specification, under what license its reference
+implementations ship, and what observability primitives
+the specifications themselves require.
+
+Table~\ref{tab:governance-license} consolidates the
+composite-Axis-10 readings from \S\ref{sec:rubric:axis10}
+into a single comparison. Section~\ref{sec:governance:foundations}
+treats the open-source-foundation cluster.
+Section~\ref{sec:governance:sdos} treats the activity at
+formal standards-development organisations.
+Section~\ref{sec:governance:tradeoff} considers the
+consortium-versus-open-governance trade-off as a question
+that the field has not yet decided.
+Section~\ref{sec:governance:observability} treats the
+observability sub-field of Axis 10 separately, because the
+specification of audit-and-observability primitives is the
+operational dimension on which the rubric matrix renders the
+sharpest split.
+Section~\ref{sec:governance:survival} closes with what
+governance predicts about which protocols will still be
+relevant by the end of the next standardisation cycle.
+
+\input{tables/table5-governance-license}
+
+\subsection{Open-source foundations and licenses}
+\label{sec:governance:foundations}
+
+The Linux Foundation Agentic AI Foundation (AAIF) is the
+single most consequential governance institution in the
+inter-agent protocol landscape at the cutoff. Founded in
+December 2025 with founding members AWS, Anthropic, Block,
+Bloomberg, Cloudflare, Google, Microsoft, and
+OpenAI~\cite{lf_aaif}, AAIF holds stewardship of MCP, A2A,
+and (via the AGNTCY collective) AGNTCY/SLIM. The
+foundation's structural choice is to host protocols under
+permissive open-source licenses (Apache 2.0 for A2A and
+AGNTCY; an MIT-equivalent license for MCP) and to govern
+their evolution through working groups that any AAIF
+member can participate in.
+
+\paragraph{The license argument.}
+Apache 2.0 and MIT-equivalent licenses have the same
+operational effect for the purposes of the protocols
+the survey covers: anyone can implement an A2A or MCP
+client or server without licensing fees or copyleft
+obligations. The argument for these licenses, well-rehearsed
+in the broader open-source community, is that
+network-effect protocols benefit from maximum permissiveness
+because any restriction shrinks the addressable
+implementer population. The argument against (a strong
+copyleft license, in the GPL sense, that would require
+derived works to remain open) is that the contemporary
+protocols already have proprietary implementations that
+nobody wants to break; a copyleft license at this stage
+would fragment the ecosystem rather than open it.
+
+\paragraph{The AAIF working-group model.}
+AAIF organises its substantive work in protocol-specific
+and cross-cutting working groups (covering security,
+identity, interoperability, and commerce) per its
+public charter~\cite{lf_aaif}. The cadence at which the
+working groups meet and publish revisions is faster than
+W3C and IETF conventions: revision drafts have shipped on
+sub-annual schedules since founding. The model is broadly
+similar to the W3C and IETF working-group conventions
+otherwise (public minutes, member participation, draft
+specifications that mature toward stable status). It is
+modulated by AAIF's smaller membership scale and faster
+iteration cadence. The advantage is that specifications
+can move quickly to address the empirical security gaps
+the literature catalogues (\S\ref{sec:security:open}); the
+disadvantage is that specifications can also break
+compatibility quickly, which has begun to affect
+implementers whose deployments straddle revisions.
+
+\paragraph{Non-AAIF open-source projects.}
+Coral, LOKA, ACNBP, and ANP each occupy distinct
+positions outside the AAIF umbrella.
+Coral Protocol Labs holds direct stewardship of the
+Coral specification under an MIT license; the
+governance model is a single-vendor open-source project
+with a community-input mechanism but no formal working
+group. LOKA's specification is authored by academic
+researchers (CMU Tepper and BIT Sindri) and licensed
+under CC-BY-NC-SA 4.0. That license explicitly
+forbids commercial use of the specification text without
+a separate agreement. This is unusual for protocol
+specifications. It has been a recurring point of
+discussion in the protocol-implementation community.
+ACNBP's authorship is similarly informal (individual
+contributors from DistributedApps.ai, Cisco, OWASP/AWS,
+and Intuit) under a more permissive CC-BY 4.0. ANP is
+the closest of this cluster to formal governance,
+trending toward W3C through the AI Agent Protocol
+Community Group~\cite{w3c_agent_protocol_cg}.
+
+\subsection{Standards bodies}
+\label{sec:governance:sdos}
+
+Formal standards-development organisations (SDOs)
+operate on slower timescales than open-source
+foundations but produce outputs with stronger institutional
+weight. Three SDO efforts are visible at the cutoff.
+
+\paragraph{W3C AI Agent Protocol Community Group.}
+The W3C AI Agent Protocol Community Group, established in
+May 2025~\cite{w3c_agent_protocol_cg}, is the most
+advanced SDO activity. The Community Group's charter
+includes identity, capability descriptors, and
+interoperability across heterogeneous agent
+frameworks. ANP's DID-and-VC mechanism is closely
+aligned with the W3C's existing DID and Verifiable
+Credentials Recommendations, and the Community Group is
+the venue most likely to elevate ANP-style DID-anchored
+identity to W3C Recommendation status within the next
+two revision cycles. The structural cost is W3C's
+multi-year recommendation timeline, which is slower than
+the protocols' own quarterly revision cadence.
+
+\paragraph{IETF activity.}
+The IETF has not chartered a working group specifically
+for inter-agent protocols at the cutoff, but several
+adjacent working groups address dimensions the protocols
+need. OAuth Working Group activity on the
+Agentic JWT pattern~\cite{agentic_jwt} is the most
+directly relevant; secdispatch discussion of
+authorisation-propagation primitives~\cite{authz_propagation}
+is in the early stage that typically precedes a formal
+chartering. The IETF is the institutional venue most
+likely to address the authorisation-propagation gap
+(O1 of \S\ref{sec:security:open}) on a multi-year
+timeline.
+
+\paragraph{ISO/IEC activity.}
+ISO/IEC JTC 1/SC 42 (Artificial Intelligence) has
+working items on AI agent interoperability that
+overlap the inter-agent protocol space, primarily on
+the governance and risk-management dimensions
+(TRiSM-aligned~\cite{trism}). The ISO timeline is the
+slowest of the three SDOs treated here; the visible
+output at the cutoff is study reports rather than
+draft standards, and the relevance to practitioners is
+indirect. Where ISO/IEC outputs matter for the
+inter-agent protocol landscape is in the regulatory
+direction: government procurement and
+sector-specific regulators increasingly defer to
+ISO/IEC standards for compliance frameworks, which
+gives ISO/IEC outputs a downstream effect on adoption
+that exceeds their direct technical
+contribution.
+
+\subsection{Consortium versus open-governance trade-offs}
+\label{sec:governance:tradeoff}
+
+The governance question that the field has not yet
+decided is the trade-off between consortium-led
+governance (AAIF's model) and open standards-body
+governance (W3C, IETF, ISO). The two models produce
+different trajectories that the survey can characterise
+without resolving.
+
+\paragraph{The consortium argument.}
+AAIF's structural advantages are speed and member
+focus. Sub-annual revision cycles let the foundation
+respond to empirical security findings on a timeline
+matched to the threat-modelling literature's own
+cadence. The founding-member set is bounded: AWS,
+Anthropic, Block, Bloomberg, Cloudflare, Google,
+Microsoft, and OpenAI~\cite{lf_aaif}. That bound makes
+substantive disagreement tractable. A working-group meeting can reach
+decisions in a small number of sessions because the
+participants share enough context to argue
+productively. The argument is that the contemporary
+protocols are too immature for the multi-year SDO
+timelines to make sense; consortium governance is the
+right institutional match for the protocols' actual
+maturity.
+
+\paragraph{The open-governance argument.}
+The W3C and IETF model produces specifications with
+broader institutional buy-in and longer durability. A
+W3C Recommendation carries weight that an AAIF working
+group's output does not yet command. This holds both in
+regulatory compliance contexts (where W3C outputs are
+recognised in procurement specifications) and in
+academic publication contexts (where W3C-derived
+specifications attract citation in ways that
+foundation outputs do not). The argument is that
+inter-agent protocols are a generational infrastructure
+layer comparable to HTTP, TLS, or DNS, and that
+generational infrastructure deserves the durability
+that only the slow SDO process can provide.
+
+\paragraph{The hybrid pattern.}
+The empirical observation at the cutoff is that the
+two models are coexisting rather than competing. AAIF
+ships the protocols at their working maturity;
+W3C/IETF processes select primitives from those
+working specifications and elevate them to formal
+standards on a longer timeline. The W3C Community
+Group's relationship to ANP is the clearest example:
+ANP ships as a working specification under AAIF-style
+governance; the W3C Community Group is the venue where
+its DID and VC primitives are being prepared for
+elevation to W3C Recommendation status. The pattern
+is the inverse of the historical SDO-first model
+(write the standard, then implement) and matches the
+contemporary internet-infrastructure pattern
+(implement, ship, then standardise).
+
+\paragraph{The license-fragmentation risk.}
+A residual risk that the consortium-versus-SDO
+analysis does not capture is license fragmentation.
+LOKA's CC-BY-NC-SA 4.0 license is the most-visible
+example: the specification is publicly readable but
+not freely re-implementable in a commercial context
+without separate licensing. ACNBP's CC-BY 4.0 license
+is permissive but inappropriate for protocol
+specifications. CC-BY was designed for prose works,
+not normative technical text. Its lack of patent
+provisions has been cited in the
+protocol-implementation community as a concern.
+A2A, MCP, and ANP's Apache 2.0 license (with explicit
+patent grants) is the cleanest license for
+inter-agent protocol specifications at the cutoff;
+the field would benefit from a convention that all
+publicly-published specifications adopt this licensing
+choice or its IETF Trust equivalent.
+
+\subsection{Observability as the third sub-axis}
+\label{sec:governance:observability}
+
+The observability sub-field of Axis 10
+(\S\ref{sec:rubric:axis10}) measures the protocol's
+specification of audit, tracing, and monitoring
+primitives. Table~\ref{tab:governance-license} records
+the per-protocol scores; this subsection unpacks what
+the scores mean operationally and why the field
+distributes the way it does.
+
+\paragraph{Score 0 baseline (unspecified).}
+None of the surveyed protocols scores 0 on
+observability. Every specification mentions logging
+or tracing in at least a non-normative recommendation.
+The baseline matters as a reference point: a protocol
+that did not address observability at all would fail
+production-readiness review at most enterprise
+deployments.
+
+\paragraph{Score 1 (emerging hooks).}
+MCP and ANP sit at level 1. Both specifications
+acknowledge that implementations should log and trace
+events. Neither fixes the trace format, the
+audit-record schema, or the tamper-evidence properties
+of the log. ANP is the closer of the two: it requires
+non-repudiation logs but standardizes no format for
+reading them. The operational consequence is that
+observability is a per-deployment concern rather than a
+portable protocol property. Two MCP servers exposing
+the same tool can log the invocation differently, and
+nothing in the specification makes the two records
+comparable.
+
+\paragraph{Score 2 (trace fields specified).}
+A2A, ACP, and Coral sit at level 2. The cluster is
+reached by two different routes. A2A and ACP specify how
+trace data is carried but not that it be trustworthy:
+A2A through its SSE event stream, ACP through
+OpenTelemetry integration with default exporters plus
+\texttt{TrajectoryMetadata} and
+\texttt{CitationMetadata} carried in the wire format
+itself. ACP is the strongest cell in the group for that
+reason, because putting trace metadata in the wire
+format makes it portable by construction rather than by
+convention. Coral arrives from the other side: \S 8
+mandates a blockchain audit trail, but only for payments
+and team contracts, and specifies no trace or metric
+format around it. What unites the three is the missing
+half. None of them specifies audit-log integrity or
+non-repudiation over the whole interaction, so the audit
+chain remains alterable at the operator's discretion.
+The portability gain is also narrower than the level
+suggests. A2A fixes an event stream but not an
+audit-record schema, so an A2A monitoring system
+designed for Salesforce Agentforce will not work
+unmodified against ServiceNow's A2A implementation.
+
+\paragraph{Score 3 (immutable audit + observability).}
+ACNBP, LOKA, and AGNTCY sit at level 3, and they are the
+three weakest-evidenced cells on this sub-field for three
+different reasons. ACNBP is the cleanest: \S IV.H of the
+spec~\cite{spec_acnbp} normatively requires
+cryptographically protected audit logs, comprehensive
+event logging, privacy-preserving logging, and
+integration with external audit and compliance systems.
+LOKA's level 3 is aspirational. Section 5.1 specifies
+immutable audit trails, real-time ethical auditing, and
+a blockchain ledger recording every action and its
+reasoning, and none of it is implemented at the
+cutoff~\cite{spec_loka}. AGNTCY's level 3 rests on
+shipped tooling rather than on a specified property: a
+dedicated observability sub-project with an
+OpenTelemetry SDK, a telemetry hub, and an
+observe-and-eval working group~\cite{spec_agntcy}. That
+is the most usable observability stack in the surveyed
+set. It is also the one cell where the anchor's first
+clause is not satisfied, because OpenTelemetry
+instrumentation carries trace and metric data without
+making the resulting log tamper-evident, and no AGNTCY
+specification text requires an audit-integrity property.
+We score 3 on the strength of the second clause and flag
+the cell as contestable
+(\S\ref{sec:comparison:derivation}); a strict conjunctive
+reading of the anchor puts AGNTCY at 2.
+
+\paragraph{The implication for cross-tenant deployments.}
+The observability sub-field is the most operationally
+consequential of the three Axis 10 sub-fields for
+production deployments. Multi-tenant deployments
+(O4 of \S\ref{sec:security:open}) require audit
+chains that survive tenant-policy disputes, and
+audit chains at level 1 do not satisfy this
+requirement. The SAGA TEE-anchored gateway proposal
+(\S\ref{sec:security:tee}) is the institutional
+response to this gap; the protocol-level response is
+to elevate observability to level 3 with normative
+audit-integrity properties, which only ACNBP and
+AGNTCY currently do.
+
+\subsection{What governance predicts about protocol survival}
+\label{sec:governance:survival}
+
+Three predictions about protocol survival follow from the
+governance analysis. This survey is not meant to make
+forecasts. However, the institutional patterns are stable
+enough to support predictions on the survey's
+six-to-nine-month review horizon.
+
+\paragraph{AAIF protocols will dominate enterprise
+adoption.}
+A2A, MCP, and (probably) AGNTCY will continue to
+dominate enterprise SaaS adoption because the AAIF
+governance model matches enterprise procurement
+preferences: named foundation steward, named founding
+members from the enterprise vendor universe, permissive
+license, monthly working-group cadence. The technical
+limitations the rubric records will be addressed within
+AAIF working groups on a timeline that does not require
+adopters to wait for SDO outputs. The protocols may
+remain weaker than ACNBP on threat coverage and weaker
+than ANP on identity, but the gap will narrow as
+working groups address specific gaps.
+
+\paragraph{W3C-elevated ANP primitives will become
+the identity baseline.}
+The W3C Community Group's elevation of ANP-style DID
+and VC primitives to W3C Recommendation status is the
+single most consequential institutional event the
+survey can foresee for the field. Once elevated, the
+identity-layer baseline shifts from OAuth-bearer to
+DID-and-VC, and A2A, MCP, and AGNTCY will adopt the
+elevated primitives through their own working groups.
+The timeline is uncertain. The W3C Process
+Document~\cite{w3c_process_doc} specifies a multi-year
+Working-Draft / Candidate-Recommendation /
+Proposed-Recommendation / Recommendation pipeline. That
+pipeline historically takes between eighteen months and
+three years to traverse. But the direction is clear.
+
+\paragraph{LOKA and ACNBP will remain reference
+designs rather than deployed protocols.}
+Neither protocol has an institutional home. LOKA rests on
+academic authorship, ACNBP on individual authorship, and
+neither sits under a foundation or SDO. The two protocols
+will continue to be cited as the technically-rigorous
+reference designs against which the deployed protocols
+are measured. But they will not themselves accumulate
+production deployment. The pattern is the
+inter-agent analogue of CSP, Pi-calculus, and the
+process-algebra family in the
+concurrent-programming-language space: technically
+foundational, persistently cited, never widely
+deployed.
+
+Scope compounds the absent-steward problem, and the two
+should not be conflated. The argument of this paragraph is
+Cisco's, made when we contacted it about this survey, and
+it changed a prediction rather than a description. ACNBP
+specifies discovery, identity
+management, communication, and trust in one document. That
+breadth is what earns it the highest threat-coverage count
+in the surveyed set, and it is also what makes it hard to
+adopt: an implementer cannot take the capability-binding
+ceremony without also taking the naming service and the
+trust model. Neither the Web nor the Internet arrived as a
+single architecture. Both are collections of narrow
+standards that compose, and each was adopted one piece at a
+time. The prediction above therefore has a corollary that
+is actionable rather than merely pessimistic. ACNBP's
+mechanisms are likelier to reach production factored out
+than whole, carried into A2A or MCP as separate extensions
+rather than adopted as an architecture. The delegation
+chain of \S\ref{sec:security:authz} is the natural first
+candidate, because it is the piece with the clearest
+standalone value and the fewest dependencies on the rest of
+the specification.
+
+\paragraph{The composite Axis 10 lesson.}
+The composite Axis 10 reading
+(\S\ref{sec:rubric:axis10}) deliberately resists
+aggregation into a single number, and the governance
+analysis confirms why: the steward, license, and
+observability sub-fields each predict different
+deployment outcomes, and combining them into a
+single score would obscure the predictions that the
+three sub-fields make jointly. Institutional governance,
+permissive licensing, and high observability together
+are necessary for production adoption at enterprise
+scale; any one of them missing is a material gap that
+the others cannot fully compensate for. The
+field's hybrid AAIF-plus-SDO pattern
+(\S\ref{sec:governance:tradeoff}) is the
+institutional architecture best matched to producing
+all three.

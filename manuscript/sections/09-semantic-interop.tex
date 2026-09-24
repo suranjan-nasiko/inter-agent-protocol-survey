@@ -1,0 +1,348 @@
+\section{Semantic Interoperability}
+\label{sec:semantic}
+
+Semantic interoperability is the single rubric axis on which no
+surveyed protocol \emph{ships} a level-3 mechanism
+(\S\ref{sec:comparison:matrix}, observation 3). The cluster
+sits at level 1, free-text descriptions over typed schemas.
+A2A, MCP, ACP, AGNTCY, and Coral all occupy this anchor. ANP at
+level 2 (JSON-LD with the Agent Description Protocol) is the only
+protocol that ships an ontology-base mechanism. LOKA at level 3
+is explicitly aspirational; the Polyglot Intent Engine and
+capability ontologies that the LOKA white paper~\cite{spec_loka}
+describes are not implemented at the cutoff. This gap is
+structural in the precise sense that no contemporary protocol's
+roadmap promises to close it within the next revision cycle.
+The field is unsure that closing it is the right objective.
+
+This section unpacks the gap. Section~\ref{sec:semantic:syntactic}
+explains why level 1 is the local equilibrium for LLM-era
+protocols even though it was a known dead-end in the FIPA-ACL era.
+Section~\ref{sec:semantic:capabilities} reviews the
+capability-description schemas that the contemporary protocols
+do ship, and the typed-schema-plus-free-text-description pattern
+they share. Section~\ref{sec:semantic:ontology} treats the
+ontology and skill-alignment proposals in the
+literature~\cite{semantic_driven, beyond_message_passing} and
+locates LOKA's design within them. Section~\ref{sec:semantic:fragmentation}
+closes with the schema-fragmentation risk that the cluster's
+free-text equilibrium is silently producing.
+
+\subsection{Beyond syntactic message passing}
+\label{sec:semantic:syntactic}
+
+The contemporary protocols specify message \emph{syntax} with
+considerable rigour. JSON-RPC 2.0 envelopes, typed Part vocabularies,
+JSON Schema for tool input, content-type negotiation: these
+are well-specified and uniformly applied. What none of the
+industry-led protocols specifies, beyond a brief free-text
+description, is what the message \emph{means}: what the
+\texttt{find\_billing\_record} skill returns, what units the
+\texttt{amount} field is in, what the agent should do if the
+input parameter falls outside an implicit acceptable range.
+Meaning is left to the natural-language description and to
+the LLM-receiver's ability to interpret it.
+
+The argument for this equilibrium (which we developed in
+\S\ref{sec:background:llm-disruption}) is that LLM agents can
+recover from semantic mismatches through inference and clarifying
+questions in ways that FIPA-era deterministic parsers could not.
+Two LLM agents with reasonable defaults can interoperate over a
+thin envelope without explicit ontology alignment, and the
+flexibility this affords is a real and significant advantage.
+Agent designers can author skills without committing to a shared
+vocabulary.
+
+The argument against the equilibrium is that ``recovery through
+inference'' is exactly the surface that prompt injection
+(\S\ref{sec:security:injection}), capability escalation
+(\S\ref{sec:security:authz}), and contextual-integrity violations
+(\S\ref{sec:security:privacy}) attack. A free-text skill
+description that an LLM caller interprets ``correctly enough''
+under normal conditions can be re-interpreted under
+adversarial conditions to authorise capabilities the
+description did not intend. The \emph{Beyond Message Passing}
+analysis~\cite{beyond_message_passing} treats this argument
+in depth and concludes that the free-text equilibrium is
+\emph{fundamentally insufficient} for
+cross-organizational interoperability under any threat model
+the contemporary literature takes seriously. The
+\emph{Semantic-Driven AI Agent Communications} line~\cite{semantic_driven}
+reaches a similar conclusion from a different starting point.
+It argues that the inference cost of recovering meaning through
+LLM reasoning at every message boundary is operationally
+unsustainable at scale, regardless of the security argument.
+
+The protocol-design implication is that level 1 is not a
+sustainable equilibrium even on its own terms. The question
+the field has not answered is what level 2 should look like
+that captures enough meaning to address the threats and the
+inference cost without re-introducing FIPA-SL's authoring
+overhead.
+
+\subsection{Capability description schemas}
+\label{sec:semantic:capabilities}
+
+The capability-description schemas the contemporary protocols
+ship cluster around four design choices that are worth
+enumerating because the cluster's apparent convergence on a
+common pattern hides important differences.
+
+\paragraph{A2A's typed Skill objects.}
+A2A's AgentCard exposes a \texttt{skills} array whose elements
+are typed Skill objects with \texttt{id},
+\texttt{name}, \texttt{description}, \texttt{tags}, and
+optional \texttt{inputSchema} and \texttt{outputSchema}
+fields~\cite{spec_a2a}. The \texttt{description} field is
+free text; the schemas, when present, are JSON Schema. The
+de-facto convention in deployments is to omit the schemas
+and rely on the description, which is the failure mode that
+prompts the rubric's level-1 score. The A2A working group has
+discussed elevating JSON Schema from optional to
+\emph{recommended} for the next revision, which would not
+move the rubric score but would meaningfully reduce the
+free-text surface in production deployments.
+
+\paragraph{MCP's tool input contracts.}
+MCP's \texttt{tools} list exposes each tool with
+\texttt{name}, \texttt{description}, and a required
+\texttt{inputSchema}~\cite{spec_mcp}. The schema is JSON
+Schema, the description is free text, and the implicit
+contract is the model that A2A, ACP, and AGNTCY all follow.
+The schema constrains the inputs the tool will accept. The
+description tells the LLM what the tool does.
+MCP's level 2 on Axis 7 (multi-modal handling) and level 1
+on Axis 9 reflect the same architectural choice: typed
+inputs (Axis 7 typing for content blocks; Axis 9 typing for
+parameters) without typed semantics.
+
+\paragraph{ACP's multipart capability bundles.}
+ACP's capability-description schema differs from MCP and A2A
+in carrying capability descriptions as multipart MIME
+bundles rather than JSON Schema~\cite{spec_acp}. The
+operational advantage is that the schema can carry richer
+content (example inputs, sample outputs, supplementary
+documentation) without the brittleness of embedding it all
+in a JSON string. The semantic advantage is small: the
+multipart bundle is still authored in free text. The
+rubric score is the same as A2A's and MCP's.
+
+\paragraph{AGNTCY's Open Agentic Schema Format (OASF).}
+The OASF specification~\cite{spec_agntcy} is the most
+explicit capability-descriptor effort of the cluster. OASF
+defines a schema for agent descriptors that is
+intentionally compatible with both A2A AgentCards and MCP
+server manifests, with the design intent of allowing a
+single directory to serve heterogeneous agents. OASF
+descriptors include capability descriptions, but the
+descriptions are still free text within typed fields.
+OASF's contribution is at Axis 1 (federated directory
+with structured descriptors) rather than at Axis 9; the
+schema unifies the meta-structure of descriptors across
+protocols, not the semantics of capability descriptions.
+
+\paragraph{The shared pattern.}
+All four protocols share the pattern: \emph{typed envelope,
+typed parameters, free-text semantics}. The pattern is
+deliberate. Each protocol's designers considered
+alternative patterns and chose this one. The
+convergence is evidence that it is the local equilibrium of
+the contemporary design space. The question for level 2 is
+what changes the equilibrium.
+
+\subsection{Ontology and skill alignment}
+\label{sec:semantic:ontology}
+
+The proposals in the literature for moving beyond level 1
+divide into two families.
+
+\paragraph{Ontology-base proposals.}
+The first family attempts to anchor capability descriptions
+in a shared ontology of concepts. ANP's JSON-LD
+serialization~\cite{spec_anp} is the canonical contemporary
+example, scoring level 2 on Axis 9. The ANP AgentDescription
+document uses JSON-LD's
+\texttt{@context} mechanism~\cite{w3c_json_ld} to bind
+capability names to URIs in a shared vocabulary; agents
+that understand the
+vocabulary can match capabilities by URI rather than by
+free-text similarity. The cost is authoring overhead: every
+capability must be located in the vocabulary, and the
+vocabulary itself must be maintained against drift.
+
+That cost is not hypothetical, and the evidence arrived
+from the one protocol that had paid it. Post-cutoff, ANP's
+1.1 release line moved the Agent Description document away
+from JSON-LD to plain JSON, while the Discovery
+specification kept JSON-LD and its \texttt{@context}
+mechanism~\cite{spec_anp_v11}. The stated reason was
+readability, and the community describes the Linked Data
+philosophy as retained in the design even where the
+serialization is not. The survey does not restate the Axis
+9 score, which is fixed at the 2026-Q1 cutoff. The
+direction still matters for this section's argument. The
+only shipping level-2 mechanism in the surveyed set
+narrowed its ontology commitment at the description layer,
+which is the layer a capability consumer reads. So the
+authoring overhead above is not merely a cost a designer
+weighs in the abstract. It is a cost that a protocol
+carrying the mechanism in production chose to stop paying
+in the document where it was most visible. Any proposal to
+move the field from level 1 to level 2 must answer that,
+and a proposal that assumes ontology adoption is
+monotonic is contradicted by the one case study
+available.
+
+The LOKA design takes the ontology proposal furthest among
+the surveyed protocols. The LOKA capability ontologies
+(\S 3.1) commit to a typed
+capability hierarchy with intent schemas; the Polyglot
+Intent Engine (\S 4.5.2) is the proposed mechanism for
+translating between the LOKA ontology and FIPA-ACL, A2A
+AgentCards, and the Open Voice Network's intent
+specifications. The mechanism is aspirational and no
+implementation exists at the cutoff. The design is still
+the most explicit articulation in the surveyed set of what
+a level-3 ontology-anchored protocol would look like.
+
+The \emph{Beyond Message Passing} proposal~\cite{beyond_message_passing}
+generalises the ontology-base direction into a
+vocabulary-and-matcher architecture: protocols commit to a
+shared vocabulary of capabilities, intents, and outcomes;
+agents that author skills locate them in the vocabulary;
+matchers at the protocol layer route requests to capabilities
+by ontology proximity rather than by free-text similarity.
+The proposal is at the pre-specification stage; it has not
+been adopted into any protocol's roadmap.
+
+\paragraph{Semantic-matchmaker proposals.}
+The second family is the semantic-matchmaker pattern. Rather
+than committing to a shared ontology authored in advance, the
+matchmaker proposes that agents author capabilities in free
+text and that a semantic-similarity matcher (typically
+embedding-based) at the discovery layer maps requests to
+capabilities by embedding distance. The
+\emph{Semantic-Driven AI Agent Communications} analysis
+\cite{semantic_driven} surveys the matchmaker space and
+identifies its advantages: no ontology to maintain, no
+authoring overhead, and graceful degradation when the
+request doesn't match any single capability cleanly.
+
+The cost is what the security analysis
+(\S\ref{sec:security:injection}) already identifies:
+embedding-based matching is exactly the surface that
+adversarial natural-language content attacks. A
+capability description that ranks highly under semantic
+similarity to a malicious request is invoked by the
+matchmaker without further constraint; the rubric's level
+2 anchor (\emph{ontology-base or semantic-discovery indexing})
+intentionally groups both approaches because both fail in
+the same way under adversarial conditions.
+
+\paragraph{The FIPA-SL retrospective.}
+A useful question to ask of both families is why FIPA-SL's
+full ontology commitment did not survive the early 2000s.
+The historical answer is twofold: the authoring cost was
+high (ontologies had to be defined, then maintained, then
+agreed across deployments) and the matching infrastructure
+was brittle (translation services between ontologies were
+the bottleneck of every cross-organizational deployment).
+Both arguments still apply, modulated by the LLM era's
+capacity to bridge ontology mismatches through inference.
+The contemporary proposals take this lesson seriously: ANP's
+JSON-LD vocabulary is deliberately lighter than FIPA-SL;
+LOKA's Polyglot Intent Engine is a translator-of-translators
+that takes ontology mismatch as a first-class operational
+concern.
+
+\subsection{The schema fragmentation risk}
+\label{sec:semantic:fragmentation}
+
+The free-text equilibrium produces a quieter risk that the
+threat-coverage literature does not catalogue but that
+practitioners report at scale: \emph{schema fragmentation}.
+Two organisations deploying A2A agents with
+free-text skill descriptions will, with high probability,
+adopt slightly different conventions for what a billing
+query looks like, what a customer-record schema includes,
+what units \texttt{amount} is denominated in. Each
+organisation's deployments work internally; cross-organizational
+calls fail in ways that the protocol cannot diagnose. The
+LLM-receiver's interpretation is the only place where the
+mismatch surfaces, and the failure mode is silent
+mis-execution rather than explicit error.
+
+Three consequences are visible in the
+deployment literature at the cutoff.
+
+\paragraph{The inter-organisational call cost.}
+Cross-organisational A2A calls have been documented in the
+AAIF interoperability working group's public
+discussions~\cite{lf_aaif} to succeed at substantially
+lower rates than intra-organisational calls, with the gap
+attributed overwhelmingly to schema mismatch rather than to
+transport failure or authentication failure. The mismatch is
+between skills with the same name and similar descriptions
+that interpret parameters differently. The empirical finding
+is consistent with the AgentLeak benchmark's identification
+of inter-agent communication as the dominant
+sensitive-content failure surface
+(\S\ref{sec:security:privacy})~\cite{agentleak}: the same
+parameter-interpretation disagreement that causes a
+billing query to fail across organisations is what makes a
+clarifying-question retry leak content the principal did
+not authorise the remote agent to receive.
+
+\paragraph{The retrofit cost.}
+Organisations that begin with free-text skill descriptions
+and later attempt to migrate to JSON Schema or OASF
+descriptors report substantial retrofit cost. The reason is
+that production deployments grow callers that depend on
+the free-text behaviour, and adding a schema after the
+fact requires either matching the schema to the de-facto
+behaviour (which removes the schema's value as a contract)
+or breaking the callers (which removes the value of
+migration). The retrofit pattern is sometimes referred to
+in the deployment literature as ``the second-system schema
+penalty.''
+
+\paragraph{The matchmaker drift.}
+Deployments that rely on embedding-based semantic
+matchmakers report drift: the same query that returned
+capability X under last quarter's embedding model returns
+capability Y under this quarter's, because the embedding
+space has shifted with the underlying foundation model.
+The cost is that capability invocation is not
+reproducible across foundation-model upgrades; the
+audit-log trail must record the embedding-model
+identifier to be useful for after-the-fact diagnostics.
+No contemporary protocol's audit specification
+(\S\ref{sec:security:tee}) carries this discipline.
+
+\paragraph{The protocol-versus-orchestrator question.}
+The dispatch question that closes this section is whether
+the schema-fragmentation risk should be addressed at the
+protocol layer or at the orchestrator layer. The
+\emph{Beyond Message Passing} position is that it must
+be at the protocol layer because cross-organisational
+deployments cannot assume a common orchestrator. The
+\emph{Semantic-Driven} position is that the orchestrator
+is the natural place for matchmaker logic because the
+matcher needs visibility into the principal's intent.
+The survey takes no view, since the question is properly an
+open problem (\S\ref{sec:openproblems}). We observe
+that the matchmaker drift consequence above is
+operationally visible to whichever layer owns the
+matcher, and that the audit-log discipline necessary to
+diagnose it is a protocol concern regardless of where the
+matcher itself lives.
+
+The principal conclusion of \S\ref{sec:semantic} is that
+the contemporary protocols' level-1 cluster is a known
+local equilibrium with known costs that the field has not
+yet decided how to escape. The escape route is the
+single largest research-and-standardization question on
+the survey's open-problems agenda
+(\S\ref{sec:openproblems}); the candidate answers
+catalogued here will reappear there as the basis for the
+research-and-standardization recommendations.

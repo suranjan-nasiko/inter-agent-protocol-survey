@@ -1,0 +1,211 @@
+\section{Background and Heritage}
+\label{sec:background}
+
+The 2024 to 2026 wave of inter-agent protocols is not an
+unprecedented invention. It is the third generation of an
+agent-communication-language (ACL) lineage that began in the
+mid-1990s, was largely abandoned during the service-oriented
+architecture era, and has been recapitulated, often without
+attribution, atop the modern JSON-RPC 2.0 and OpenAPI
+substrates. Reading the contemporary specifications against their
+heritage reveals why some design choices recurred verbatim
+(performative-style message types, capability descriptors,
+matchmaker-style discovery) and why others (full ontology
+commitments, layered semantics in the FIPA-ACL sense) have not
+returned despite long-standing arguments in their favor. This
+section locates each axis of the rubric in the prior art whose
+absence the LLM-era protocols are now re-discovering.
+
+\subsection{FIPA-ACL and KQML: what worked, what didn't}
+\label{sec:background:fipa-kqml}
+
+KQML emerged from the DARPA Knowledge Sharing Effort in the
+early 1990s and became the first widely-used agent communication
+language~\cite{finin1997kqml}. Its central insight was the
+separation of communicative \emph{performatives} (tell, ask,
+subscribe, achieve) from message content. A message was a
+nested expression. The outermost form indicated the
+illocutionary force of the communication: whether the sender
+was asserting a fact, requesting an action, or committing to a
+future obligation. The inner content remained
+language-agnostic. The Foundation for Intelligent Physical
+Agents (FIPA) standardized a refined successor, FIPA-ACL,
+in 2002~\cite{fipa_acl}, anchoring the performative vocabulary
+in Searle's speech-act theory~\cite{searle1969speechacts} and
+adding interaction protocols (request, contract-net, query)
+that prescribed legal performative sequences.
+
+What worked in FIPA-ACL and KQML, and what carries through to the
+2024 to 2026 wave, is the recognition that an inter-agent message
+carries more than payload: it carries an \emph{illocutionary
+contract} between sender and receiver. A message tagged as a
+request commits the sender to interpret a refusal differently
+than the same payload tagged as an inform. Modern A2A messages,
+ACP request envelopes, and MCP tool-call responses all carry an
+implicit performative tag (typically encoded in a method name or
+event type field) that performs the same function. The
+contract-net interaction protocol has task announcement, bidding,
+award, and completion phases~\cite{smith1980contractnet}. It
+recurs in ACNBP's ten-step capability
+negotiation and binding flow~\cite{spec_acnbp}, in Coral's team
+contracts~\cite{spec_coral}, and (more implicitly) in A2A's
+task lifecycle states~\cite{spec_a2a}. FIPA adopted it as a
+named interaction protocol; the 2024 to 2026 protocols
+re-derive the phase structure without citing it.
+
+What did not work, and is not returning at the protocol layer,
+was the full ontology commitment. FIPA-ACL specified that the
+content language (typically FIPA-SL) and the ontology of
+predicates and terms be declared in every message, with the
+expectation that participating agents share a common ontology
+or invoke a translation service. In practice, ontology
+maintenance proved unsustainable: cross-organizational
+deployments stalled on ontology mismatches that no available
+matchmaker could resolve, and the practical FIPA deployments of
+the late 1990s and early 2000s eventually shifted to schemaful
+but human-mediated message designs. The contemporary protocols
+have re-discovered the gap. Section~\ref{sec:semantic} treats
+this in depth: A2A's free-text \texttt{Skill.description}
+field~\cite{spec_a2a}, MCP's natural-language tool descriptions,
+and ANP's JSON-LD vocabulary~\cite{spec_anp} occupy three
+different points on the spectrum between unconstrained text
+(easy authoring, brittle interoperability) and full
+ontology commitment (heavy authoring, machine-tractable
+matching). None of them re-adopts FIPA-SL.
+
+\subsection{Service-oriented heritage: SOAP/WSDL \(\rightarrow\) REST \(\rightarrow\) OpenAPI}
+\label{sec:background:soa}
+
+Between the decline of FIPA in the mid-2000s and the rise of
+LLM-era agents, inter-system communication consolidated around
+the service-oriented stack. SOAP, with its XML envelope and
+WSDL service descriptors, attempted to be the universal RPC
+substrate but suffered from the same maintenance cost that
+sank FIPA: descriptor proliferation, ontology drift, tooling
+brittleness. REST emerged as the lighter-weight
+alternative~\cite{fielding2002rest}, trading machine-readable
+contract precision for human-readable URL conventions and
+HTTP verb semantics. OpenAPI (formerly
+Swagger) restored a machine-readable contract layer atop REST
+without imposing SOAP's envelope overhead~\cite{spec_openapi}.
+
+The 2024 to 2026 inter-agent protocols inherit two structural
+choices from this lineage. First, all of them are HTTP-based
+except where DID resolution and on-chain settlement
+mandate alternative substrates. A2A runs over HTTPS+JSON-RPC,
+MCP over stdio or HTTPS+SSE, ACP over REST+multipart, and ANP
+over HTTPS+JSON-LD~\cite{spec_a2a, spec_mcp, spec_acp,
+spec_anp}. Second, the practical contract format is JSON
+Schema or its equivalents: MCP tool descriptors carry
+JSON-Schema input definitions, A2A AgentCards carry typed
+Skill objects, ACP carries multipart MIME types for richer
+payloads. None of the protocols seriously revisits XML.
+
+JSON-RPC 2.0~\cite{spec_jsonrpc} in particular has emerged as
+the lingua franca of the tool-binding and peer-messaging
+layers. MCP adopted it
+directly; A2A specifies JSON-RPC 2.0 as the primary transport
+with optional gRPC and REST bindings. The choice is not
+arbitrary: JSON-RPC carries enough envelope structure (id,
+method, params, result, error) to support correlated
+request-response semantics without the schema-language
+complexity of SOAP, and its compatibility with HTTP and
+WebSocket transports allows the same message format to flow
+through synchronous calls, streaming subscriptions, and
+batched bulk operations.
+
+\subsection{The LLM disruption: why old ACLs are returning}
+\label{sec:background:llm-disruption}
+
+The structural disruption introduced by LLM-based agents is
+that the sender of a message and the receiver of a message can,
+for the first time, share a flexible interlingua: natural
+language. That interlingua absorbs schema mismatches that would have
+crashed a FIPA-era agent. An LLM-based receiver can interpret a
+loosely-typed request, identify ambiguities, and either resolve
+them by inference or ask a clarifying question. The strict
+contract precision that FIPA-SL demanded is partially obviated:
+two LLM agents with reasonable defaults and natural-language
+fluency can interoperate over a thin envelope without explicit
+ontology alignment. This is why the contemporary protocols are
+willing to ship with free-text tool and skill descriptions
+that would have been considered fatal under FIPA: the receiver
+is presumed to handle the schema impedance through reasoning.
+
+The flip side is that this flexibility re-introduces every
+attack surface that FIPA-era specifications either treated
+formally or did not have to face. Prompt injection in tool
+inputs~\cite{zhan2024injecagent} has no FIPA analogue because
+FIPA-era content was parsed deterministically. Capability
+escalation through ambiguous descriptions, supply-chain attacks
+through registry poisoning, and replay attacks against
+loosely-versioned tools were either out of scope or were
+handled by infrastructure layers (X.509 PKI for service
+authentication, WS-Security for SOAP envelopes) that the
+contemporary protocols have not uniformly re-adopted.
+Section~\ref{sec:security} catalogues the resulting threat
+surface in detail.
+
+The LLM disruption thus simultaneously reduces the need for
+ontological strictness at the protocol layer and increases the
+need for security primitives that the protocol layer did not
+historically have to specify. The 2024 to 2026 protocols have
+inherited the loosely-typed message style of LLM tool calling
+and are now retroactively bolting on the identity, delegation,
+audit, and threat-modeling primitives that FIPA-era systems
+either took for granted (because they ran on closed corporate
+networks) or did not have to face (because their interpreters
+were deterministic). The rubric of \S\ref{sec:rubric} is
+constructed to render these retrofits comparable across
+protocols.
+
+\subsection{Terminology and scope}
+\label{sec:background:terms}
+
+We adopt the following terminology uniformly throughout the
+survey, departing from the more permissive usage in the prior
+surveys where context demands precision.
+
+\paragraph{Agent.} A computational entity that can produce or
+consume messages on an inter-agent protocol and that holds an
+identity distinguishable to other entities on that protocol.
+The agent need not be an LLM; the rubric scores the protocol,
+not the implementation behind a protocol endpoint.
+
+\paragraph{Protocol.} A specification governing the syntax,
+semantics, and sequencing of messages exchanged between agents.
+We include only protocols with published written specifications;
+implementation-defined behaviors of specific agent frameworks
+(LangGraph, AutoGen, ADK) are not protocols in this sense.
+
+\paragraph{Message.} A single unit of protocol-level
+communication, with envelope metadata distinguishable from
+payload content. We use ``message'' for both synchronous
+request/response units and asynchronous event-stream chunks
+where the envelope semantics are equivalent.
+
+\paragraph{Task.} A first-class lifecycle-bearing object that
+groups a sequence of related messages with shared state and a
+terminal status. A2A's \texttt{Task}~\cite{spec_a2a}, ACNBP's
+bound execution unit~\cite{spec_acnbp}, and Coral's persistent
+thread~\cite{spec_coral} are tasks in this sense; MCP's
+historically stateless request/response pattern is not, though
+the emerging MCP Tasks extension begins to add task semantics.
+
+\paragraph{Capability.} A named, typed, optionally
+parameterized operation that an agent declares it can perform.
+MCP tools, A2A skills, ACNBP capability descriptors, and Coral
+tools (via MCP integration) are capabilities in this sense.
+We distinguish capabilities (what the protocol declares the
+agent can do) from \emph{intents} (what a calling agent
+indicates it wants done), the latter recurring as a primitive
+in ANP and LOKA but not in tool-binding-style protocols.
+
+\paragraph{Principal.} The human, organizational, or
+machine identity on whose behalf an agent acts. Principal
+delegation is the cryptographic or
+policy-enforced statement that an agent is authorized to act
+on behalf of a named principal. It becomes a first-class concern
+in the commerce-settlement layer (AP2, Visa TAP, ERC-8004) and
+in the security analysis of Sections~\ref{sec:security}
+and~\ref{sec:governance}.

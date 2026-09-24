@@ -1,0 +1,87 @@
+# Industry adoption matrix source: populates manuscript/tables/table4-industry-adoption.tex.
+#
+# Status vocabulary (per source-tier discipline R4):
+#   ga        : generally available / shipped to production
+#   pilot     : in pilot or limited preview
+#   announced : announced but not yet shipping
+#
+# `evidence` is the source for the *status* claim only (Tier-4 vendor-blog
+# claims are used only for "X announced Y on date Z" facts, never for
+# behavioral claims about the deployment).
+
+verticals:
+  - enterprise_saas
+  - commerce_payments
+  - healthcare
+  - finance
+
+protocols_compared:
+  - a2a
+  - mcp
+  - acp
+  - agntcy
+  - commerce_stack
+
+# Populated entries (2026-Q1 cutoff). Healthcare and finance carry fewer
+# named deployments because both verticals favor proprietary integration
+# pathways and disclose less publicly.
+
+matrix:
+  enterprise_saas:
+    a2a:
+      - { vendor: Salesforce Agentforce,   status: ga,        evidence: vendor_blog }
+      - { vendor: ServiceNow AI Agents,    status: ga,        evidence: vendor_blog }
+      - { vendor: SAP Joule,               status: pilot,     evidence: vendor_blog }
+      - { vendor: Atlassian Rovo,          status: ga,        evidence: vendor_blog }
+      - { vendor: Microsoft Copilot Studio, status: ga,       evidence: vendor_blog }
+      - { vendor: Box AI Agents,           status: ga,        evidence: vendor_blog }
+      - { vendor: Workday Agent System,    status: pilot,     evidence: vendor_blog }
+    mcp:
+      - { vendor: GitHub Copilot,          status: ga,        evidence: vendor_blog }
+      - { vendor: Anthropic Claude Code,   status: ga,        evidence: spec_mcp }
+      - { vendor: Cursor IDE,              status: ga,        evidence: vendor_blog }
+      - { vendor: Replit Agent,            status: ga,        evidence: vendor_blog }
+      - { vendor: Sourcegraph Cody,        status: ga,        evidence: vendor_blog }
+      - { vendor: JetBrains AI Assistant,  status: ga,        evidence: vendor_blog }
+    acp:
+      - { vendor: IBM watsonx Orchestrate, status: ga,        evidence: spec_acp }
+      - { vendor: IBM BeeAI internal,      status: pilot,     evidence: spec_acp }
+    agntcy:
+      - { vendor: Cisco Webex AI Agent,    status: pilot,     evidence: spec_agntcy }
+    commerce_stack: []
+
+  commerce_payments:
+    a2a:
+      - { vendor: Shopify (A2A merchant agents), status: pilot, evidence: vendor_blog }
+    mcp:
+      - { vendor: Stripe MCP,              status: ga,        evidence: vendor_blog }
+    acp: []
+    agntcy: []
+    commerce_stack:
+      - { vendor: "PayPal (AP2)",          status: ga,        evidence: spec_ap2 }
+      - { vendor: "Visa TAP",              status: ga,        evidence: spec_visa_tap }
+      - { vendor: "Mastercard Agent Pay",  status: pilot,     evidence: vendor_blog }
+      - { vendor: "American Express",      status: announced, evidence: vendor_blog }
+      - { vendor: "ERC-8004 reference impls", status: pilot,  evidence: spec_erc8004 }
+
+  healthcare:
+    a2a:
+      - { vendor: Epic agent connectivity, status: pilot,     evidence: vendor_blog }
+      - { vendor: Cedars-Sinai + Anthropic, status: pilot,    evidence: vendor_blog }
+    mcp:
+      - { vendor: Hippocratic AI (internal), status: ga,      evidence: vendor_blog }
+      - { vendor: Nuance DAX Copilot,      status: ga,        evidence: vendor_blog, note: "proprietary MCP-style" }
+    acp: []
+    agntcy: []
+    commerce_stack: []
+
+  finance:
+    a2a:
+      - { vendor: Bloomberg AI (selected feeds), status: pilot, evidence: vendor_blog }
+    mcp:
+      - { vendor: BlackRock Aladdin AI,    status: pilot,     evidence: vendor_blog, note: "internal MCP for tool integration" }
+      - { vendor: JPMorgan IndexGPT family, status: pilot,    evidence: vendor_blog }
+    acp: []
+    agntcy: []
+    commerce_stack:
+      - { vendor: "DTCC (settlement agent pilots)", status: pilot, evidence: vendor_blog }

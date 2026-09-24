@@ -1,0 +1,383 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+The 2024 to 2026 wave of inter-agent protocols is the
+third generation of an agent-communication-language
+lineage that began with KQML and FIPA-ACL in the
+mid-1990s. The contemporary wave differs from its
+predecessors in two structural ways: the receivers
+of inter-agent messages are LLMs with a flexible
+natural-language interlingua, which absorbs schema
+mismatches the FIPA era could not handle; and the
+protocols carry a third architectural layer
+(commerce settlement) that no prior wave needed to
+address. The flexibility is the source of the
+contemporary protocols' rapid adoption and of their
+distinctive threat surface; the third layer is the
+source of the institutional traction the
+agentic-commerce stack has accumulated in twelve
+months.
+
+This survey contributed seven distinct artifacts to the
+literature on this wave
+(\S\ref{sec:intro:contributions}). Contributions C1 to C4
+are survey contributions. \textbf{C1}: a
+uniform ten-axis rubric, applied to the eight
+tool-binding and peer-messaging protocols of the thirteen
+surveyed, rendered as
+Table~\ref{tab:rubric-matrix},
+Figure~\ref{fig:heatmap}, and Figure~\ref{fig:radar}.
+\textbf{C2}: first-class treatment of the
+agentic-commerce stack (AP2, Visa TAP, Mastercard
+Agent Pay, ERC-8004, UCP) as a third architectural layer
+of inter-agent coordination, alongside tool-binding
+(MCP and family) and peer-messaging (A2A and family).
+\textbf{C3}: an industry-adoption map across four
+verticals (enterprise SaaS, agentic commerce and
+payments, healthcare, finance) with named production
+deployments, rendered as
+Table~\ref{tab:industry-adoption}. \textbf{C4}: a
+machine-readable companion artifact
+(\texttt{data/protocol-scores.yaml},
+\texttt{data/threat-coverage.yaml},
+\texttt{data/industry-adoption.yaml}, and figure
+regeneration scripts) that lets the rubric scores
+remain re-runnable and updatable as protocol
+versions drift across the 6 to 9 month review cycle.
+The artifact makes each score traceable and each figure
+regenerable. It does not stand in for a second rater,
+which the survey does not have
+(\S\ref{sec:rubric:calibration}).
+
+Contributions C5, C6, and C7 are protocol-design
+proposals derived from the open-problems agenda the
+survey identifies, presented in \S\ref{sec:proposals}.
+\textbf{C5} is the OWA scoping scheme: a three-tier
+\emph{org / workspace / agent} URI extending the
+\texttt{agent://} scheme of
+Rodriguez~\cite{agent_uri_scheme} with an explicit workspace
+tier that no contemporary identifier scheme provides.
+\textbf{C6} is the AGRP guardrails envelope: a normative
+extension to A2A wrapping every cross-boundary message
+with classification labels, a fingerprint-evidenced
+redaction log on the spans the egress filter touched,
+and cryptographic attestation that the filter ran.
+The envelope is partitioned into two normative assurance
+tiers. A receiver can then distinguish a sender's claim
+that a filter ran (Tier~1) from evidence signed by a
+boundary the sender does not control (Tier~2). An
+optional log-anchored sub-tier covers adversarial-audit
+contexts.
+\textbf{C7} is the ACSP context selection envelope: a
+sibling extension to A2A that records the sender's
+declared context-selection step itself: which candidate
+items were considered, which were kept, which were
+dropped, under which token budget and approximation
+objective, with a signed wire-level audit log whose
+observable invariants the receiver can verify, anchored on the PACMS reference
+implementation~\cite{pacms_cikm_demo}. The three
+proposals are co-designed: OWA names the boundary, ACSP
+selects which items cross it, AGRP redacts the spans
+within those items. The triplet closes a single loop of
+naming, selection, and attestation. No pair
+closes that loop individually.
+
+The six principal findings of the survey are
+worth restating in compact form.
+
+\paragraph{Finding 1: The contemporary protocols
+specialise rather than compete.}
+The most-debated apparent rivalry in the literature
+is MCP versus A2A. It is a category error
+(\S\ref{sec:taxonomy:complementary}). The two
+protocols occupy different architectural layers of
+the three-layer taxonomy and compose in production
+(\S\ref{sec:adoption:saas}) rather than
+substituting. The same compositional logic extends
+through the commerce-settlement layer and through
+the ACP, AGNTCY, ANP, and Coral peer-messaging
+alternatives.
+
+\paragraph{Finding 2: No protocol scores uniformly
+high on the rubric.}
+The rubric matrix
+(Table~\ref{tab:rubric-matrix}) renders an
+observation the prior surveys could not make
+precise: the contemporary protocols specialise
+into mutually-exclusive strengths, and no surveyed
+protocol combines a deployed task model with a
+decentralised identity model. The single
+composition the rubric most clearly recommends is
+ANP's identity layer beneath A2A's task layer
+(\S\ref{sec:comparison:stack}). That stack is not yet
+deployed. It would deliver more capability
+per spec-word than any other near-term composition.
+The recommendation is for the identity layer specifically,
+not for ANP as a whole: its DID mechanism carries no
+dependency on the rest of the stack, while its description
+and discovery protocols overlap the A2A AgentCard and
+compete with it rather than stacking beneath it.
+
+\paragraph{Finding 3: The authorisation-propagation
+gap is the central open problem.}
+Not one of the eight scored protocols specifies a
+cryptographic delegation chain. The gap is universal, and
+it survives the strongest counterexample the survey could
+find. ACNBP carries the highest threat-coverage count in
+the set and the most rigorous single-hop authorization
+primitive, and it still binds only two parties at a time,
+which a lead author confirmed is the intended scope. Every
+surveyed protocol therefore leaves the delegation
+mechanism to the surrounding identity architecture.
+Deployments fill the gap with token
+forwarding, which the security
+literature~\cite{authz_propagation, agentic_jwt}
+identifies as the dominant attack surface in
+production. The gap is therefore an omission at the
+specification layer with a measured cost at the
+deployment layer. Rigour on one hop is not the same
+property as authority that travels, and the survey's
+Axis 3 column separates the two. The gap is the highest-priority item
+on the open-problems agenda
+(\S\ref{sec:openproblems:priorities}, Tier 1) and
+the single change to the contemporary protocols
+that would most materially improve the threat-coverage
+profile of
+Table~\ref{tab:threat-surface}.
+
+\paragraph{Finding 4: The semantic-interoperability
+equilibrium is local and unsustainable.}
+The level-1 cluster on Axis 9
+(\S\ref{sec:semantic}) is the contemporary
+equilibrium and is convenient for protocol authors,
+but the schema-fragmentation cost
+(\S\ref{sec:semantic:fragmentation}) is visible in
+the substantially lower inter-organisational call
+success rate documented in AAIF working group
+discussions~\cite{lf_aaif} and in the AgentLeak
+benchmark's 68.8\% inter-agent leakage finding for
+content forwarded across organisational
+boundaries~\cite{agentleak}. The field has not
+decided how to escape the equilibrium: ontology-base
+or semantic-matchmaker, protocol-layer or
+orchestrator-layer. The
+answer is the single largest
+research-and-standardisation question on the
+agenda (\S\ref{sec:openproblems:schema}).
+
+\paragraph{Finding 5: Governance, not technical
+rigour, predicts adoption.}
+\label{sec:conclusion:governance}
+The protocols with the highest rubric scores
+(ACNBP, LOKA) have the smallest deployment
+footprints; the protocols with the largest
+footprints (A2A, MCP) have only modest rubric
+profiles. The pattern is consistent across the
+adoption data (\S\ref{sec:adoption:synthesis}) and
+the governance analysis (\S\ref{sec:governance}):
+institutional positioning under foundations and
+standards bodies drives adoption more strongly
+than technical quality at the specification level.
+The lesson for the research-and-standardisation
+community is that the highest-impact technical
+contributions will be those that institutional
+incentives are positioned to adopt. That is an argument
+for working within the AAIF and W3C tracks rather
+than alongside them.
+
+\paragraph{Finding 6: Naming, selection, and guardrails
+are co-design problems, not orthogonal ones.}
+The three proposals introduced in \S\ref{sec:proposals}
+illustrate a structural observation that the survey
+treats as the sixth finding: the workspace-naming gap
+(Contribution C5), the context-selection gap
+(Contribution C7), and the egress-attestation gap
+(Contribution C6) are not independent open problems but
+three legs of the same loop. A guardrails envelope
+without a normative workspace name needs either a
+duplicate naming standard or an inferred boundary
+notion that loses cross-vendor verifiability; a
+selection envelope without a normative boundary kind
+has nothing to key its policy on and would re-derive
+OWA implicitly; a naming scheme without selection and
+guardrails provides scope but no protocol-layer
+enforcement of the boundaries it identifies; and a
+selection-and-guardrails pair without a naming layer
+leaves the boundary detection to convention. The
+OWA~+~ACSP~+~AGRP triplet closes the loop, and the
+closure is the survey's clearest illustration of why
+the rubric axes (\S\ref{sec:rubric}) cannot be
+addressed independently: identity (Axes 1 to 2),
+authorisation (Axis 3), and security (Axis 8) are
+deeply coupled in any deployment that crosses an
+organisational boundary, and the protocol revisions
+that the field adopts will succeed or fail on whether
+they treat the coupling as a first-class design
+constraint.
+
+\paragraph{What the next cycle should produce.}
+The open-problems agenda
+(\S\ref{sec:openproblems:priorities}) ranks the
+P-items by tractability and impact. The Tier-1
+items are the cryptographic delegation chain and
+the ANP-to-A2A identity bridge. Both are
+near-term tractable and high-impact. Both have
+clear institutional homes in the AAIF and W3C
+working groups. The Tier-2 items (the schema
+fragmentation problem, cross-network mandate
+harmonisation, cross-tenant policy enforcement)
+will require multi-cycle work; the Tier-3 items
+(prompt-injection mitigation as a spec requirement,
+contextual integrity for forwarding, identity
+rotation) require research before they can be
+standardised; the Tier-4 methodological items
+(rubric-stable benchmarking, multi-tenant
+evaluation harness) are the instrument the field
+needs to measure progress on the rest. Together
+the items constitute what the survey treats as
+the agenda for the 2026 to 2027 revision cycle.
+
+\paragraph{The artifact this survey leaves behind.}
+\label{sec:conclusion:artifact}
+The rubric of \S\ref{sec:rubric} is intended to
+outlast the specific protocol versions it scores.
+In the companion repository
+(\companionrepo),
+\texttt{protocol-scores.yaml},
+\texttt{threat-coverage.yaml}, and
+\texttt{industry-adoption.yaml} carry the
+machine-readable form of the rubric scores; the
+figure-regeneration scripts produce the heatmap and
+radar charts mechanically from those scores.
+Future readers facing protocols that did not exist
+at the 2026-Q1 cutoff can fork the YAML, extend the
+rubric to the new protocols, regenerate the figures,
+and produce a comparison that is directly comparable
+to the comparison rendered here. The survey's
+durable contribution is the rubric and the
+discipline of using it; the specific scores will
+drift as the protocols evolve, but the comparison
+surface will remain. The OWA URI scheme, the AGRP
+guardrails envelope, and the ACSP context selection
+envelope (Contributions C5, C6, and C7) are part of
+the same companion artefact tradition: each is
+specified as a schema sketch with machine-readable
+ABNF and JSON examples in \S\ref{sec:proposals}, so
+that an implementer willing to adopt any of the
+three proposals has a normative reference rather
+than a paraphrase to work from.
+
+The protocols of the 2024 to 2026 wave are still
+forming, and the open-problems agenda is large
+enough that the wave's eventual shape is not yet
+legible. What is legible is that the field is
+moving. It moves quickly enough that any survey of
+inter-agent protocols has a sell-by date measured
+in quarters. Also legible is that the rubric this survey
+contributes is the instrument by which the field
+can measure its own movement. We close in the
+hope that the next survey of this landscape,
+written eighteen months hence, finds the
+P-items of \S\ref{sec:openproblems} substantially
+closed, the rubric matrix's strongest cells
+populated across more protocols, and the
+agentic-AI ecosystem better-served by the
+inter-agent protocols its participants are
+collectively building.
+
+\begin{acks}
+The authors thank Joshua Waldrep, maintainer
+of the Pipelock project~\cite{pipelock}, for a detailed
+external review of the Pipelock description in
+\S\ref{sec:proposals:agrp}. He pressed the
+self-attestation vs.\ independent-attestation
+distinction that shaped the two-tier assurance model of
+\S\ref{sec:proposals:agrp:tiers}. That review also
+produced two tightenings: independence must cover the
+enforcement, not only the signature, and the verifier key
+must be published out-of-band ahead of the receipt. The
+optional log-anchored sub-tier came out of the same
+exchange. Any remaining errors in
+the description of Pipelock or in the tier definitions
+are the authors' own.
+
+The authors thank the ANP Community for the explanation of
+ANP's design intent that shaped
+\S\ref{sec:industry:anp}, credited at the community's own
+request rather than to an individual. That exchange
+established that Information and Interface, not tasks, are
+ANP's first-class concepts, that a task is treated as one
+form of an Interface on a generality argument, and that
+asynchrony is defined per-Interface rather than as a
+protocol primitive. It also corrected the survey's
+composition recommendation: the portable layer is ANP's
+identity mechanism, while Agent Description and Agent
+Discovery overlap the A2A AgentCard and compete with it
+rather than stacking beneath it. The Axis 5 and Axis 6
+scores were not changed by the exchange, and the reading of
+what those scores mean was.
+
+The authors thank Ken Huang, lead author of
+ACNBP~\cite{spec_acnbp}, who reviewed this survey's scoring
+of that protocol across four exchanges. He is credited at his
+own request and in the form he chose. The survey had scored
+ACNBP at level 3 on Axis 3, making it the only protocol in
+the set to reach that level and the sole counterexample to
+Finding 3. He corrected the reading: ACNBP is a two-party
+negotiation and binding protocol, and multi-step delegation
+is not within its scope. The score moved to 2, and Finding 3
+became the stronger claim that the authorisation-propagation
+gap is universal across all eight scored protocols. The same
+exchange established that the companion zero-trust identity
+framework~\cite{huang_zerotrust_identity} is related work
+rather than a normative dependency, which settles Axis 2,
+and confirmed the threat-coverage count of
+Table~\ref{tab:threat-surface}. His review covered the ACNBP
+scores. It did not cover the rubric, the other seven scored
+protocols, or the proposals of
+\S\ref{sec:proposals}.
+
+The authors thank Akram Sheriff for two rounds of review of
+the full manuscript. Four parts of this survey exist because
+he pressed for them. First, he argued that a flat count over
+the twelve threat classes equates a low-severity mitigation
+with a high-severity one. Residual risk, he noted, is the
+quantity a deployer actually asks about. The severity-banded
+weights and Table~\ref{tab:severity-coverage} answer that
+objection, and \S\ref{sec:rubric:axis8} states the banding
+criteria he asked us to make explicit. Second, he pressed
+twice on scoring subjectivity. That produced the calibration
+rules, the worked examples, and the plain statement of what
+agreement evidence we do not have
+(\S\ref{sec:rubric:calibration}). Third, he judged the three
+proposals underspecified on their failure modes. That
+produced the misclassification analysis of AGRP
+(\S\ref{sec:proposals:agrp:open}, Q4) and the candidate-set
+disclosure analysis of ACSP
+(\S\ref{sec:proposals:acsp:open}, Q3). Fourth, he pointed us
+at two works we had missed. The proof-of-guardrail
+scheme~\cite{proof_of_guardrail} prompted the separation of
+what AGRP guarantees with and without a trusted execution
+environment (\S\ref{sec:proposals:agrp:tee}).
+AgentDNS~\cite{agentdns} prompted the trust-root contrast of
+\S\ref{sec:proposals:owa:related}. His review did
+not extend to the individual protocol scores.
+
+We also contacted Shopify, Microsoft, and Cisco about
+specific claims on protocols they author or govern. Each
+response changed the text, and the body says where. Shopify
+confirmed the orchestration-layer reading of UCP and
+corrected its treatment of request signing and identity
+linking (\S\ref{sec:emerging:commerce}). Microsoft corrected the
+token-forwarding claim about A2A, named the extension route
+for a delegation chain, and raised the denotation question of
+\S\ref{sec:proposals:owa:open}. Cisco pointed us to A2A's
+explicit exclusion of authorization semantics and argued that
+ACNBP's breadth limits its adoption
+(\S\ref{sec:governance}). None of the three reviewed the
+survey as a whole.
+
+No acknowledgement here implies
+endorsement of the survey's assessment of any protocol.
+Every score remains the authors' own judgement.
+\end{acks}

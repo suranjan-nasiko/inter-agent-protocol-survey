@@ -1,0 +1,184 @@
+% JAIR requires a short title for the page headers, since the full one is
+% three lines. The line breaks the full title used under acmart are gone:
+% the AuthorKit says not to insert breaks in a title, and jair.cls wraps it.
+\title[A Rubric-Based Survey of Inter-Agent Protocols]{A Rubric-Based Survey
+  of Inter-Agent Protocols: Industry Standards, Security Posture, Open
+  Problems, and Three Co-Designed Protocol Extensions}
+
+\author{Suranjan Goswami}
+\authornote{Corresponding Author.}
+\affiliation{%
+  \institution{Nasiko Labs}
+  \country{India}
+}
+\email{suranjan_arcade@yahoo.co.in}
+
+\author{Manu Ghulyani}
+\affiliation{%
+  \institution{Nasiko Labs}
+  \country{India}
+}
+\email{manughulyani@gmail.com}
+
+\author{Karan Bharadwaj}
+\affiliation{%
+  \institution{Nasiko Labs}
+  \country{USA}
+}
+\email{karan@nasiko.com}
+
+% Details taken from the public record only, pending his own confirmation.
+% Name string, affiliation and email are exactly as he self-published them on
+% the title page of arXiv:2601.14567v2, the agent:// scheme paper cited here
+% as \cite{agent_uri_scheme}. That page reads "Roland R. Rodriguez, Jr. /
+% Independent Researcher / rrrodzilla@proton.me", and its footnote 1 names
+% the same address as the contact point. No country appears on that page;
+% United States comes from his publicly listed Govcraft office in Corpus
+% Christi, Texas (govcraft.ai). The suffix comma is braced so acmart does
+% not read it as an author separator.
+\author{Roland R. Rodriguez, {Jr.}}
+\affiliation{%
+  \institution{Independent Researcher}
+  \country{United States}
+}
+\email{rrrodzilla@proton.me}
+
+\author{Faouzi El Yagoubi}
+\affiliation{%
+  \institution{Polytechnique Montr\'eal}
+  \city{Montr\'eal}
+  \state{Qu\'ebec}
+  \country{Canada}
+}
+\email{faouzi.el-yagoubi@polymtl.ca}
+
+\author{Alejandro Quintero}
+\affiliation{%
+  \institution{Polytechnique Montr\'eal}
+  \city{Montr\'eal}
+  \state{Qu\'ebec}
+  \country{Canada}
+}
+\email{alejandro.quintero@polymtl.ca}
+
+\author{Ranwa Al Mallah}
+\affiliation{%
+  \institution{Polytechnique Montr\'eal}
+  \city{Montr\'eal}
+  \state{Qu\'ebec}
+  \country{Canada}
+}
+\email{ranwa.al-mallah@polymtl.ca}
+
+% JAIR asks for a short author list for the running head, and strongly
+% recommends an \orcid per author. Neither the Nasiko Labs authors nor
+% Rodriguez has supplied an ORCID, and the Polytechnique Montreal authors
+% joined too recently to have been asked, so no \orcid lines appear above.
+% They are not invented here: a wrong ORCID resolves to a real stranger.
+% Collect all seven before camera-ready; the README tracks this.
+\renewcommand{\shortauthors}{Goswami et al.}
+
+% =====================================================================
+% Reserved author slot (1 remaining of the 3 originally held).
+% Slots six and seven went to Alejandro Quintero and Ranwa Al Mallah
+% (Polytechnique Montreal), named as co-authors in Faouzi El Yagoubi's
+% reply of 2026-09-09.
+%
+% Kept commented so the circulating draft's title page does not show
+% placeholder names. The block needs all four fields, or acmart emits
+% a missing-metadata warning.
+% =====================================================================
+% \author{Author Eight}
+% \affiliation{%
+%   \institution{TODO: affiliation}
+%   \country{TODO: country}
+% }
+% \email{TODO@example.org}
+
+% JAIR uses a structured abstract: Background, Objectives, Methods, Results,
+% Conclusions, each introduced by a bold run-in label. The content is the same
+% claim set as the prose abstract this replaced, redistributed under the five
+% headings, with the honesty disclosures (single rater, no inter-rater
+% statistic, sketches not standards) kept where a reader meets them early.
+% Note that the arXiv abstract in manuscript/arxiv-abstract.txt is a third,
+% independent text under a 1920-character limit. Changing a claim here means
+% changing it there too; see manuscript/arxiv-abstract-NOTES.md.
+\begin{abstract}
+{\bf Background:}
+The 2024 to 2026 period has produced an explosion of inter-agent protocols.
+Google A2A, Anthropic MCP, IBM ACP, Cisco AGNTCY/SLIM, ANP, Coral, LOKA,
+ACNBP, AP2, Visa Trusted Agent Protocol, ERC-8004, and UCP each address
+overlapping fragments of the multi-agent coordination problem. Four broad
+surveys already exist. What is missing is a principled basis for comparing
+them.
+
+{\bf Objectives:}
+We set out to make the comparison auditable rather than narrative. That means
+one rubric applied uniformly to every protocol, one recorded reason per
+score, and an agenda of open problems that follows from the resulting gaps
+rather than from opinion.
+
+{\bf Methods:}
+We contribute a uniform \emph{rubric} of ten evaluation axes. The axes span
+discovery, identity, authorization, transport, task model, async, multi-modal
+handling, security threat surface, semantic interoperability, and governance.
+We survey thirteen protocols across three architectural layers (tool-binding,
+peer-messaging, commerce-settlement). We score the eight tool-binding and
+peer-messaging protocols against the full rubric. The five
+commerce-settlement protocols are compared on a separate structural basis,
+because the rubric's task, transport, and threat axes do not apply to a
+settlement envelope. Scores come from a single rater reading each
+specification under stated calibration rules. We report an auditable change
+history over a machine-readable score file, and no inter-rater agreement
+statistic.
+
+{\bf Results:}
+No protocol scores uniformly high, and the rubric shows why: the
+contemporary protocols specialize into mutually exclusive strengths. None
+combines a deployed task model with a decentralized identity model. The
+authorization axis is the sharpest result. Its top level is empty across all
+eight scored protocols, so no surveyed peer-messaging protocol offers a
+standardized delegation credential that a downstream agent can verify. The
+gap is universal rather than near-universal, and it holds even for the
+protocol with the widest threat coverage in the set. We also map industry
+adoption across enterprise SaaS, agentic commerce and payments, healthcare,
+and finance, and we survey the emerging security and threat-modeling
+literature.
+
+{\bf Conclusions:}
+The gaps identify the work of the next standardization cycle, and we propose
+three co-designed protocol extensions against them. \emph{OWA} is a URI
+scoping scheme. It adds an explicit \emph{workspace} tier between the
+organizational trust root and the agent identifier. \emph{ACSP} is a sibling
+envelope that records the sender's declared context-selection step: which
+candidate items were considered, which were kept, which were dropped, under
+which token budget and optimisation objective. Its signed wire-level audit
+log carries observable invariants the receiver can verify. \emph{AGRP} is a
+normative A2A envelope. It binds every cross-boundary message to a
+classification-label set and a commitment-bearing redaction log on the spans
+the egress filter claims to have touched. It also requires either a signed
+Tier~1 enforcement claim or independently verified Tier~2 evidence. The three
+close a single loop, naming to selection to attestation, that no contemporary
+protocol provides. All three are positioned as specification-sketch
+contributions for the next AAIF and W3C revision cycles rather than as
+validated standards.
+\end{abstract}
+
+% JAIR Note from the AuthorKit: do not include ACM CCS Concepts or Keywords.
+% The \keywords list that stood here under acmart was removed for that reason.
+
+% Placeholder submission date. JAIR fills the accepted date at production;
+% \received[accepted]{} is added then, not now. The arXiv posting omits it:
+% a received date is the journal's record of a submission, and printing it on
+% a preprint asserts a review process the preprint is not part of. arXiv
+% stamps its own submission date. \ifarxiv is set in main.tex.
+\ifarxiv\else
+  \received{14 September 2026}
+\fi
+
+\maketitle
+
+% Cutoff date declared on page 1, per the differentiation strategy (R1, R3).
+\noindent\textbf{Note on scope.} Specifications and literature surveyed
+up to 2026-Q1; later developments may be referenced in footnotes but
+are not exhaustively covered.

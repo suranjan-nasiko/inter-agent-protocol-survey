@@ -1,0 +1,506 @@
+# Rubric scores per (protocol, axis).
+# Source of truth for Table 1 (master rubric matrix), Figure 5 (heatmap),
+# Figure 6 (radar charts). Scripts in /scripts/ regenerate the LaTeX
+# tables and PDF figures from this YAML.
+#
+# Schema:
+#   <protocol-id>:
+#     axis_<n>:
+#       score: <ordinal 0..3>  OR  tuple/string for non-ordinal axes
+#       evidence: "<one-line note pointing to spec section or paper>"
+#       citation: "<bibkey from refs/references.bib>"
+#
+# Rubric axes (see manuscript/sections/04-rubric.tex):
+#   1  Discovery & Registry Model         (ordinal 0..3)
+#   2  Identity & Authentication           (ordinal 0..3)
+#   3  Authorization & Delegation Model    (ordinal 0..3)
+#   4  Transport & Wire Format             (tuple: not ordinal)
+#   5  Task & Conversation Model           (ordinal 0..3)
+#   6  Async & Long-Running Operations     (ordinal 0..3)
+#   7  Multi-Modal Content Handling        (ordinal 0..3)
+#   8  Security Threat Surface             (count of N/12 spec-level mitigations)
+#   9  Semantic Interoperability           (ordinal 0..3)
+#   10 Governance / License / Observability (composite triple)
+#
+# All eight rubric-scored protocols carry a score, an evidence sentence, and
+# a citation key on every axis. A2A, MCP, and ANP were scored first; the
+# other five were scored in later passes and carry their own retrieved dates.
+# The five commerce-settlement protocols are surveyed but not scored, and
+# Section 4 of the paper states why. Their entries carry name and layer only,
+# except UCP, which also carries per-axis evidence notes.
+
+a2a:
+  name: "Google A2A"
+  spec_version: "v1.0 (2026-03-12)"
+  retrieved: "2026-Q1"
+  axis_1:
+    score: 1
+    evidence: "Well-known endpoint /.well-known/agent-card.json"
+    citation: "spec_a2a"
+  axis_2:
+    score: 1
+    evidence: "OAuth 2.x in AgentCard; mTLS/JWT supported but not mandated"
+    citation: "a2a_weaknesses"
+  axis_3:
+    score: 1
+    evidence: "Token-forwarding pattern; no standardized cryptographic delegation chain"
+    citation: "authz_propagation"
+  axis_4:
+    tuple:
+      transports: ["HTTPS/JSON-RPC 2.0", "optional gRPC", "optional REST"]
+      serialization: "JSON"
+      streaming: "SSE"
+      async: "push notifications"
+    citation: "spec_a2a"
+  axis_5:
+    score: 3
+    evidence: "Tasks with lifecycle states, Parts, Artifacts, sub-task delegation"
+    citation: "spec_a2a"
+  axis_6:
+    score: 3
+    evidence: "Push notifications + polling + durable resumable tasks"
+    citation: "spec_a2a"
+  axis_7:
+    score: 3
+    evidence: "TextPart / FilePart / DataPart, inline + URL reference"
+    citation: "spec_a2a"
+  axis_8:
+    score: 1
+    evidence: "Addressed: message tampering, via HTTPS transport. Partial, so excluded from the count: agent impersonation (OAuth bearer, no AgentCard signature), message replay (push-notification verification only), denial of service (transport layer only). Not addressed: injection, capability escalation, delegation token theft, registry poisoning, AgentCard supply chain, side-channel privacy, cross-agent privilege confusion, audit-log tampering"
+    citations: ["a2asecbench", "a2a_weaknesses"]
+  axis_9:
+    score: 1
+    evidence: "Typed Skill objects but free-text descriptions; no ontology alignment"
+    citation: "spec_a2a"
+  axis_10:
+    governance: "Linux Foundation"
+    license: "Apache 2.0"
+    observability: 2
+    evidence: "SSE event stream supports tracing; no standardized audit primitives"
+    citation: "spec_a2a"
+
+mcp:
+  name: "Model Context Protocol (MCP)"
+  spec_version: "early-2026"
+  retrieved: "2026-Q1"
+  axis_1:
+    score: 1
+    evidence: "Server config-based + emerging registry; mostly out-of-band"
+    citation: "spec_mcp"
+  axis_2:
+    score: 1
+    evidence: "OAuth 2.1 for HTTP transport (2025); stdio relies on parent-process trust"
+    citation: "spec_mcp"
+  axis_3:
+    score: 1
+    evidence: "OAuth scopes only; no agent-delegation primitives"
+    citation: "spec_mcp"
+  axis_4:
+    tuple:
+      transports: ["stdio", "HTTP+SSE", "streamable-HTTP"]
+      serialization: "JSON-RPC 2.0"
+      streaming: "SSE / chunked"
+      async: "notifications + emerging MCP Tasks"
+    citation: "spec_mcp"
+  axis_5:
+    score: 1
+    evidence: "Request/response with sessions; protocol stateless (MCP Tasks adds limited state)"
+    citation: "spec_mcp"
+  axis_6:
+    score: 2
+    evidence: "Notifications + emerging MCP Tasks"
+    citation: "spec_mcp"
+  axis_7:
+    score: 2
+    evidence: "Typed content blocks (text/image/resource); structured JSON-Schema tool input"
+    citation: "spec_mcp"
+  axis_8:
+    score: 1
+    evidence: "Addressed: message tampering, via TLS on the HTTP transport. Partial, so excluded from the count: agent impersonation (OAuth 2.1 over HTTP, while stdio is process-trust), message replay (token expiry only). Not applicable: AgentCard supply chain, cross-agent privilege confusion, since MCP is agent-to-tool. Not addressed: injection, tool poisoning as capability escalation, delegation token theft, registry poisoning, side-channel privacy, denial of service, audit-log tampering"
+    citations: ["zhan2024injecagent", "protocol_exploits"]
+  axis_9:
+    score: 1
+    evidence: "JSON Schema for tool input; tool descriptions free-text NL"
+    citation: "spec_mcp"
+  axis_10:
+    governance: "Linux Foundation AAIF"
+    license: "MIT-equivalent"
+    observability: 1
+    evidence: "Logging hooks emerging; no standardized audit primitives"
+    citation: "lf_aaif"
+
+anp:
+  name: "Agent Network Protocol (ANP)"
+  spec_version: "white paper 2025"
+  retrieved: "2026-Q1"
+  axis_1:
+    score: 3
+    evidence: "DID resolver + Agent Description Protocol (decentralized, verifiable)"
+    citation: "spec_anp"
+  axis_2:
+    score: 3
+    evidence: "DIDs + Verifiable Credentials (W3C standards)"
+    citation: "spec_anp"
+  axis_3:
+    score: 2
+    evidence: "VC-scoped capabilities; cryptographic chains possible but patterns not fully standardized"
+    citation: "spec_anp"
+  axis_4:
+    tuple:
+      transports: ["HTTPS"]
+      serialization: "JSON-LD over JSON"
+      streaming: "none native"
+      async: "polling"
+    citation: "spec_anp"
+  axis_5:
+    score: 1
+    evidence: "Multi-turn supported, but a task is not a protocol-level concept; first-class concepts are Information and Interface, and a task is treated as one form of an Interface (deliberate scoping, per ANP community correspondence)"
+    citation: "spec_anp"
+  axis_6:
+    score: 1
+    evidence: "Polling primarily; no push-notification standard. Asynchrony is left to the individual Interface to define rather than raised to a protocol-level primitive (deliberate scoping)"
+    citation: "spec_anp"
+  axis_7:
+    score: 1
+    evidence: "Text + file references"
+    citation: "spec_anp"
+  axis_8:
+    score: 5
+    evidence: "Identity, authentication, integrity, audit, non-repudiation via DIDs strong; weaker on operational threats (prompt injection, registry poisoning, capability escalation)"
+    citation: "spec_anp"
+  axis_9:
+    score: 2
+    evidence: "JSON-LD ontology base; ADP enables semantic discovery. NOTE: post-cutoff ANP 1.1 (2026-06-27) moved the Agent Description document (ANP-07) to plain JSON while Discovery (ANP-08) retains JSON-LD and @context; score held at the 2026-Q1 cutoff, see sec:semantic:ontology"
+    citation: "spec_anp"
+  axis_10:
+    governance: "community / W3C-aligned"
+    license: "Apache 2.0"
+    observability: 1
+    evidence: "Built-in non-repudiation logs; no standardized audit dashboard"
+    citation: "w3c_agent_protocol_cg"
+
+# ------------------------------------------------------------------
+# ACP and AGNTCY: scored 2026-09-03 from primary specification sources.
+# Per-axis evidence is in each entry's evidence field below.
+# ------------------------------------------------------------------
+
+acp:
+  name: "IBM ACP / BeeAI"
+  # Archived repository (i-am-bee/acp), last push 2025-08-25; the project
+  # merged into A2A under the LF umbrella as of 2025-08-29. The scores below
+  # describe the specification as published, not a live effort. Wherever this
+  # row is displayed the archived status must be stated.
+  spec_version: "OpenAPI 3 spec at archive (repo archived 2025-08-25; merged into A2A)"
+  status: "archived; superseded by A2A"
+  retrieved: "2026-09-03"
+  axis_1:
+    score: 1
+    evidence: "Well-known manifest at /.well-known/agent.yml plus GET /agents on a live server; registry-based discovery named but unspecified; no descriptor signing or content addressing"
+    citation: "spec_acp"
+  axis_2:
+    score: 1
+    evidence: "OpenAPI declares no securitySchemes at all; Basic/Bearer/JWT named only in prose, enforced by reverse proxy; identity federation under development"
+    citation: "spec_acp"
+  axis_3:
+    score: 1
+    evidence: "No authorization primitive in the spec: no scopes, no capability tokens, no propagation across the four documented composition patterns"
+    citation: "spec_acp"
+  axis_4:
+    tuple:
+      transports: ["HTTP/REST"]
+      serialization: "JSON"
+      streaming: "SSE (text/event-stream)"
+      async: "202 + polling, event backfill, session descriptors"
+    evidence: "Nine endpoints; RunMode enum sync/async/stream. NOT multipart: the spec declares only application/json and text/event-stream"
+    citation: "spec_acp"
+  axis_5:
+    score: 3
+    evidence: "Run object with eight-state lifecycle, two-phase cancellation, Await pause/resume for client input, named Artifact parts, sessions grouping runs"
+    citation: "spec_acp"
+  axis_6:
+    score: 2
+    evidence: "Async 202 + polling, SSE streaming, event backfill, and distributed sessions portable across servers by URL descriptor; but no run-level resumption and awaiting runs time out to failed"
+    citation: "spec_acp"
+  axis_7:
+    score: 2
+    evidence: "MessagePart with content_type, base64 encoding, and mutually-exclusive inline content or content_url; manifest-level input/output content-type negotiation. Level-3 anchor arguably met; held at 2 because negotiation is manifest-level, not in-band per message"
+    citation: "spec_acp"
+  axis_8:
+    score: 1
+    evidence: "Only message tampering, via TLS, and that from prose rather than spec text. No securitySchemes; SECURITY.md is a vulnerability-reporting policy. Ties a2a and mcp for the lowest count, but is alone in having no partial mitigations either, so the count is 1 of 12 against 11 not_addressed"
+    citation: "spec_acp"
+  axis_9:
+    score: 1
+    evidence: "Typed manifest with free-text description (defaulting to the function docstring); MIME content-type arrays; no ontology or controlled vocabulary"
+    citation: "spec_acp"
+  axis_10:
+    governance: "LF AI & Data (archived)"
+    license: "Apache 2.0"
+    observability: 2
+    evidence: "OTel integration with default exporters, OpenInference/OpenLLMetry compatible; TrajectoryMetadata and CitationMetadata carried in the wire format; no audit-integrity primitive"
+    citation: "spec_acp"
+
+agntcy:
+  name: "AGNTCY / SLIM (Cisco-led)"
+  # Not one document: scored across SLIM (draft-mpsb-agntcy-slim), OASF
+  # (agntcy/oasf), Directory/ADS (draft-mp-agntcy-ads-02, agntcy/dir), and
+  # Identity (agntcy/identity-spec). Both IETF drafts are individual
+  # Independent Submissions, Informational, not WG-adopted.
+  spec_version: "SLIM + OASF + ADS (draft-mp-agntcy-ads-02, 2026-07-06) + Identity"
+  retrieved: "2026-09-03"
+  axis_1:
+    score: 3
+    evidence: "ADS records content-addressed with CIDs, discovered via DHT across federated nodes with no central registry; Cosign/Sigstore signing as OCI referrer artifacts; verifiable domain names via .well-known/jwks.json"
+    citation: "spec_agntcy"
+  axis_2:
+    score: 2
+    evidence: "W3C VC Agent Badges (JSON-LD, DataIntegrityProof, JOSE) verified via ResolverMetadata assertionMethod, plus SPIFFE/SPIRE SVIDs with mTLS. Not 3: spec disclaims DID/VC constraint and worked examples anchor IDs to IdPs (Okta app ID, Duo client ID) resolving keys from a tenant JWKS"
+    citation: "spec_agntcy"
+  axis_3:
+    score: 1
+    evidence: "MLS group membership plus short-lived OAuth bearer tokens with server-side revocation; no delegation chain, and VC badges attest definitions (version, locator, schema) rather than scoped capabilities"
+    citation: "spec_agntcy"
+  axis_4:
+    tuple:
+      transports: ["gRPC over HTTP/2", "HTTP/3"]
+      serialization: "protobuf + OASF JSON records"
+      streaming: "SLIM sessions / SRPC"
+      async: "pub-sub + MLS group messaging"
+    evidence: "Two-tier security: hop-by-hop TLS 1.3 at the network layer, MLS (RFC 9420) content encryption end-to-end; routing nodes are zero-trust and forward opaque blobs. HTTP/2 is the deliberate primary choice, not HTTP/3"
+    citation: "spec_agntcy"
+  axis_5:
+    score: 1
+    evidence: "Sessions, not tasks: no task object, no lifecycle states, no terminal status, no artifact aggregation, no sub-task delegation. Task semantics are intended to come from A2A above SLIM"
+    citation: "spec_agntcy"
+  axis_6:
+    score: 3
+    evidence: "Session layer maintains persistent state across disconnections and node failures, with automatic reconnection, subscription recovery, and message queuing; MLS group membership and pending queues survive"
+    citation: "spec_agntcy"
+  axis_7:
+    score: 0
+    evidence: "No content model at all, and out of scope by design: MLS makes payloads opaque to intermediaries by construction. Recorded as 0 with that caveat; the manuscript must present it as scope, not deficiency"
+    citation: "spec_agntcy"
+  axis_8:
+    score: 6
+    evidence: "Addressed: impersonation (DID naming, MLS credentials, SPIFFE), tampering (MLS independent of TLS), replay (MLS epoch ratcheting), registry poisoning (Sigstore signing, JWKS name verification, CIDs), supply chain (mcp-scanner, skill-scanner, a2a-scanner at publish time), cross-agent privilege confusion (MLS group scoping). Partial: DoS, audit-log tampering, prompt injection"
+    citation: "spec_agntcy"
+  axis_9:
+    score: 2
+    evidence: "OASF skills and domains are published hierarchical taxonomies (18 skill categories with subcategories, 20 domain verticals); records MUST declare taxonomy skills, and DHT routing announces and queries (CID, skills) pairs. Not 3: taxonomic lookup, not semantic matching"
+    citation: "spec_agntcy"
+  axis_10:
+    governance: "Linux Foundation"
+    license: "Apache 2.0"
+    observability: 3
+    evidence: "Published charter, operating model, working-group process, five working groups; dedicated observe sub-project shipping an OTel SDK (ioa-observe-sdk), telemetry-hub, observe-and-eval WG, OpenSSF Scorecard on dir"
+    citation: "spec_agntcy"
+
+coral:
+  name: "Coral Protocol"
+  spec_version: "arXiv 2505.00749v2 (white paper v1.1, 2025-07-18)"
+  retrieved: "2026-05-14"
+  axis_1:
+    score: 2
+    evidence: "list_agents MCP tool resolves from server-mediated Coral Server; blockchain-anchored but discovery is server-mediated, not DID-resolver"
+    citation: "spec_coral"
+  axis_2:
+    score: 3
+    evidence: "§7: each agent has a DID + cryptographic credentials; Solana wallets as authenticator"
+    citation: "spec_coral"
+  axis_3:
+    score: 2
+    evidence: "§7 Team Contracts: signed multi-agent agreements (optionally on-chain); not RFC 8693, not fully specified delegation chain"
+    citation: "spec_coral"
+  axis_4:
+    tuple:
+      transports: ["HTTP", "WebSocket", "SSE"]
+      serialization: "JSON via MCP"
+      streaming: "SSE"
+      async: "push via wait_for_mentions"
+    citation: "spec_coral"
+  axis_5:
+    score: 2
+    evidence: "stateful persistent multi-participant threads; sub-task delegation deferred to future Task Management service (§7)"
+    citation: "spec_coral"
+  axis_6:
+    score: 2
+    evidence: "wait_for_mentions is explicit push notification (§6.1.2); no durable-resumable spec"
+    citation: "spec_coral"
+  axis_7:
+    score: 0
+    evidence: "natural-language message content + mention metadata; no typed parts / file reference / content negotiation schema"
+    citation: "spec_coral"
+  axis_8:
+    score: 3
+    evidence: "Addressed: agent impersonation (DIDs plus Solana wallet signatures), cross-agent privilege confusion (thread-scoped privileges), audit-log tampering (blockchain audit trail). Partial, so excluded from the count: capability escalation (Team Contract signature), delegation token theft, message tampering (on-chain payments only, not the message path). Not applicable: AgentCard supply chain. Not addressed: prompt injection, message replay, registry poisoning, side-channel privacy, denial of service"
+    citation: "spec_coral"
+  axis_9:
+    score: 1
+    evidence: "Coraliser adapters enforce uniform schemas (§6.3) but no formal capability descriptor or ontology"
+    citation: "spec_coral"
+  axis_10:
+    governance: "Coral Protocol team"
+    license: "CC-BY-4.0 (paper)"
+    observability: 2
+    evidence: "blockchain audit trail mandatory for payments + team contracts (§8); no separate trace/metric spec"
+    citation: "spec_coral"
+
+loka:
+  name: "LOKA Protocol"
+  spec_version: "arXiv 2504.10915v2 (2025-04-22)"
+  retrieved: "2026-05-14"
+  notes: "Conceptual research framework per authors' own footnote: scores are largely aspirational, not implemented."
+  axis_1:
+    score: 3
+    evidence: "§3.2 Semantic Discovery Fabric: distributed hash graph; §4.1 SSI with did:loka:... resolver (proposed)"
+    citation: "spec_loka"
+  axis_2:
+    score: 3
+    evidence: "§4.1 DID document with Ed25519 keys; VCs with issuer/subject/verifier; PQ upgrade via Dilithium"
+    citation: "spec_loka"
+  axis_3:
+    score: 2
+    evidence: "VCs as scoped capability attestations (§4.1); smart-contract lifecycle policies (§3.1); no RFC 8693 mapping"
+    citation: "spec_loka"
+  axis_4:
+    tuple:
+      transports: ["unspecified"]
+      serialization: "JSON-LD / JSON"
+      streaming: "unspecified"
+      async: "intent-centric peer-to-peer (unspecified)"
+    citation: "spec_loka"
+  axis_5:
+    score: 2
+    evidence: "§3.1 ALMS lifecycle Genesis → Growth → Crisis → Sunset; sub-task delegation under §4.4.3 but not a task primitive"
+    citation: "spec_loka"
+  axis_6:
+    score: 3
+    evidence: "§3.1 Crisis phase: continuous checkpointing, redundancy overlays, recovery agents via verifiable snapshots (proposed)"
+    citation: "spec_loka"
+  axis_7:
+    score: 1
+    evidence: "DID document defines CredentialRepositoryService with serviceEndpoint URL (§4.1); no typed parts / inline multimodal"
+    citation: "spec_loka"
+  axis_8:
+    score: 6
+    evidence: "Addressed: agent impersonation (DID plus Ed25519/Dilithium), message replay (timestamp plus signed intent), registry poisoning (decentralized SSI registry), message tampering (post-quantum MITM hardening), cross-agent privilege confusion (Contextual Ethics), audit-log tampering (immutable blockchain audit). Partial, so excluded from the count: prompt injection (DECP filter), capability escalation (VC plus contract policy), delegation token theft, side-channel privacy (Contextual Ethics policies). Not addressed: AgentCard supply chain, denial of service"
+    citation: "spec_loka"
+  axis_9:
+    score: 3
+    evidence: "§3.1 capability ontologies + intent schemas + ethical inheritance; §4.5.2 Polyglot Intent Engine for FIPA-ACL / A2A / Open Voice (aspirational)"
+    citation: "spec_loka"
+  axis_10:
+    governance: "academic authors (CMU Tepper / BIT Sindri); no formal SDO"
+    license: "CC-BY-NC-SA 4.0"
+    observability: 3
+    evidence: "§5.1 immutable audit trails; real-time ethical auditing; blockchain ledger records every action+reasoning"
+    citation: "spec_loka"
+
+acnbp:
+  name: "Agent Capability Negotiation and Binding Protocol"
+  spec_version: "arXiv 2506.13590v1 (2025-06-16)"
+  retrieved: "2026-05-14"
+  axis_1:
+    score: 2
+    evidence: "§III.A Def. 4 ANS = distributed directory service maintaining ANRIs (DNS-like federated); not DID-resolver-based"
+    citation: "spec_acnbp"
+  axis_2:
+    score: 2
+    evidence: "§III.A Def. 11 digital signatures; §IV.A X.509 + OCSP revocation; §VII.B ECC≥256 + SHA-3 + HMAC + hierarchical key rotation; no native DIDs (verified 2026-09-09 against the full text: zero occurrences of DID, verifiable credential, or zero-trust in the ACNBP body). The authors' companion DID+VC framework (arXiv:2505.19301, huang_zerotrust_identity) is cited by ACNBP once, in the introduction as related work, and is not normatively required, so it does not elevate this score; see sec:emerging:acnbp"
+    citation: "spec_acnbp"
+  axis_3:
+    score: 2
+    evidence: "§III.A Def. 10 Capability Binding is a mutually signed, cryptographically bound commitment with explicit capabilities and terms, backed by a capability attestation (Def. 14) and immutable audit trails. That is a structured delegation token with scope and audience, which is the level-2 anchor. It is bilateral rather than transitive, so it does not reach level 3; see revision_2026_09_10"
+    citation: "spec_acnbp"
+    revision_2026_09_10: "RESOLVED, score lowered from 3 to 2. The level-3 anchor requires multi-step delegation in which each intermediate agent's authorization is independently verifiable. Def. 10 is bilateral: B = <A_R, A_P, capabilities, terms, signatures>, one requester and one provider. Verified against the full ACNBP text: the body contains zero occurrences of 'delegat*', 'authoriz*', 'on behalf', 'principal', 'intermediary', 'transitive', or 'sub-agent'. The nearest multi-agent construct is 'Multi-Agent Orchestration' in §IV.C, one sentence, which describes capability composition rather than transitive authorization. A lead author confirmed in correspondence that ACNBP is a two-party negotiation-and-binding protocol and that multi-agent delegation lies outside its scope. Author statement and specification text agree. Consequence: no protocol in the scored set reaches Axis 3 level 3, and Finding 3 strengthens from 'all but one' to a universal gap."
+  axis_4:
+    tuple:
+      transports: ["unspecified at link level"]
+      serialization: "JSON (RFC 7159)"
+      streaming: "no"
+      async: "10-step negotiation; encrypted session with forward secrecy"
+    citation: "spec_acnbp"
+  axis_5:
+    score: 3
+    evidence: "10-step state machine with Protocol State (Def. 15); binding commitments produce artifacts; §IV.A multi-agent orchestration with capability composition"
+    citation: "spec_acnbp"
+  axis_6:
+    score: 2
+    evidence: "§IV.A subscription-based capability update notifications; no durable-resumable spec for bound execution"
+    citation: "spec_acnbp"
+  axis_7:
+    score: 1
+    evidence: "capabilities define typed input/output parameters (Def. 2); no inline multimodal parts or streaming media spec"
+    citation: "spec_acnbp"
+  axis_8:
+    score: 10
+    evidence: "explicit MAESTRO 7-layer analysis (§VII.I); ZKP capability attestation; sigs+HMAC integrity; DoS via rate limits+PoW+LB; replay via nonce+timestamp+seq; supply-chain via protocolExtension whitelist; ZKP+ring sig privacy; signed ANRIs + BFT for registry; quarantine for compromised agents; Foundation-Model layer prompt injection; cryptographically protected audit logs"
+    citation: "spec_acnbp"
+  axis_9:
+    score: 2
+    evidence: "Def. 2 structured capability descriptor; §IV.D Semantic Consistency Check; §VIII.A ontology-based classification is recommended future enhancement"
+    citation: "spec_acnbp"
+  axis_10:
+    governance: "individual authors (DistributedApps.ai, Cisco, OWASP/AWS, Intuit); no formal SDO"
+    license: "CC-BY 4.0"
+    observability: 3
+    evidence: "§IV.H Auditability and Logging: cryptographically protected audit logs, comprehensive event logging, privacy-preserving logging, integration with external audit/compliance systems"
+    citation: "spec_acnbp"
+
+# Commerce-settlement protocols (AP2, Visa TAP, Mastercard Agent Pay,
+# ERC-8004, UCP) are not scored against the peer-messaging rubric; they
+# appear in the commerce-stack table
+# (manuscript/tables/table2-commerce-stack.tex) and are discussed in §6.3.
+# The stub entries below exist so the taxonomy figure's leaf cross-check in
+# scripts/gen_taxonomy.py resolves; per-axis scores are intentionally absent.
+#
+# UCP is the one commerce-layer protocol that would return a defensible score
+# on several axes: it specifies discovery (/.well-known/ucp profiles),
+# authorization (OAuth 2.0 identity linking with per-capability scopes), four
+# transport bindings, and signed webhooks. It is
+# left unscored anyway, because it is a commerce-orchestration layer and not
+# a peer-messaging protocol, and because scoring one member of the
+# commerce-settlement layer and not the other four would make the figures'
+# averages move for reasons of scope. The choice and its cost are stated in
+# sec:rubric:limits. Its per-axis evidence is recorded here so a future
+# revision that widens the rubric does not start from nothing.
+
+ap2:
+  name: "AP2 (Agent Payments Protocol)"
+  layer: commerce-settlement
+
+visa_tap:
+  name: "Visa Trusted Agent Protocol"
+  layer: commerce-settlement
+
+mastercard_agentpay:
+  name: "Mastercard Agent Pay"
+  layer: commerce-settlement
+
+erc_8004:
+  name: "ERC-8004"
+  layer: commerce-settlement
+
+ucp:
+  name: "UCP (Universal Commerce Protocol)"
+  layer: commerce-settlement
+  spec_version: "2026-01-11, read at tag v2026-01-23 (commit dcf7eac)"
+  retrieved: "2026-Q1"
+  # Reproducibility hazard: both Q1 tags (v2026-01-11 = 806a5b7 and
+  # v2026-01-23 = dcf7eac, both cut 2026-01-23) declare "Version: 2026-01-11"
+  # in docs/specification/overview.md, but their content differs by ~8.5k
+  # inserted lines, including overview.md, ap2-mandates.md and order.md.
+  # GOVERNANCE.md is identical between them. The version string alone does not
+  # identify what was read, so the tag and commit are recorded here and in the
+  # spec_ucp bib note. Anyone re-checking these claims must check out
+  # v2026-01-23, not main and not the rendered docs at ucp.dev.
+  # Not rubric scored: see the note above the commerce block. The fields below
+  # are evidence, not scores, and no generator reads them.
+  evidence_discovery: "businesses publish a profile at /.well-known/ucp; platforms declare their own profile URI per request in a UCP-Agent header; namespace authority follows domain ownership (dev.ucp.* to the governing body, com.{vendor}.* to vendors)"
+  evidence_identity: "all traffic over HTTPS; no single protocol-wide request-signing scheme. Order webhooks MUST be signed by the business as a detached JWT (RFC 7797) over the body, keyed by kid against a signing_keys JWK array in the profile. The AP2 Mandates extension signs checkout terms with JWS detached content (RFC 7515 App. F) and requires ES256/ES384/ES512. Platform-to-business requests only SHOULD be authenticated, with a bearer token as the given example. Ed25519 does not appear in the surveyed version. Shopify's specification authors, contacted about this survey, confirmed on 2026-09-19 that the asymmetry is deliberate: a webhook receiver exposes an open endpoint, so the pushed payload must carry its own proof of origin, while a platform-to-business call targets a known endpoint over TLS. He added that the SHOULD is a spec floor rather than a ceiling, and that some businesses enforce it as a MUST. The same exchange corrected the survey's framing of signing and identity linking as alternatives: a signature is agent identity (which platform sent this) and the OAuth flow is buyer identity (which buyer the platform acts for), so neither substitutes for the other, and the deployment chooses the combination (open to any agent with guest buyers; a closed signed agent list; either plus mandatory buyer sign-in, common in B2B). The score is unchanged at 1: there is still no protocol-wide request-signing scheme at the surveyed version, so a receiver cannot infer from conformance alone whether its caller authenticated."
+  evidence_authorization: "OAuth 2.0 authorization-code flow for identity linking, with per-capability scopes (ucp:scopes:checkout_session) and an /.well-known/oauth-authorization-server document; no delegation chain, so a platform acting through a second platform cannot prove provenance of authority"
+  evidence_transport: "four bindings: rest (OpenAPI 3.x), mcp (OpenRPC), a2a (endpoint is the Agent Card URL), embedded (OpenRPC)"
+  evidence_settlement: "no settlement substrate of its own; payment authorization is delegated to the AP2 Mandates extension (dev.ucp.shopping.ap2_mandate). Once that extension is in the negotiated capability intersection the session is Security Locked, so neither party may revert to an unprotected checkout. Shopify's specification authors, contacted about this survey, confirmed on 2026-09-19 that the orchestration-layer reading is correct: UCP specifies the commerce transaction around the payment and is not a fifth competitor to AP2, Visa TAP, Mastercard Agent Pay and ERC-8004."
+  evidence_capabilities: "three standard capabilities at the surveyed version: Checkout (incl. cart and tax), Order (async lifecycle webhooks), Identity Linking. The four domain Tech Councils and the wider capability set advertised on ucp.dev are post-cutoff and are not the basis of any statement in the paper."
+  evidence_governance: "no formal SDO. Tech Council holds spec authority: 12 votes, 8 reserved 4 each to the two founding organisations (Google, Shopify), 4 elected every 6 months from any org. Governing Council holds project authority: 3 seats (1 Google, 1 Shopify, 1 elected annually, unfilled at the surveyed version with Google holding the proxy). Google is custodian of the ucp.dev domain. Domain Working Groups chartered by 3+ orgs, all artifacts subject to TC approval. Apache 2.0; signed contributor licence required. MAINTAINERS.md at tag v2026-01-23 lists 11 named Tech Council members (Google, Shopify, Etsy, Target, Wayfair) plus one open seat, and 2 named Governance Council members plus one open seat."
+  citation: "spec_ucp"

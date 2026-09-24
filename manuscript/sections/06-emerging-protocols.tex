@@ -1,0 +1,409 @@
+\section{Emerging and Specialized Protocols}
+\label{sec:emerging-protocols}
+
+This section applies the rubric to the protocols whose
+2026-Q1 maturity is at the academic-paper, arXiv-draft, or
+EIP-draft stage rather than at the production-deployment
+stage of the protocols in \S\ref{sec:industry-protocols}.
+The lower deployment maturity does not imply lower
+significance: ACNBP's capability-binding ceremony and LOKA's
+verifiable-credential framework address gaps that the
+industry-standard protocols have left open, and the five
+commerce-settlement protocols introduce an architectural
+layer that the prior surveys did not cover.
+
+\subsection{LOKA}
+\label{sec:emerging:loka}
+
+The LOKA Protocol~\cite{spec_loka} is the most
+ambitious peer-messaging proposal of the surveyed set in
+the sense that it commits, at the specification level, to
+the strongest version of every axis where the
+industry-standard protocols make pragmatic concessions.
+LOKA proposes a Semantic Discovery Fabric (Axis 1
+score = 3), DIDs with Ed25519 keys and post-quantum
+Dilithium upgrades (Axis 2 score = 3), VCs as scoped
+capability attestations combined with smart-contract
+lifecycle policies (Axis 3 score = 2), an
+intent-centric peer-to-peer async model with continuous
+checkpointing and recovery (Axis 6 score = 3), a Polyglot
+Intent Engine targeting FIPA-ACL, A2A, and Open Voice
+interoperability (Axis 9 score = 3 aspirationally), and
+immutable blockchain-backed audit trails with real-time
+ethical auditing (Axis 10 observability = 3).
+
+The authors themselves note in a footnote that LOKA is a
+conceptual research framework; the cited specification
+declares mechanisms but does not yet ship reference
+implementations of most of them. The Axis 4 transport
+tuple records this: \texttt{transports = unspecified},
+\texttt{streaming = unspecified}, \texttt{async =
+intent-centric peer-to-peer (unspecified)}~\cite{spec_loka}.
+The strength of LOKA in the rubric matrix is therefore
+that it occupies the upper-right corner on most axes; the
+weakness is that the implementation-maturity context that
+\S\ref{sec:rubric:limits} flags applies in full. A
+reader weighting the survey by source tier should treat
+LOKA's scores as aspirational claims about a possible
+future protocol rather than as verifiable claims about a
+deployed one.
+
+The Axis 8 score of 6 of 12 reflects an explicit
+threat-modeling pass in the LOKA paper that addresses
+DID-and-Dilithium authentication, timestamp-and-signed-intent
+replay, blockchain audit, post-quantum MITM,
+decentralized-SSI registry, and Contextual Ethics privilege
+confusion. Four further classes are treated but not settled,
+so they score partial and do not enter the count: the DECP
+prompt-injection filter, VC-and-contract capability scoping,
+delegation token binding, and the privacy side of Contextual
+Ethics. Supply-chain attacks and DoS are unaddressed.
+
+\subsection{Agent Capability Negotiation and Binding Protocol (ACNBP)}
+\label{sec:emerging:acnbp}
+
+ACNBP~\cite{spec_acnbp} is the most security-rigorous of the
+emerging protocols in the rubric matrix. Its Axis 8 score of
+10 of 12 is the highest of any protocol surveyed, the
+direct consequence of an explicit MAESTRO 7-layer threat
+analysis in the specification that addresses zero-knowledge
+proof capability attestations, signature plus HMAC
+integrity, rate-limit-and-proof-of-work DoS mitigation,
+nonce-and-timestamp-and-sequence replay defense, a
+\texttt{protocolExtension} whitelist for supply-chain
+attacks, X.509 with OCSP against agent impersonation, the
+Capability Binding ceremony against delegation-token theft,
+signed Agent Network Resource Identifiers with BFT for
+registry integrity, foundation-model-layer prompt injection
+mitigation, and cryptographically protected audit logs. The
+two classes that score partial, and so do not enter the
+count, are side-channel privacy through ring signatures and
+cross-agent privilege confusion through agent quarantine.
+
+The protocol's structural contribution is the ten-step
+capability negotiation and binding flow. Two agents that
+have located each other through the ANS directory
+exchange capability descriptors, run a semantic
+consistency check, propose binding terms, negotiate
+modifications, and conclude with a mutually-signed
+Capability Binding (the central primitive defined in
+Definition 10 of the specification). The bound capability
+is then executable as an artifact-producing operation
+whose execution produces a cryptographically attested
+receipt. The Axis 5 score of 3 (10-step state machine
+with Protocol State as a first-class object) follows
+directly from this structure.
+
+Authorization is where that structure stops, and the
+boundary is worth stating precisely because it is easy to
+misread. Definition 10 binds two parties: a requester and
+a provider, with capabilities, terms, and mutual
+signatures. That is one hop, and it is bound more
+rigorously than any other peer-messaging specification
+binds one hop. It is not a chain. The ACNBP text never
+uses the words delegation, authorization, on behalf,
+principal, or sub-agent, and the nearest multi-agent
+construct, the Multi-Agent Orchestration paragraph of
+\S IV.C, describes capability composition rather than
+transitive authority. The Axis 3 level-3 anchor
+(\S\ref{sec:rubric:axis3}) asks whether a downstream
+agent can independently verify an intermediate agent's
+grant. Nothing in ACNBP answers that, so the Axis 3
+score is 2, which is the anchor for a structured
+capability with explicit scope and no standardized
+chain-of-custody format. A lead author
+confirmed the reading in correspondence: ACNBP is a
+two-party protocol for service negotiation and binding,
+and multi-agent delegation is outside its scope. The
+consequence for the field is in
+\S\ref{sec:comparison:derivation}, and it is the
+strongest form of the survey's central finding: no
+scored protocol reaches level 3, including the most
+security-rigorous one.
+
+Identity is the one axis where ACNBP's own text is
+narrower than its authors' work. The specification
+authenticates agents with X.509 certificates, OCSP
+revocation, and signed envelopes, which is Axis 2 level 2,
+and it never mentions decentralized identifiers or
+verifiable credentials. The same authors do treat
+decentralized identity, in a companion framework built on
+DIDs and verifiable credentials with a naming service and
+zero-knowledge attribute
+disclosure~\cite{huang_zerotrust_identity}. ACNBP cites
+that framework as related work and does not require it, so
+the Axis 2 score records what ACNBP itself specifies. The
+survey scores specifications, not the composition a reader
+could assemble from a research group's output
+(\S\ref{sec:rubric:method}). Were the companion framework
+folded in normatively, ACNBP would be a candidate for
+Axis 2 level 3.
+
+The principal limitation at the cutoff is governance: the
+specification is authored by individuals affiliated with
+DistributedApps.ai, Cisco, OWASP/AWS, and Intuit, but is
+not yet under a formal SDO. The Axis 10 governance
+sub-score therefore reflects ``individual authors''
+rather than a foundation-or-W3C tier. The technical
+maturity is higher than the institutional maturity, which
+is the inverse of the situation for A2A and MCP.
+
+\subsection{The agentic commerce stack}
+\label{sec:emerging:commerce}
+
+The fourth and structurally distinct group of protocols is
+the agentic commerce stack: AP2~\cite{spec_ap2}, Visa
+Trusted Agent Protocol~\cite{spec_visa_tap}, Mastercard
+Agent Pay, ERC-8004~\cite{spec_erc8004}, and
+UCP~\cite{spec_ucp}. The first four are a co-stack
+targeting different settlement substrates (card networks,
+on-chain) rather than competitors. UCP is a different kind
+of thing and is treated separately below. The taxonomy of \S\ref{sec:taxonomy} places
+them on the third architectural layer
+(commerce-settlement) for a reason: they do not specify
+how agents communicate with each other in the
+peer-messaging sense, and they do not specify how an
+agent invokes external capabilities in the tool-binding
+sense. They specify what is necessary for one agent to
+prove, at the moment of payment, that it is acting within
+the authority granted by a human principal. Neither the
+peer-messaging nor the tool-binding layers
+address that concern.
+
+The architectural primitive shared by all four is the
+\emph{intent-mandate-receipt envelope}:
+
+\begin{itemize}
+  \item The \textbf{intent} expresses what the agent
+    proposes to do (e.g., purchase item X for at most
+    price Y from merchant Z within timeframe T). It is
+    structured and machine-verifiable rather than
+    free-text.
+  \item The \textbf{mandate} is the principal's signed
+    authorization for the agent to act within the
+    intent's scope. The mandate is bounded in scope
+    (specific intent classes, specific merchants),
+    bounded in time (expires), and revocable.
+  \item The \textbf{receipt} is the cryptographically
+    attested record of execution, signed by the
+    settlement authority (card network, payment
+    processor, or on-chain settlement contract), that
+    binds the execution to the mandate and the intent.
+\end{itemize}
+
+Four of the five protocols share this envelope but
+differentiate on steward, settlement substrate, mandate
+encoding, and on-chain versus off-chain anchor;
+Table~\ref{tab:commerce-stack} summarizes the contrast.
+
+AP2 is the PayPal-and-Google-led specification of the
+envelope for general-purpose agentic
+commerce~\cite{spec_ap2}, with reference implementations
+targeting PayPal's payment rails. Visa TAP~\cite{spec_visa_tap}
+binds the envelope to the Visa card-network settlement
+substrate, with explicit cryptographic primitives that
+align with EMVCo-compatible authorization flows.
+Mastercard Agent Pay occupies the same architectural slot
+for the Mastercard network. ERC-8004~\cite{spec_erc8004}
+binds the envelope to on-chain settlement on Ethereum and
+EVM-compatible chains, with the mandate expressed as a
+smart contract and the receipt as a transaction record.
+The on-chain route inherits a standards and trust-boundary
+literature that predates the agentic-commerce
+stack~\cite{agents_blockchain}. That work treats the
+execution model and the limits of on-chain trust in detail.
+
+\paragraph{UCP, the orchestration layer above the
+envelope.} The four protocols above answer one question:
+how a payment is authorized and settled. UCP answers a
+different one, and that is why it sits in this section
+without sharing the envelope. It specifies the commerce
+transaction that surrounds the payment. The surveyed
+version, \texttt{2026-01-11}, defines three standard
+capabilities: Checkout, which covers cart building and tax
+calculation, Order, which pushes lifecycle updates, and
+Identity Linking~\cite{spec_ucp}. Settlement is not among
+them. UCP binds no substrate of its own. Payment
+authorization is delegated to an optional AP2 Mandates
+extension (\texttt{dev.ucp.shopping.ap2\_mandate}). Once that
+extension enters the negotiated capability set, the session is
+\emph{Security Locked}. Neither party may then revert to an
+unprotected checkout.
+
+That relationship is the reason UCP matters to this
+survey beyond its own scope. It is a working instance of
+the layered composition that \S\ref{sec:comparison:stack}
+argues for, built by parties who had no stake in the
+argument. UCP consumes AP2 at the settlement layer. It
+also declares four transport bindings. They are REST via
+OpenAPI, MCP via OpenRPC, A2A with the Agent Card URL as the
+endpoint, and an embedded binding for merchant-hosted user
+interfaces. Two of the four are protocols this survey scores.
+A commerce-layer protocol that treats A2A and MCP as
+interchangeable carriers is evidence that the three
+architectural layers of \S\ref{sec:taxonomy:layers}
+compose in practice, and not only on paper. We contacted
+Shopify about this reading, and its specification authors
+confirmed it.
+
+UCP is also the one commerce-layer protocol with
+machinery on the axes where the other four are silent. It
+specifies discovery: businesses publish a profile at
+\texttt{/.well-known/ucp}, and platforms declare their own
+profile URI on every request through a \texttt{UCP-Agent}
+header. Capability names are reverse-domain strings, so
+naming authority follows domain ownership. That puts
+\texttt{dev.ucp.*} under the governing body and leaves
+vendor extensions under \texttt{com.\{vendor\}.*}. It
+specifies authorization: an OAuth 2.0 authorization-code
+flow for identity linking, with per-capability scopes such
+as \texttt{ucp:scopes:checkout\_session} and a
+\texttt{/.well-known/oauth-authorization-server} document.
+Authentication is specified in two places rather than one.
+Order webhooks are signed with a detached JWT (RFC 7797)
+over the request body. The \texttt{kid} header selects a key
+from a \texttt{signing\_keys} JWK array in the sender's
+profile.
+The AP2 extension signs checkout terms with JWS detached
+content and requires ES256, ES384, or ES512.
+
+Request signing and identity linking answer two different
+questions, and reading them as alternatives is a mistake this
+survey initially made. The same exchange with Shopify
+corrected it. A signature establishes which
+platform sent the payload, so it is agent identity. The OAuth
+flow establishes which buyer the platform is acting for, so it
+is buyer identity. Neither substitutes for the other, and a
+deployment chooses how much of each it wants. Three shapes
+follow. A business may welcome any agent and accept guest
+buyers. It may instead accept only a closed list of signed
+agents. It may require buyer sign-in as well, which is the
+common combination in business-to-business flows. The variance
+is deliberate, so the specification sets a floor and leaves the
+ceiling to the deployment.
+
+Three limits are worth stating plainly, and the first is
+narrower than it first appears. The authentication requirement
+is asymmetric. Business-to-platform webhooks \textbf{MUST} be
+signed, while platform-to-business requests only
+\textbf{SHOULD} be authenticated, with a bearer token as the
+example given. The asymmetry has a reason. A webhook receiver
+exposes an open endpoint, so the pushed payload has to carry
+its own proof of origin, which is what a detached JWT supplies.
+A platform calling a business calls a known endpoint over TLS,
+where that argument does not hold. Shopify's authors
+confirmed this reading and added that the \textbf{SHOULD} is a floor
+rather than a ceiling, since some businesses do enforce it as a
+\textbf{MUST}. So the limit is not that the weaker direction
+goes unprotected in practice. It is that the protocol makes no
+guarantee either way, so a receiver cannot infer from UCP
+conformance alone whether the platform calling it authenticated
+at all. Second, request signing is scoped to the
+webhook and the AP2 extension rather than defined once for the
+protocol. A deployment that negotiates neither has
+transport security and a bearer token. That is Axis 2 level 1
+behaviour underneath a specification that reads as
+stronger. Third, delegation stops where the other protocols
+stop. Identity linking scopes what one platform may do on a
+user's behalf at one business. It carries no chain, so a
+platform acting through a second platform cannot prove the
+provenance of its authority. The strong delegation primitive
+is available only through the AP2 extension, and only for the
+payment step. UCP is therefore a fifth independent instance
+of Finding~3 rather than a counterexample to it. It is also
+the instance drawn from the protocol with the most commercial
+weight behind it.
+
+Governance is the other place UCP does not fit the existing
+patterns. There is no formal standards body. A Tech Council
+holds technical authority over the specification and a
+Governing Council holds authority over the project. Both are
+weighted to the two founding organisations. The Tech Council
+has twelve votes. Eight are reserved, four each to Google and
+Shopify. The other four are elected every six months from any
+organisation. The Governing Council has three seats: one
+Google, one Shopify, and one elected annually. The elected
+seat is unfilled at the surveyed version, and Google holds its
+proxy. Google is also custodian of the \texttt{ucp.dev}
+domain. Domain Working Groups may be chartered by three or
+more organisations, and every artifact they produce needs Tech
+Council approval. The specification is Apache 2.0 and
+contributions require a signed contributor licence.
+
+This is a fourth governance pattern, distinct from the three
+that \S\ref{sec:governance} identifies. It is neither a
+foundation, nor a single vendor, nor an academic group with no
+steward. It is a two-vendor partnership with a stated
+open-ecosystem mandate and a structural majority reserved to
+the founders. The gap between the two is the thing to watch.
+The governance document asks members to act ``agnostic to
+interests of the companies they represent''. It also gives
+those companies two thirds of the votes that decide the
+specification. The elected seats and the published meeting
+minutes are the mechanisms that would make the mandate real.
+Neither had produced an observable record at the surveyed
+version, so how the model behaves under disagreement between
+Google and Shopify is not yet knowable.
+
+The rubric applies awkwardly to the commerce-settlement
+layer because several of the peer-messaging axes are
+structurally inapplicable. Axis 5 (task and conversation
+model) and Axis 7 (multi-modal content handling) have no
+counterpart in a commerce-settlement protocol whose unit
+of interaction is the intent-mandate-receipt triple
+rather than a multi-message conversation. Axis 3
+(authorization and delegation) is the axis on which the
+commerce stack defines its own ceiling: the
+mandate-as-signed-capability-with-bound-intent
+architecture is the most rigorous delegation model in any
+of the surveyed protocols, and the cross-protocol
+interoperability work underway in the AAIF aims to make
+the same mandate format consumable across A2A's
+peer-messaging layer and ANP's identity layer.
+
+The principal open issue at the cutoff is interoperability
+across the four settlement protocols: a single agent
+acting on behalf of a principal would currently need to
+bind to AP2, Visa TAP, Mastercard Agent Pay, and
+ERC-8004 separately if it wanted to transact across all
+four settlement substrates. The AAIF's Agentic Commerce
+Working Group~\cite{lf_aaif} has begun harmonizing the
+envelope schema; the cutoff state is that the four
+protocols share the architectural pattern but not the
+wire format.
+
+UCP shows one way that gap gets closed, and it is not the
+way the harmonization effort assumes. Rather than
+converging the four wire formats, UCP fixes the
+transaction layer above them and treats the settlement
+mandate as a negotiated extension. An agent then binds to
+one orchestration protocol and inherits whichever
+settlement substrate the extension names. At the cutoff
+the only such extension is AP2, so the approach is
+demonstrated on one substrate and not yet on four. Which
+route prevails, a harmonized envelope or an orchestration
+layer with pluggable mandates, is an open question that
+\S\ref{sec:openproblems} returns to.
+
+\subsection{Semantic-driven proposals}
+\label{sec:emerging:semantic}
+
+A small body of work~\cite{semantic_driven,
+beyond_message_passing} proposes augmenting or replacing
+the LLM-era protocols with semantic-first designs that
+re-introduce, in modernized form, the ontology commitments
+of FIPA-ACL. The \emph{Beyond Message Passing} line of
+work~\cite{beyond_message_passing} argues that the
+free-text Skill descriptions and tool descriptions of the
+industry-standard protocols (Axis 9 = 1) are
+fundamentally insufficient for cross-organizational
+interoperability and proposes a vocabulary-and-matcher
+architecture. The \emph{Semantic-Driven AI Agent
+Communications} line~\cite{semantic_driven} takes a
+complementary tack, proposing intent-and-capability
+ontologies that adapt FIPA-SL to a JSON-LD substrate.
+
+These proposals are at a pre-specification stage as of
+the cutoff and do not yet have a place in the rubric
+matrix. Section~\ref{sec:semantic} treats the underlying
+gap that they address.

@@ -1,0 +1,1052 @@
+% A Rubric-Based Survey of Inter-Agent Protocols: bibliography.
+%
+% Conventions:
+%   - Every entry has a `keywords` field, drawn from this controlled vocabulary:
+%     survey | foundational | spec | security | eval | semantic | governance | industry
+%   - Spec citations record retrieval date and surveyed version (risk R3).
+%   - Vendor blog posts marked `note = {Tier-4 source}` (risk R4), used only for
+%     "X announced Y on date Z" claims, never for technical behavior.
+
+% ============================================================
+% TIER 1: Existing surveys (differentiate against, do not duplicate)
+% ============================================================
+
+@misc{yang2025survey,
+  title  = {A Survey of {AI} Agent Protocols},
+  author = {Yang, Yingxuan and Chai, Huacan and Song, Yuanyi and Qi, Siyuan and Wen, Muning and Li, Ning and Liao, Junwei and Hu, Haoyi and Lin, Jianghao and Chang, Gaowei and Liu, Weiwen and Wen, Ying and Yu, Yong and Zhang, Weinan},
+  year   = {2025},
+  eprint = {2504.16736},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.MA},
+  url    = {https://arxiv.org/abs/2504.16736},
+  keywords = {survey},
+}
+
+@misc{ehtesham2025interop,
+  title  = {A Survey of Agent Interoperability Protocols: Model Context Protocol ({MCP}), Agent Communication Protocol ({ACP}), Agent-to-Agent Protocol ({A2A}), and Agent Network Protocol ({ANP})},
+  author = {Ehtesham, Abul and Singh, Aditi and Gupta, Gaurav Kumar and Kumar, Saket},
+  year   = {2025},
+  eprint = {2505.02279},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.MA},
+  url    = {https://arxiv.org/abs/2505.02279},
+  keywords = {survey},
+}
+
+@misc{kong2025communication,
+  title  = {A Survey of {LLM}-Driven {AI} Agent Communication: Protocols, Security Risks, and Defense Countermeasures},
+  author = {Kong, Dezhang and Lin, Shi and Xu, Zhenhua and Wang, Zhebo and Li, Minghao and Li, Yufeng and Zhang, Yilun and Peng, Hujin and Chen, Xiang and Sha, Zeyang and Li, Yuyuan and Lin, Changting and Wang, Xun and Liu, Xuan and Zhang, Ningyu and Chen, Chaochao and Wu, Chunming and Khan, Muhammad Khurram and Han, Meng},
+  year   = {2025},
+  eprint = {2506.19676},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  url    = {https://arxiv.org/abs/2506.19676},
+  keywords = {survey,security},
+}
+
+@misc{commcentric2025survey,
+  title  = {Beyond Self-Talk: A Communication-Centric Survey of {LLM}-Based Multi-Agent Systems},
+  author = {Yan, Bingyu and Zhou, Zhibo and Zhang, Litian and Zhang, Lian and Zhou, Ziyi and Miao, Dezhuang and Li, Zhoujun and Li, Chaozhuo and Zhang, Xiaoming},
+  year   = {2025},
+  eprint = {2502.14321},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.MA},
+  url    = {https://arxiv.org/abs/2502.14321},
+  note   = {The arXiv v3 record states acceptance by Frontiers of Computer Science under \texttt{doi:10.1007/s11704-026-50857-y}. That {DOI} did not resolve and was not registered at Crossref when checked on 2026-09-10, so the preprint is cited and the venue is recorded here rather than asserted},
+  keywords = {survey},
+}
+
+% ============================================================
+% Foundational LLM-era multi-agent frameworks
+% ============================================================
+
+@misc{wu2023autogen,
+  title  = {{AutoGen}: Enabling Next-Gen {LLM} Applications via Multi-Agent Conversation},
+  author = {Wu, Qingyun and Bansal, Gagan and Zhang, Jieyu and Wu, Yiran and Li, Beibin and Zhu, Erkang and Jiang, Li and Zhang, Xiaoyun and Zhang, Shaokun and Liu, Jiale and Awadallah, Ahmed Hassan and White, Ryen W. and Burger, Doug and Wang, Chi},
+  year   = {2023},
+  eprint = {2308.08155},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  url    = {https://arxiv.org/abs/2308.08155},
+  keywords = {foundational},
+}
+
+@inproceedings{hong2024metagpt,
+  title     = {{MetaGPT}: Meta Programming for A Multi-Agent Collaborative Framework},
+  author    = {Hong, Sirui and Zhuge, Mingchen and Chen, Jonathan and Zheng, Xiawu and Cheng, Yuheng and Zhang, Ceyao and Wang, Jinlin and Wang, Zili and Yau, Steven Ka Shing and Lin, Zijuan and Zhou, Liyang and Ran, Chenyu and Xiao, Lingfeng and Wu, Chenglin and Schmidhuber, J\"urgen},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2024},
+  eprint    = {2308.00352},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  url       = {https://iclr.cc/virtual/2024/poster/18491},
+  keywords  = {foundational},
+}
+
+@inproceedings{qian2024chatdev,
+  title     = {{ChatDev}: Communicative Agents for Software Development},
+  author    = {Qian, Chen and Liu, Wei and Liu, Hongzhang and Chen, Nuo and Dang, Yufan and Li, Jiahao and Yang, Cheng and Chen, Weize and Su, Yusheng and Cong, Xin and Xu, Juyuan and Li, Dahai and Liu, Zhiyuan and Sun, Maosong},
+  booktitle = {Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  pages     = {15174 to 15186},
+  publisher = {Association for Computational Linguistics},
+  year      = {2024},
+  doi       = {10.18653/v1/2024.acl-long.810},
+  url       = {https://aclanthology.org/2024.acl-long.810/},
+  keywords  = {foundational},
+}
+
+@inproceedings{li2023camel,
+  title     = {{CAMEL}: Communicative Agents for ``Mind'' Exploration of Large Language Model Society},
+  author    = {Li, Guohao and Hammoud, Hasan Abed Al Kader and Itani, Hani and Khizbullin, Dmitrii and Ghanem, Bernard},
+  booktitle = {Advances in Neural Information Processing Systems 36 (NeurIPS)},
+  pages     = {51991 to 52008},
+  year      = {2023},
+  doi       = {10.52202/075280-2264},
+  eprint    = {2303.17760},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  url       = {https://arxiv.org/abs/2303.17760},
+  keywords  = {foundational},
+}
+
+@misc{fipa_acl,
+  title        = {{FIPA} {ACL} Message Structure Specification ({SC00061G})},
+  author       = {{Foundation for Intelligent Physical Agents}},
+  organization = {{FIPA}},
+  year         = {2002},
+  note         = {Original \texttt{fipa.org} domain is defunct; cited via the Internet Archive Wayback Machine snapshot.},
+  url          = {https://web.archive.org/web/2022/http://www.fipa.org/specs/fipa00061/SC00061G.html},
+  keywords     = {foundational},
+}
+
+@inproceedings{finin1997kqml,
+  title     = {{KQML} as an Agent Communication Language},
+  author    = {Finin, Tim and Fritzson, Richard and McKay, Don and McEntire, Robin},
+  booktitle = {Proceedings of the Third International Conference on Information and Knowledge Management (CIKM)},
+  pages     = {456 to 463},
+  publisher = {ACM},
+  year      = {1994},
+  doi       = {10.1145/191246.191322},
+  note      = {Historical foundation; DARPA Knowledge Sharing Effort},
+  keywords  = {foundational},
+}
+
+% ============================================================
+% Protocol specifications (T2 source tier: open specs)
+% ============================================================
+
+@misc{spec_a2a,
+  title  = {Agent-to-Agent ({A2A}) Protocol Specification},
+  author = {{Linux Foundation A2A Project}},
+  year   = {2026},
+  note   = {Surveyed version: v1.0 (2026-03-12). Retrieved 2026-Q1.},
+  url    = {https://a2a-protocol.org/latest/specification/},
+  keywords = {spec},
+}
+
+@misc{spec_mcp,
+  title  = {Model Context Protocol Specification},
+  author = {{Anthropic} and {Linux Foundation Agentic AI Foundation}},
+  year   = {2026},
+  note   = {Surveyed early-2026 release. Retrieved 2026-Q1.},
+  url    = {https://modelcontextprotocol.io/},
+  keywords = {spec},
+}
+
+@misc{spec_acp,
+  title  = {Agent Communication Protocol ({ACP}) Specification},
+  author = {{IBM Research} and {BeeAI Project} and {Linux Foundation AI \& Data}},
+  year   = {2025},
+  note   = {REST + multipart. Originated at IBM Research (March 2025); donated to the Linux Foundation alongside the BeeAI platform. As of 2025-08-29 the project is merging into {A2A} under the {LF} umbrella and the upstream repository is archived (2025-08-27). Distinct from Cisco/AGNTCY's identically-acronymed ``Agent Connect Protocol'' (\texttt{spec.acp.agntcy.org}). Retrieved 2026-Q1.},
+  url    = {https://github.com/i-am-bee/acp},
+  keywords = {spec},
+}
+
+@misc{spec_anp,
+  title  = {Agent Network Protocol Technical White Paper},
+  author = {Chang, Gaowei and Lin, Eidan and Yuan, Chengxuan and Cai, Rizhao and Chen, Binbin and Xie, Xuan and Zhang, Yin},
+  year   = {2025},
+  eprint = {2508.00007},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2508.00007},
+  keywords = {spec},
+}
+
+@misc{spec_anp_v11,
+  title        = {Agent Network Protocol ({ANP}) Specification Suite, Release 1.1},
+  author       = {{ANP Open Source Community}},
+  year         = {2026},
+  note         = {Post-cutoff. Tagged release \texttt{v1.1}, 2026-06-27. Adds the released end-to-end instant messaging suite ({ANP-09}) for direct and group messaging with attachments and optional end-to-end encryption. Moves the Agent Description document ({ANP-07}) from {JSON-LD} to plain {JSON} for readability, while the Agent Discovery specification ({ANP-08}) retains {JSON-LD} and its \texttt{@context} mechanism. Apache-2.0},
+  url          = {https://github.com/agent-network-protocol/AgentNetworkProtocol},
+  keywords     = {spec},
+}
+
+@misc{spec_agntcy,
+  title        = {{AGNTCY}: Internet of Agents Specifications ({SLIM}, {OASF})},
+  author       = {{Cisco Outshift} and {LangChain} and {Galileo} and {AGNTCY Project (Linux Foundation)}},
+  year         = {2025},
+  note         = {Launched March 2025 by Cisco/Outshift with LangChain and Galileo as core maintainers; now an {LF} project. {OASF} specification at \texttt{docs.agntcy.org/oasf}.},
+  url          = {https://agntcy.org/},
+  keywords     = {spec},
+}
+
+@misc{spec_coral,
+  title  = {Coral Protocol: Open Infrastructure Connecting The Internet of Agents},
+  author = {Georgio, Roman J. and Forder, Caelum and Deb, Suman and Rahimov, Andri and Carroll, Peter and G{\"u}rcan, {\"O}nder},
+  year   = {2025},
+  eprint = {2505.00749},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2505.00749},
+  keywords = {spec},
+}
+
+@misc{spec_loka,
+  title  = {{LOKA} Protocol: A Decentralized Framework for Trustworthy and Ethical {AI} Agent Ecosystems},
+  author = {Ranjan, Rajesh and Gupta, Shailja and Singh, Surya Narayan},
+  year   = {2025},
+  eprint = {2504.10915},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2504.10915},
+  keywords = {spec},
+}
+
+@inproceedings{spec_acnbp,
+  title     = {Agent Capability Negotiation and Binding Protocol ({ACNBP})},
+  author    = {Huang, Ken and Sheriff, Akram and Narajala, Vineeth Sai and Habler, Idan},
+  booktitle = {2026 International Conference on {AI} x Data and Knowledge Engineering (AIxDKE)},
+  pages     = {94 to 97},
+  publisher = {IEEE},
+  year      = {2026},
+  doi       = {10.1109/AIxDKE67294.2026.00023},
+  eprint    = {2506.13590},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  url       = {https://arxiv.org/abs/2506.13590},
+  note      = {Scored from the arXiv v1 specification text, which is the longer of the two and the version the authors circulated; the AIxDKE paper is the published venue},
+  keywords  = {spec},
+}
+
+@inproceedings{huang_zerotrust_identity,
+  title     = {A Novel Zero-Trust Identity Framework for Agentic {AI}: Decentralized Authentication and Fine-Grained Access Control},
+  author    = {Huang, Ken and Narajala, Vineeth Sai and Yeoh, John and Ross, Jason and Lambe, Mahesh and Raskar, Ramesh and Harkati, Youssef and Huang, Jerry and Habler, Idan and Hughes, Chris},
+  booktitle = {2026 International Conference on {AI} x Data and Knowledge Engineering (AIxDKE)},
+  pages     = {98 to 101},
+  publisher = {IEEE},
+  year      = {2026},
+  doi       = {10.1109/AIxDKE67294.2026.00024},
+  eprint    = {2505.19301},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  url       = {https://arxiv.org/abs/2505.19301},
+  note      = {Companion identity framework by the {ACNBP} authors, supplied in correspondence. Proposes {DID} and Verifiable Credential agent identities with an Agent Naming Service and {ZKP} attribute disclosure. Related work to {ACNBP} rather than a normative dependency of it. Read in the 24-page arXiv v2; the published venue is a 4-page short paper},
+  keywords  = {identity},
+}
+
+@misc{spec_ap2,
+  title  = {Agent Payments Protocol ({AP2})},
+  author = {{PayPal} and {Google}},
+  year   = {2025},
+  note   = {Agentic commerce settlement protocol. Retrieved 2026-Q1.},
+  url    = {https://developer.paypal.com/community/blog/PayPal-Agent-Payments-Protocol/},
+  keywords = {spec,industry},
+}
+
+@misc{spec_visa_tap,
+  title        = {Visa Trusted Agent Protocol ({TAP})},
+  author       = {{Visa}},
+  year         = {2025},
+  url          = {https://developer.visa.com/capabilities/trusted-agent-protocol/overview},
+  keywords     = {spec,industry},
+}
+
+@misc{spec_erc8004,
+  title  = {{ERC-8004}: Trustless Trust Layer for Autonomous {AI} Agents},
+  author = {{Ethereum Improvement Proposal Authors}},
+  year   = {2025},
+  url    = {https://eips.ethereum.org/EIPS/eip-8004},
+  keywords = {spec,industry},
+}
+
+@misc{spec_ucp,
+  title        = {Universal Commerce Protocol ({UCP}) Official Specification},
+  author       = {{UCP Authors}},
+  year         = {2026},
+  howpublished = {Version \texttt{2026-01-11}, Apache 2.0, repository
+                  \texttt{Universal-Commerce-Protocol/ucp}},
+  note         = {Date-based versioning in \texttt{YYYY-MM-DD} form, not
+                  semantic versioning. Cited at the surveyed version
+                  \texttt{2026-01-11}, which is the version both Q1 release
+                  tags (\texttt{v2026-01-11} and \texttt{v2026-01-23}, both
+                  cut 2026-01-23) declare in the specification overview. Every
+                  claim here was read at tag \texttt{v2026-01-23}, commit
+                  \texttt{dcf7eac}. The two Q1 tags declare the same version
+                  string but differ in content, so the tag and commit are
+                  given rather than the version alone. Two later releases,
+                  \texttt{v2026-04-08} and \texttt{v2026-08-25}, are
+                  post-cutoff and are not the basis of any statement here.
+                  Nothing here is read from the rendered documentation at the
+                  URL below, which tracks the current release. Retrieved
+                  2026-Q1.},
+  url          = {https://ucp.dev/},
+  keywords     = {spec,industry},
+}
+
+% ============================================================
+% Security & critique
+% ============================================================
+
+@inproceedings{a2asecbench,
+  title     = {{A2ASecBench}: A Protocol-Aware Security Benchmark for Agent-to-Agent Multi-Agent Systems},
+  author    = {Li, Tianhao and Chu, Chuangxin and Zheng, Yujia and Zhang, Bohan and Gong, Neil Zhenqiang and Xiao, Chaowei},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2026},
+  url       = {https://iclr.cc/virtual/2026/poster/10010017},
+  keywords  = {security,eval},
+}
+
+@misc{threatmodel2026,
+  title  = {Security Threat Modeling for Emerging {AI}-Agent Protocols: A Comparative Analysis of {MCP}, {A2A}, {Agora}, and {ANP}},
+  author = {Anbiaee, Zeynab and Rabbani, Mahdi and Mirani, Mansur and Piya, Gunjan and Opushnyev, Igor and Ghorbani, Ali and Dadkhah, Sajjad},
+  year   = {2026},
+  eprint = {2602.11327},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2602.11327},
+  keywords = {security},
+}
+
+@article{protocol_exploits,
+  title   = {From Prompt Injections to Protocol Exploits: Threats in {LLM}-Powered {AI} Agents Workflows},
+  author  = {Ferrag, Mohamed Amine and Tihanyi, Norbert and Hamouda, Djallel and Maglaras, Leandros and Lakas, Abderrahmane and Debbah, Merouane},
+  journal = {ICT Express},
+  volume  = {12},
+  number  = {2},
+  pages   = {353 to 383},
+  year    = {2026},
+  doi     = {10.1016/j.icte.2025.12.001},
+  eprint  = {2506.23260},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  url     = {https://doi.org/10.1016/j.icte.2025.12.001},
+  keywords = {security},
+}
+
+@inproceedings{zhan2024injecagent,
+  title     = {{InjecAgent}: Benchmarking Indirect Prompt Injections in Tool-Integrated Large Language Model Agents},
+  author    = {Zhan, Qiusi and Liang, Zhixiang and Ying, Zifan and Kang, Daniel},
+  booktitle = {Findings of the Association for Computational Linguistics: ACL 2024},
+  pages     = {10471 to 10506},
+  publisher = {Association for Computational Linguistics},
+  year      = {2024},
+  doi       = {10.18653/v1/2024.findings-acl.624},
+  eprint    = {2403.02691},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  url       = {https://aclanthology.org/2024.findings-acl.624/},
+  keywords  = {security,eval},
+}
+
+@article{agentleak,
+  title         = {{AgentLeak}: A Benchmark for Internal-Channel Privacy Leakage in Multi-Agent {LLM} Systems},
+  author        = {El Yagoubi, Faouzi and Badu-Marfo, Godwin and Al Mallah, Ranwa},
+  journal       = {{IEEE Access}},
+  volume        = {14},
+  pages         = {94960 to 94978},
+  year          = {2026},
+  doi           = {10.1109/ACCESS.2026.3704541},
+  eprint        = {2602.11510},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2602.11510},
+  keywords      = {security,eval},
+}
+
+@article{a2a_weaknesses,
+  title   = {Improving Google {A2A} Protocol: Protecting Sensitive Data and Mitigating Unintended Harms in Multi-Agent Systems},
+  author  = {Louck, Yedidel and Stulman, Ariel and Dvir, Amit},
+  journal = {ACM Transactions on Software Engineering and Methodology},
+  year    = {2026},
+  doi     = {10.1145/3821216},
+  eprint  = {2505.12490},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  url     = {https://doi.org/10.1145/3821216},
+  note    = {Accepted, in press at the cutoff; no volume or page numbers assigned},
+  keywords = {security},
+}
+
+@inproceedings{did_vc_agents,
+  title     = {{AI} Agents with Decentralized Identifiers and Verifiable Credentials},
+  author    = {Rodriguez Garzon, Sandro and Vaziry, Awid and Kuzu, Enis Mert and Gehrmann, Dennis Enrique and Varkan, Buse and Gaballa, Alexander and K{\"u}pper, Axel},
+  booktitle = {Proceedings of the 18th International Conference on Agents and Artificial Intelligence (ICAART)},
+  volume    = {1},
+  pages     = {252 to 259},
+  publisher = {SCITEPRESS},
+  year      = {2026},
+  doi       = {10.5220/0014234400004052},
+  eprint    = {2511.02841},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  url       = {https://doi.org/10.5220/0014234400004052},
+  keywords  = {security},
+}
+
+@misc{agentic_jwt,
+  title  = {Agentic {JWT}: A Secure Delegation Protocol for Autonomous {AI} Agents},
+  author = {Goswami, Abhishek},
+  year   = {2025},
+  eprint = {2509.13597},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2509.13597},
+  keywords = {security},
+}
+
+@misc{authz_propagation,
+  title  = {Authorization Propagation in Multi-Agent {AI} Systems: Identity Governance as Infrastructure},
+  author = {Tallam, Krti},
+  year   = {2026},
+  eprint = {2605.05440},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2605.05440},
+  keywords = {security},
+}
+
+@misc{confidential_computing,
+  title  = {When Agents Handle Secrets: A Survey of Confidential Computing for Agentic {AI}},
+  author = {Forough, Javad and Kogias, Marios and Haddadi, Hamed},
+  year   = {2026},
+  eprint = {2605.03213},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2605.03213},
+  keywords = {security,survey},
+}
+
+@article{trism,
+  title   = {{TRiSM} for Agentic {AI}: A Review of Trust, Risk, and Security Management in {LLM}-based Agentic Multi-Agent Systems},
+  author  = {Raza, Shaina and Sapkota, Ranjan and Karkee, Manoj and Emmanouilidis, Christos},
+  journal = {AI Open},
+  volume  = {7},
+  pages   = {71 to 95},
+  year    = {2026},
+  doi     = {10.1016/j.aiopen.2026.02.006},
+  eprint  = {2506.04133},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  url     = {https://doi.org/10.1016/j.aiopen.2026.02.006},
+  keywords = {security,governance},
+}
+
+@inproceedings{saga2026,
+  title     = {{SAGA}: A Security Architecture for Governing {AI} Agentic Systems},
+  author    = {Syros, Georgios and Suri, Anshuman and Ginesin, Jacob and Nita-Rotaru, Cristina and Oprea, Alina},
+  booktitle = {Proceedings of the 2026 Network and Distributed System Security Symposium (NDSS)},
+  publisher = {Internet Society},
+  year      = {2026},
+  doi       = {10.14722/ndss.2026.230869},
+  url       = {https://doi.org/10.14722/ndss.2026.230869},
+  keywords  = {security},
+}
+
+@misc{bridging_protocol_prod,
+  title  = {Bridging Protocol and Production: Design Patterns for Deploying {AI} Agents with Model Context Protocol},
+  author = {Srinivasan, Vasundra},
+  year   = {2026},
+  eprint = {2603.13417},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2603.13417},
+  keywords = {security,industry},
+}
+
+% ============================================================
+% Evaluation benchmarks
+% ============================================================
+
+@misc{protocolbench,
+  title  = {{ProtocolBench}: Which {LLM} Multi-Agent Protocol to Choose?},
+  author = {Du, Hongyi and Su, Jiaqi and Li, Jisen and Ding, Lijie and Yang, Yingxuan and Han, Peixuan and Tang, Xiangru and Zhu, Kunlun and You, Jiaxuan},
+  year   = {2025},
+  eprint = {2510.17149},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2510.17149},
+  keywords = {eval},
+}
+
+@inproceedings{multiagentbench,
+  title     = {{MultiAgentBench}: Evaluating the Collaboration and Competition of {LLM} Agents},
+  author    = {Zhu, Kunlun and Du, Hongyi and Hong, Zhaochen and Yang, Xiaocheng and Guo, Shuyi and Wang, Zhe and Wang, Zhenhailong and Qian, Cheng and Tang, Xiangru and Ji, Heng and You, Jiaxuan},
+  booktitle = {Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  pages     = {8580 to 8622},
+  publisher = {Association for Computational Linguistics},
+  year      = {2025},
+  doi       = {10.18653/v1/2025.acl-long.421},
+  eprint    = {2503.01935},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.MA},
+  url       = {https://aclanthology.org/2025.acl-long.421/},
+  keywords  = {eval},
+}
+
+@article{comma_tmlr25,
+  title   = {{COMMA}: A Communicative Multimodal Multi-Agent Benchmark},
+  author  = {Ossowski, Timothy and Maqbool, Danyal and Chen, Jixuan and Cai, Zefan and Bradshaw, Tyler J. and Hu, Junjie},
+  journal = {Transactions on Machine Learning Research},
+  issn    = {2835-8856},
+  year    = {2025},
+  eprint  = {2410.07553},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  url     = {https://openreview.net/forum?id=TIGQIem1na},
+  keywords = {eval},
+}
+
+@misc{agentsnet,
+  title  = {{AgentsNet}: Coordination and Collaborative Reasoning in Multi-Agent {LLMs}},
+  author = {Gr{\"o}tschla, Florian and M{\"u}ller, Luis and T{\"o}nshoff, Jan and Galkin, Mikhail and Perozzi, Bryan},
+  year   = {2025},
+  eprint = {2507.08616},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2507.08616},
+  keywords = {eval},
+}
+
+@inproceedings{spec_eval_cyber,
+  title     = {Specification and Evaluation of Multi-Agent {LLM} Systems: Prototype and Cybersecurity Applications},
+  author    = {H{\"a}rer, Felix},
+  booktitle = {2025 International Conference on Cybersecurity and {AI}-Based Systems (Cyber-AI)},
+  pages     = {340 to 347},
+  publisher = {IEEE},
+  year      = {2025},
+  doi       = {10.1109/Cyber-AI66431.2025.11233474},
+  eprint    = {2506.10467},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  url       = {https://arxiv.org/abs/2506.10467},
+  keywords  = {eval,security},
+}
+
+% ============================================================
+% Semantic interoperability
+% ============================================================
+
+@misc{beyond_message_passing,
+  title  = {Beyond Message Passing: A Semantic View of Agent Communication Protocols},
+  author = {Yuan, Dun and Lyu, Fuyuan and Yuan, Ye and Zhang, Weixu and He, Bowei and Geng, Jiayi and Du, Linfeng and Sun, Zipeng and Chen, Yankai and Han, Changjiang and Kang, Jikun and Chen, Xi and Wu, Haolun and Liu, Xue},
+  year   = {2026},
+  eprint = {2604.02369},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2604.02369},
+  keywords = {semantic},
+}
+
+@misc{semantic_driven,
+  title  = {Semantic-Driven {AI} Agent Communications: Challenges and Solutions},
+  author = {Yu, Kaiwen and Sun, Mengying and Qin, Zhijin and Xu, Xiaodong and Yang, Ping and Xiao, Yue and Wu, Gang},
+  year   = {2025},
+  eprint = {2510.00381},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2510.00381},
+  keywords = {semantic},
+}
+
+% ============================================================
+% Governance & standards bodies
+% ============================================================
+
+@misc{lf_aaif,
+  title        = {Linux Foundation Agentic {AI} Foundation ({AAIF})},
+  author       = {{The Linux Foundation}},
+  year         = {2025},
+  note         = {Founded December 2025. Founding members: AWS, Anthropic, Block, Bloomberg, Cloudflare, Google, Microsoft, OpenAI.},
+  url          = {https://aaif.io/},
+  keywords     = {governance},
+}
+
+@misc{w3c_agent_protocol_cg,
+  title        = {{W3C} {AI} Agent Protocol Community Group},
+  author       = {{W3C}},
+  year         = {2025},
+  note         = {Established May 2025.},
+  url          = {https://www.w3.org/groups/cg/agentprotocol/},
+  keywords     = {governance},
+}
+
+% ============================================================
+% Taxonomy & architectural surveys (adjacent)
+% ============================================================
+
+@misc{hierarchical_taxonomy,
+  title  = {A Taxonomy of Hierarchical Multi-Agent Systems: Design Patterns, Coordination Mechanisms, and Industrial Applications},
+  author = {Moore, David J.},
+  year   = {2025},
+  eprint = {2508.12683},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2508.12683},
+  keywords = {survey},
+}
+
+@misc{agents_blockchain,
+  title  = {Autonomous Agents on Blockchains: Standards, Execution Models, and Trust Boundaries},
+  author = {Alqithami, Saad},
+  year   = {2026},
+  eprint = {2601.04583},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2601.04583},
+  keywords = {survey,governance},
+}
+
+% ============================================================
+% Referenced by the \S13 proposals: naming + guardrails prior art
+% ============================================================
+
+@misc{agent_uri_scheme,
+  title  = {Agent Identity {URI} Scheme: Topology-Independent Naming and Capability-Based Discovery for Multi-Agent Systems},
+  author = {Rodriguez, Jr., Roland R.},
+  year   = {2026},
+  eprint = {2601.14567v2},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.MA},
+  url    = {https://arxiv.org/abs/2601.14567v2},
+  note   = {v2 (July 2026) formalizes the capability path as constitutive identity and extends the related-work coverage to distributed agent-index designs.},
+  keywords = {spec,identity},
+}
+
+@misc{ans_ietf,
+  title        = {Agent Name Service ({ANS}): A Universal Directory for Secure {AI} Agent Discovery and Interoperability},
+  author       = {Huang, Ken and Narajala, Vineeth Sai and Habler, Idan and Sheriff, Akram},
+  year         = {2025},
+  howpublished = {IETF Internet-Draft \texttt{draft-narajala-ans-00}, published 2025-05-16},
+  url          = {https://datatracker.ietf.org/doc/html/draft-narajala-ans-00},
+  note         = {Cited for the capability-aware identifier syntax analyzed in \S\ref{sec:proposals}. The Datatracker marks this revision Replaced by \texttt{draft-narajala-courtney-ansv2-01} (2026-04-13), which drops that syntax for a domain-anchored design. Also published as an {IEEE} {ICAIC} 2026 paper, \texttt{doi:10.1109/ICAIC67076.2026.11395757}},
+  keywords     = {spec,identity},
+}
+
+@misc{awcp,
+  title  = {{AWCP}: A Workspace Delegation Protocol for Deep-Engagement Collaboration across Remote Agents},
+  author = {Nie, Xiaohang and Guo, Zihan and Chen, Youliang and Zhou, Yuanjian and Zhang, Weinan},
+  year   = {2026},
+  eprint = {2602.20493},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2602.20493},
+  keywords = {spec},
+}
+
+@misc{ai_identity_gaps,
+  title  = {{AI} Identity: Standards, Gaps, and Research Directions for {AI} Agents},
+  author = {Otsuka, Takumi and Toyoda, Kentaroh and Leung, Alex},
+  year   = {2026},
+  eprint = {2604.23280},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2604.23280},
+  keywords = {survey,identity},
+}
+
+@misc{semgrep_a2a,
+  title        = {A Security Engineer's Guide to the {A2A} Protocol},
+  author       = {{Semgrep}},
+  year         = {2025},
+  howpublished = {Semgrep engineering blog},
+  note         = {Tier-4 source (vendor blog), used only for the named threat-pattern claims that are independently corroborated by spec text},
+  url          = {https://semgrep.dev/blog/2025/a-security-engineers-guide-to-the-a2a-protocol/},
+  keywords     = {security},
+}
+
+@misc{pipelock,
+  title        = {Pipelock: {AI} Egress Firewall with Mediation Envelope and Signed Action Receipts},
+  author       = {{Pipelock Contributors}},
+  year         = {2026},
+  howpublished = {GitHub repository \texttt{luckyPipewrench/pipelock}, tag \texttt{v3.0.0}},
+  note         = {Tier-4 source (open-source project documentation), a production-grade implementation reference. Pinned to tag \texttt{v3.0.0} because pattern-catalogue counts drift release-to-release; the paper's \texttt{a2a-survey-rubric} companion repo will track successor tags.},
+  url          = {https://github.com/luckyPipewrench/pipelock/tree/v3.0.0},
+  keywords     = {security,industry},
+}
+
+@misc{pipelab_independent_attestation,
+  title        = {Independent Attestation and Mediator Receipts},
+  author       = {{Pipelab}},
+  year         = {2026},
+  howpublished = {Pipelab technical write-up},
+  note         = {Tier-4 source (project-maintainer write-up) describing the mediator-signed-receipt and offline-verification model implemented by Pipelock v3.0.0.},
+  url          = {https://pipelab.org/blog/independent-attestation-mediator-receipts/},
+  keywords     = {security,industry},
+}
+
+@misc{pipelab_playground,
+  title        = {Pipelab Receipt-Verification Playground},
+  author       = {{Pipelab}},
+  year         = {2026},
+  howpublished = {Interactive artefact},
+  note         = {Tier-4 source (interactive artefact) that pulls a signed Pipelock receipt and verifies it offline against the pre-published verifier key, with no server in the loop.},
+  url          = {https://pipelab.org/playground/},
+  keywords     = {security,industry},
+}
+
+@misc{ruflo,
+  title        = {Ruflo: {LLM} Agent Orchestration with Cross-Machine Federation and Trust-Level Policies},
+  author       = {{Ruflo Contributors}},
+  year         = {2026},
+  howpublished = {GitHub repository \texttt{ruvnet/ruflo}},
+  note         = {Tier-4 source (open-source project documentation)},
+  url          = {https://github.com/ruvnet/ruflo},
+  keywords     = {industry},
+}
+
+@misc{openharness,
+  title        = {{OpenHarness}: A Lightweight {Python} Agent Harness with Permission Control},
+  author       = {{HKUDS}},
+  year         = {2026},
+  howpublished = {GitHub repository \texttt{HKUDS/OpenHarness}},
+  note         = {Tier-4 source (open-source project documentation)},
+  url          = {https://github.com/HKUDS/OpenHarness},
+  keywords     = {industry},
+}
+
+@misc{rfc8941,
+  title        = {{RFC 8941}: Structured Field Values for {HTTP}},
+  author       = {Nottingham, M. and Kamp, P.-H.},
+  year         = {2021},
+  howpublished = {Internet Engineering Task Force},
+  url          = {https://www.rfc-editor.org/rfc/rfc8941.html},
+  keywords     = {spec},
+}
+
+@misc{rfc9420,
+  title        = {{RFC 9420}: The Messaging Layer Security ({MLS}) Protocol},
+  author       = {Barnes, R. and Beurdouche, B. and Robert, R. and Millican, J. and Omara, E. and Cohn-Gordon, K.},
+  year         = {2023},
+  month        = jul,
+  howpublished = {Internet Engineering Task Force},
+  note         = {Proposed Standard. Verified against the {IETF} Datatracker record},
+  url          = {https://www.rfc-editor.org/rfc/rfc9420.html},
+  keywords     = {spec},
+}
+
+@misc{vendor_announcements_2026,
+  title        = {Aggregate of Vendor Announcements Regarding {A2A}, {MCP}, {ACP}, {AGNTCY}, and the Agentic Commerce Stack at the 2026-{Q}1 Cutoff},
+  author       = {{Various vendors}},
+  year         = {2026},
+  howpublished = {Compiled from public vendor blog posts, developer documentation, and press releases},
+  note         = {Tier-4 source per the source-tier discipline of \S\ref{sec:intro:notwhat}; used only for the binary ``vendor \emph{X} announced deploying \emph{Y} on date \emph{Z}'' claim. Per-vendor URLs and retrieval dates are listed in the companion repository at \texttt{data/industry-adoption.yaml}},
+  keywords     = {industry},
+}
+
+@misc{w3c_process_doc,
+  title        = {{W3C} Process Document},
+  author       = {{W3C}},
+  year         = {2023},
+  howpublished = {World Wide Web Consortium},
+  note         = {Specifies the Working Draft \(\rightarrow\) Candidate Recommendation \(\rightarrow\) Proposed Recommendation \(\rightarrow\) Recommendation pipeline and the multi-year timelines characteristic of W3C standardisation},
+  url          = {https://www.w3.org/2023/Process-20230612/},
+  keywords     = {governance},
+}
+
+@misc{gcp_service_accounts,
+  title        = {Google Cloud Service Accounts: Identity for Workloads},
+  author       = {{Google Cloud}},
+  year         = {2024},
+  howpublished = {Google Cloud documentation},
+  note         = {Production-validated precedent for email-syntax non-human identities; identifier format \texttt{<name>@<project>.iam.gserviceaccount.com}; in production since circa 2014 and governing IAM authorisation decisions for cloud workloads at scale},
+  url          = {https://cloud.google.com/iam/docs/service-account-overview},
+  keywords     = {industry,identity},
+}
+
+@misc{entra_service_principals,
+  title        = {Microsoft Entra Service Principals and Application Identities},
+  author       = {{Microsoft}},
+  year         = {2024},
+  howpublished = {Microsoft Entra documentation},
+  note         = {Email-shaped UPN identifiers (\texttt{<name>@<tenant>.onmicrosoft.com}) for non-human identities in the Microsoft cloud; the closest competitor to Google Cloud Service Accounts at production scale, used by Microsoft 365 Copilot agents and Power Automate flows},
+  url          = {https://learn.microsoft.com/en-us/entra/identity-platform/app-objects-and-service-principals},
+  keywords     = {industry,identity},
+}
+
+% ============================================================
+% TIER 2/3: ACSP reference implementation and precedent
+% ============================================================
+
+@misc{pacms_cikm_demo,
+  title         = {{PACMS}: Submodular Context Selection as a Pluggable Engine for {LLM} Agents},
+  author        = {Ghulyani, Manu and Singh, Arunabh and Bharadwaj, Karan and Nath, Ankit and Goswami, Suranjan},
+  year          = {2026},
+  eprint        = {2606.20047},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.IR},
+  url           = {https://arxiv.org/abs/2606.20047},
+  note          = {Companion artefact: \texttt{pacms\_v2.py} (algorithm) and \texttt{compare\_pacms.py} (LongMemEval harness). Deployed as a FastAPI sidecar (\texttt{POST /select}) in the OpenClaw agent framework.},
+  keywords      = {eval,semantic},
+}
+
+@inproceedings{mmr_carbonell,
+  title     = {The Use of {MMR}, Diversity-Based Reranking for Reordering Documents and Producing Summaries},
+  author    = {Carbonell, Jaime and Goldstein, Jade},
+  booktitle = {Proceedings of the 21st Annual International ACM SIGIR Conference on Research and Development in Information Retrieval},
+  year      = {1998},
+  pages     = {335 to 336},
+  publisher = {ACM},
+  doi       = {10.1145/290941.291025},
+  note      = {The canonical pairwise relevance-diversity tradeoff used as the production default in LangChain and most retrieval-augmented agent frameworks; the closest precedent against which ACSP (Contribution C7) differentiates.},
+  keywords  = {foundational,semantic},
+}
+
+@misc{nanda_index,
+  title  = {Beyond {DNS}: Unlocking the Internet of {AI} Agents via the {NANDA} Index and Verified {AgentFacts}},
+  author = {Raskar, Ramesh and Chari, Pradyumna and Zinky, John and Lambe, Mahesh and Grogan, Jared James and Wang, Sichao and Ranjan, Rajesh and Singhal, Rekha and Gupta, Shailja and Lincourt, Robert and Bala, Raghu and Joshi, Aditi and Singh, Abhishek and Chopra, Ayush and Stripelis, Dimitris and B, Bhuwan and Kumar, Sumit and Gorskikh, Maria},
+  year   = {2025},
+  eprint = {2507.14263},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.MA},
+  url    = {https://arxiv.org/abs/2507.14263},
+  note   = {Primary reference for the NANDA distributed registry design: Ed25519-signed AgentAddr records (120-byte anchor tier), AgentFacts as W3C Verifiable Credentials, and a ``registry quilt'' of CRDT-replicated cross-signed registries.},
+  keywords = {spec,identity},
+}
+
+@misc{nanda_index_impl,
+  title        = {{NANDA} Index v2},
+  author       = {{Project NANDA}},
+  year         = {2026},
+  howpublished = {GitHub repository \texttt{projnanda/nanda-index-v2}, commit \texttt{9e6d64a}},
+  note         = {Reference implementation of the NANDA Index, deployed at \texttt{nandaindex.org}. Pinned to a commit because the schema is under active migration. Inspected at \texttt{server/db/migrations/}: migration 003 defines the index record as one row per organization; 007 gates activation on a DNS TXT domain-ownership challenge, superseding email-only verification; 010 adds \texttt{version} and \texttt{trust\_manifest} columns for parity with the AI Catalog \texttt{CatalogEntry} schema.},
+  url          = {https://github.com/projnanda/nanda-index-v2},
+  keywords     = {spec,identity},
+}
+
+@inproceedings{agent_registry_evolution,
+  title  = {Evolution of {AI} Agent Registry Solutions: Centralized, Enterprise, and Distributed Approaches},
+  author = {Singh, Aditi and Ehtesham, Abul and Lambe, Mahesh and Grogan, Jared James and Singh, Abhishek and Kumar, Saket and Muscariello, Luca and Pandey, Vijoy and Sauvage De Saint Marc, Guillaume and Chari, Pradyumna and Raskar, Ramesh},
+  booktitle = {2025 IEEE 7th International Conference on Cognitive Machine Intelligence (CogMI)},
+  pages  = {507 to 515},
+  publisher = {IEEE},
+  doi    = {10.1109/CogMI67134.2025.00067},
+  year   = {2025},
+  eprint = {2508.03095},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.NI},
+  url    = {https://arxiv.org/abs/2508.03095},
+  note   = {Registry-landscape survey covering DNS-based, DID-based, and distributed-index approaches; relevant to the related-work context of \S13.1.2.},
+  keywords = {survey,identity},
+}
+
+@misc{ai_catalog,
+  title        = {{AI} Catalog: A Common {AI} Card Standard for Agent Identity and Discovery},
+  author       = {{AI Catalog Working Group (Microsoft, Google, Cisco, Amazon, Pulse MCP)}},
+  year         = {2026},
+  howpublished = {GitHub repository \texttt{agent-card/ai-catalog}, commit \texttt{f0b56b4} (2026-06-25)},
+  note         = {Ongoing work on identification and discovery conventions for AI artifacts, agents among several types. ADR-0015 (landed 2026-05-13 in \texttt{3958047}; renamed to \texttt{urn:air} in \texttt{1698fec} 2026-06-11; last touched \texttt{f0b56b4} 2026-06-25) recommends \texttt{urn:air:\{publisher\}:\{namespace\}:\{name\}} for open or federated deployments, where publisher is a DNS domain and namespace is optional hierarchical colon-separated segments; the \texttt{identifier} field itself remains an open text format. Participants include Microsoft, Google, Cisco, Amazon, and Pulse MCP. Issues 59 and 70 are open against the grammar at the time of writing, which is why this citation is pinned to a commit.},
+  url          = {https://github.com/agent-card/ai-catalog},
+  keywords     = {spec,identity},
+}
+
+%% =========================================================================
+% Normative standards and prior art referred to by name in the body text.
+% Each verified against its authoritative record on 2026-09-10.
+%% =========================================================================
+
+@techreport{w3c_did_core,
+  title       = {Decentralized Identifiers ({DID}s) v1.0: Core Architecture, Data Model, and Representations},
+  author      = {Sporny, Manu and Guy, Amy and Sabadello, Markus and Reed, Drummond},
+  institution = {World Wide Web Consortium ({W3C})},
+  type        = {{W3C} Recommendation},
+  year        = {2022},
+  month       = jul,
+  url         = {https://www.w3.org/TR/2022/REC-did-core-20220719/},
+  note        = {The normative definition of the identifier scheme the rubric's Axis 2 level-3 anchor is written against (\S\ref{sec:rubric:axis2}), and the source of the rotation semantics discussed in \S\ref{sec:security:identity}. Verified through the {W3C} specification {API}: Recommendation of 2022-07-19.},
+  keywords    = {spec,identity},
+}
+
+@techreport{w3c_vc_data_model,
+  title       = {Verifiable Credentials Data Model v2.0},
+  author      = {Herman, Ivan and Jones, Michael and Sporny, Manu and Thibodeau Jr, Ted and Cohen, Gabe},
+  institution = {World Wide Web Consortium ({W3C})},
+  type        = {{W3C} Recommendation},
+  year        = {2025},
+  month       = may,
+  url         = {https://www.w3.org/TR/2025/REC-vc-data-model-2.0-20250515/},
+  note        = {The credential format paired with {DID}s in the Axis 2 level-3 anchor and in the Axis 3 level-2 anchor (\S\ref{sec:rubric:axis3}). Verified through the {W3C} specification {API}: Recommendation of 2025-05-15.},
+  keywords    = {spec,identity},
+}
+
+@techreport{w3c_json_ld,
+  title       = {{JSON-LD} 1.1: A {JSON}-based Serialization for Linked Data},
+  author      = {Kellogg, Gregg and Champin, Pierre-Antoine and Longley, Dave},
+  institution = {World Wide Web Consortium ({W3C})},
+  type        = {{W3C} Recommendation},
+  year        = {2020},
+  month       = jul,
+  url         = {https://www.w3.org/TR/2020/REC-json-ld11-20200716/},
+  note        = {Defines the \texttt{@context} mechanism that carries {ANP}'s Axis 9 level-2 score (\S\ref{sec:semantic:ontology}). Verified through the {W3C} specification {API}: Recommendation of 2020-07-16.},
+  keywords    = {spec,semantic},
+}
+
+@misc{spec_jsonrpc,
+  title        = {{JSON-RPC} 2.0 Specification},
+  author       = {{JSON-RPC Working Group}},
+  year         = {2010},
+  howpublished = {Specification, origin date 2010-03-26, revised 2013-01-04},
+  url          = {https://www.jsonrpc.org/specification},
+  note         = {The envelope shared by {MCP} and {A2A} and recorded in the Axis 4 transport tuple (\S\ref{sec:rubric:axis4}). Cited for the id, method, params, result, and error structure that \S\ref{sec:background:soa} contrasts with {SOAP}.},
+  keywords     = {spec,transport},
+}
+
+@article{fielding2002rest,
+  title     = {Principled Design of the Modern Web Architecture},
+  author    = {Fielding, Roy T. and Taylor, Richard N.},
+  journal   = {{ACM} Transactions on Internet Technology},
+  volume    = {2},
+  number    = {2},
+  pages     = {115 to 150},
+  year      = {2002},
+  publisher = {{ACM}},
+  doi       = {10.1145/514183.514185},
+  note      = {The canonical statement of {REST}, cited for the service-oriented lineage of \S\ref{sec:background:soa}. The 2000 {ICSE} paper (\texttt{doi:10.1145/337180.337228}) is the earlier conference version; the journal article is the one cited here.},
+  keywords  = {heritage},
+}
+
+@misc{spec_openapi,
+  title        = {{OpenAPI} Specification v3.1.1},
+  author       = {{OpenAPI Initiative}},
+  year         = {2024},
+  howpublished = {Linux Foundation {OpenAPI} Initiative, release 3.1.1 (2024-10-24)},
+  url          = {https://spec.openapis.org/oas/v3.1.1.html},
+  note         = {The machine-readable contract layer over {REST} that \S\ref{sec:background:soa} identifies as the immediate predecessor of the tool-descriptor schemas, and the format {ACP} publishes its service description in (\S\ref{sec:industry:acp}). Version 3.2.0 shipped 2025-09-19, after the 3.1.x line the surveyed protocols target.},
+  keywords     = {spec,heritage},
+}
+
+@book{searle1969speechacts,
+  title     = {Speech Acts: An Essay in the Philosophy of Language},
+  author    = {Searle, John R.},
+  publisher = {Cambridge University Press},
+  year      = {1969},
+  isbn      = {9780521096263},
+  doi       = {10.1017/CBO9781139173438},
+  note      = {The speech-act theory that {FIPA-ACL} anchors its performative vocabulary in (\S\ref{sec:background:fipa-kqml}).},
+  keywords  = {heritage},
+}
+
+@article{smith1980contractnet,
+  title     = {The Contract Net Protocol: High-Level Communication and Control in a Distributed Problem Solver},
+  author    = {Smith, Reid G.},
+  journal   = {{IEEE} Transactions on Computers},
+  volume    = {C-29},
+  number    = {12},
+  pages     = {1104 to 1113},
+  year      = {1980},
+  publisher = {{IEEE}},
+  doi       = {10.1109/TC.1980.1675516},
+  note      = {The original contract-net formulation whose announce, bid, award, and completion phases \S\ref{sec:background:fipa-kqml} traces into {ACNBP}'s ten-step negotiation and Coral's team contracts. Crossref records the author as family name only; the given name is taken from the {IEEE} record. A correction was published in 1981 (\texttt{doi:10.1109/TC.1981.1675799}).},
+  keywords  = {heritage},
+}
+
+@book{nissenbaum2009privacy,
+  title     = {Privacy in Context: Technology, Policy, and the Integrity of Social Life},
+  author    = {Nissenbaum, Helen},
+  publisher = {Stanford University Press},
+  year      = {2009},
+  isbn      = {9780804772891},
+  doi       = {10.1515/9780804772891},
+  note      = {The source of the contextual-integrity framework that \S\ref{sec:security:privacy} adopts and that Contribution C7 ({ACSP}, \S\ref{sec:proposals:acsp}) is designed against. Previously this claim carried a citation to the Kong survey, which discusses the framework but does not originate it.},
+  keywords  = {privacy},
+}
+
+@inproceedings{sigstore2022,
+  title     = {Sigstore: Software Signing for Everybody},
+  author    = {Newman, Zachary and Meyers, John Speed and Torres-Arias, Santiago},
+  booktitle = {Proceedings of the 2022 {ACM} {SIGSAC} Conference on Computer and Communications Security ({CCS})},
+  pages     = {2353 to 2367},
+  year      = {2022},
+  publisher = {{ACM}},
+  doi       = {10.1145/3548606.3560596},
+  note      = {The signing infrastructure {AGNTCY} specifies normatively, which is part of why it addresses six threat classes where the other industry-led protocols address one (Table~\ref{tab:threat-surface}).},
+  keywords  = {security},
+}
+
+@misc{rfc8693,
+  title        = {{OAuth} 2.0 Token Exchange},
+  author       = {Jones, Michael and Nadalin, Anthony and Campbell, Brian and Bradley, John and Mortimore, Chuck},
+  year         = {2020},
+  month        = jan,
+  howpublished = {{RFC} 8693, {Internet} Engineering Task Force},
+  doi          = {10.17487/RFC8693},
+  url          = {https://www.rfc-editor.org/rfc/rfc8693},
+  note         = {The delegation-and-impersonation exchange that \S\ref{sec:comparison:derivation} records as absent from the peer-messaging specifications, and the nearest deployed standard to the Axis 3 level-3 anchor.},
+  keywords     = {spec,security},
+}
+
+@misc{rfc6749,
+  title        = {The {OAuth} 2.0 Authorization Framework},
+  author       = {Hardt, Dick},
+  year         = {2012},
+  month        = oct,
+  howpublished = {{RFC} 6749, {Internet} Engineering Task Force},
+  doi          = {10.17487/RFC6749},
+  url          = {https://www.rfc-editor.org/rfc/rfc6749},
+  note         = {The bearer-token framework that defines the Axis 2 level-1 anchor and the Axis 3 level-1 scope-token anchor (\S\ref{sec:rubric:axis2}, \S\ref{sec:rubric:axis3}).},
+  keywords     = {spec,security},
+}
+
+@misc{rfc3986,
+  title        = {Uniform Resource Identifier ({URI}): Generic Syntax},
+  author       = {Berners-Lee, Tim and Fielding, Roy T. and Masinter, Larry},
+  year         = {2005},
+  month        = jan,
+  howpublished = {{RFC} 3986, {Internet} Engineering Task Force},
+  doi          = {10.17487/RFC3986},
+  url          = {https://www.rfc-editor.org/rfc/rfc3986},
+  note         = {The syntax the {OWA} scheme of Contribution C5 conforms to (\S\ref{sec:proposals:owa}).},
+  keywords     = {spec},
+}
+
+@misc{rfc5321,
+  title        = {Simple Mail Transfer Protocol},
+  author       = {Klensin, John},
+  year         = {2008},
+  month        = oct,
+  howpublished = {{RFC} 5321, {Internet} Engineering Task Force},
+  doi          = {10.17487/RFC5321},
+  url          = {https://www.rfc-editor.org/rfc/rfc5321},
+  note         = {Cited only to fix the referent of the Email row in the {OWA} differentiation table: the row dismisses mail transport, not email-syntax identifiers used as {IAM} anchors (\S\ref{sec:proposals:owa}).},
+  keywords     = {spec},
+}
+
+@misc{rfc7159,
+  title        = {The {JavaScript} Object Notation ({JSON}) Data Interchange Format},
+  author       = {Bray, Tim},
+  year         = {2014},
+  month        = mar,
+  howpublished = {{RFC} 7159, {Internet} Engineering Task Force},
+  doi          = {10.17487/RFC7159},
+  url          = {https://www.rfc-editor.org/rfc/rfc7159},
+  note         = {Cited because the {ACNBP} specification names this revision in the serialization field the Axis 4 tuple transcribes (\S\ref{sec:comparison:derivation}). {RFC} 7159 was obsoleted by {RFC} 8259 (December 2017, \texttt{doi:10.17487/RFC8259}) before {ACNBP} was written; the tuple records the specification's own reference rather than the current one.},
+  keywords     = {spec,transport},
+}
+
+@misc{owasp_aivss,
+  title        = {{AIVSS} Scoring System for {OWASP} Agentic {AI} Core Security Risks},
+  author       = {{OWASP AI Vulnerability Scoring System Project}},
+  year         = {2026},
+  howpublished = {{OWASP} Foundation project publication, version 0.8},
+  url          = {https://aivss.owasp.org/},
+  note         = {Project leads Ken Huang, Michael Bargury, Vineeth Sai Narajala, Bhavya Gupta, and Tim Marple. Cited for the structural argument that agentic risk is dominated by loss of control over agent actions rather than over data, which is the basis of the severity bands of \S\ref{sec:rubric:axis8}. The survey reports no {AIVSS} score: {AIVSS} scores a concrete vulnerability in a deployment, and v0.8 is pre-1.0 with a calculator update in progress, so its numeric output is not stable enough to carry a survey claim. Content licensed {CC} {BY}-{SA} 4.0.},
+  keywords     = {security},
+}
+
+@misc{agentdns,
+  title         = {{AgentDNS}: A Root Domain Naming System for {LLM} Agents},
+  author        = {Cui, Enfang and Cheng, Yujun and She, Rui and Liu, Dan and Liang, Zhiyuan and Guo, Minxin and Li, Tianzheng and Wei, Qian and Xing, Wenjuan and Zhong, Zhijie},
+  year          = {2025},
+  eprint        = {2505.22368},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  url           = {https://arxiv.org/abs/2505.22368},
+  note          = {Preprint only at the cutoff (7 pages, 6 figures; typeset in the {AAAI} style but carrying no published venue on the arXiv record). Defines the namespace \texttt{agentdns://org/category/name}, with hierarchical categories, a root server holding a service proxy pool, single-sign-on authentication against that root, and settlement through it. Cited in the {OWA} differentiation as the centralized-mediation contrast (\S\ref{sec:proposals:owa:related}).},
+  keywords      = {spec,identity},
+}
+
+@inproceedings{proof_of_guardrail,
+  title         = {Proof-of-Guardrail in {AI} Agents and What (Not) to Trust from It},
+  author        = {Jin, Xisen and Duan, Michael and Lin, Qin and Chan, Aaron and Chen, Zhenglun and Du, Junyi and Ren, Xiang},
+  booktitle     = {{AI4GOOD} Workshop at the 43rd International Conference on Machine Learning ({ICML})},
+  year          = {2026},
+  eprint        = {2603.05786},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  url           = {https://arxiv.org/abs/2603.05786},
+  note          = {Read in arXiv v2 (June 2026); v1 March 2026. {TEE}-signed attestation that a named open-source guardrail executed before a response was emitted, verifiable offline, implemented for {OpenClaw} agents with reported latency and cost overhead. Cited as the per-response {TEE} comparator for {AGRP}'s Tier~2 hardware path (\S\ref{sec:proposals:agrp:tiers}).},
+  keywords      = {security},
+}

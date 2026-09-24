@@ -1,0 +1,406 @@
+\section{Industry Adoption by Vertical}
+\label{sec:adoption}
+
+This section addresses Contribution C3
+(\S\ref{sec:intro:contributions}): mapping inter-agent
+protocol adoption across four verticals. The verticals
+are enterprise SaaS, agentic commerce and payments,
+healthcare, and finance. We name production deployments
+rather than treating protocols in the abstract.
+Section~\ref{sec:adoption:saas}
+covers the enterprise SaaS cluster where A2A and MCP have
+both achieved generally-available status across multiple
+named vendors. Section~\ref{sec:adoption:commerce} treats
+the agentic commerce stack, where the deployment pattern is
+inverted: a small number of major payment networks rather
+than many SaaS vendors. Section~\ref{sec:adoption:healthcare}
+and Section~\ref{sec:adoption:finance} treat the
+heavily-regulated verticals where public disclosure is
+sparser; we report what is publicly known and flag the
+discovery problem the survey faces in mapping these
+sectors. Table~\ref{tab:industry-adoption} consolidates the
+findings.
+
+We are weighing the table according to source tier
+(\S\ref{sec:intro:notwhat}, R4): every status claim
+(\emph{GA} / \emph{Pilot} / \emph{Announced}) is sourced
+from vendor blogs, press releases, or developer
+documentation (Tier-4 in the survey's tier ranking).
+Each claim is used only for the binary ``\emph{X} announced
+deploying \emph{Y} on date \emph{Z}'' assertion. The table
+makes no behavioural claims about the deployments
+themselves; the rubric in
+\S\ref{sec:rubric} is the appropriate instrument for
+those. The behavioural-versus-deployment-status
+distinction is critical: a vendor's claim that their
+agent is ``A2A-compliant'' is a status claim;
+the agent's actual rubric profile (which axes it
+implements, which it leaves out) is a separate question
+that vendor announcements rarely answer.
+
+\input{tables/table4-industry-adoption}
+
+\subsection{Enterprise SaaS}
+\label{sec:adoption:saas}
+
+The enterprise SaaS vertical is the densest deployment
+cluster at the cutoff and the one where the
+A2A-versus-MCP composition pattern
+(\S\ref{sec:taxonomy:complementary}) is most visible in
+production. All status claims in this subsection are
+sourced from public vendor announcements catalogued in
+\texttt{data/industry-adoption.yaml} of the companion
+repository~\cite{vendor_announcements_2026}; we cite
+specifications directly only where behavioural rather
+than status claims are made.
+
+\paragraph{A2A deployments.}
+Salesforce Agentforce, ServiceNow AI Agents, Microsoft
+Copilot Studio, Atlassian Rovo, and Box AI Agents are at
+generally-available status with A2A integration as of the
+cutoff. SAP Joule and Workday Agent System are in pilot
+status. The deployment pattern is consistent across the
+cluster: each vendor exposes its SaaS-native agents
+behind A2A AgentCards, allowing third-party orchestrators
+(or competing vendor's agents) to invoke them as remote
+agents over A2A. The interoperability claim is bounded:
+A2A's discovery convention permits cross-vendor calls in
+principle. But Section~\ref{sec:semantic:fragmentation}'s
+schema fragmentation risk applies in full. A
+billing query that succeeds against Salesforce
+Agentforce may fail or silently mis-execute against
+ServiceNow's billing agent. The two vendors
+authored their Skill descriptions independently.
+
+\paragraph{MCP deployments.}
+MCP's enterprise SaaS deployment is in developer-tooling
+rather than business-application territory: GitHub Copilot,
+Anthropic Claude Code, Cursor IDE, Replit Agent,
+Sourcegraph Cody, and JetBrains AI Assistant all ship MCP
+support at GA. The cluster reflects MCP's tool-binding
+positioning: developer-tooling vendors expose
+code-search, repository operations, build-system
+invocation, and similar capabilities through MCP servers
+that any of the surveyed clients can consume.
+The deployment population is more homogeneous than
+the A2A cluster. Developer-tooling vendors have
+historically converged on shared interfaces faster than
+business-application vendors. MCP's lower authoring
+overhead (a single JSON Schema per tool) accelerates this.
+The specification also leaves a great deal to the deployer.
+A deployment-pattern literature has grown around MCP to
+record what~\cite{bridging_protocol_prod}. That work is a
+practitioner account rather than a specification, so it
+informs no rubric score. It is still where the gap between
+a specified tool binding and a running one is documented.
+
+\paragraph{ACP deployments.}
+IBM's watsonx Orchestrate is the canonical ACP
+deployment, at GA status. The BeeAI internal
+incubator hosts additional pilot-stage deployments.
+ACP's deployment footprint is smaller than MCP's or
+A2A's, consistent with the rubric profile
+(\S\ref{sec:industry:acp}): a structurally
+sound tool-binding protocol that arrived later than
+MCP into a market that had largely chosen MCP.
+
+\paragraph{AGNTCY deployments.}
+The Cisco-led AGNTCY effort has one named pilot
+deployment at the cutoff (Webex AI Agent). The
+operational pattern AGNTCY targets is transport-layer
+integration of identity, routing, and observability
+across heterogeneous agent stacks. That pattern is
+structurally later-stage than the application-layer A2A
+and MCP deployments. The cutoff reflects this maturity gap.
+
+\paragraph{The composition pattern.}
+A significant fraction of the surveyed enterprise SaaS
+deployments run MCP \emph{inside} their A2A agents,
+explicitly composing the tool-binding and peer-messaging
+layers (\S\ref{sec:taxonomy:complementary}). Salesforce
+Agentforce, for example, exposes A2A externally to other
+agents and consumes MCP internally for tool integration.
+The architectural argument that the two protocols
+compose has produced a deployment reality where they
+actually do.
+
+\subsection{Agentic commerce and payments}
+\label{sec:adoption:commerce}
+
+The commerce vertical's deployment pattern is structurally
+distinct from enterprise SaaS. Rather than dozens of
+vendors each exposing their own agents, the cluster
+consists of a small number of payment networks each
+specifying their own settlement protocol. Status claims
+follow the same Tier-4 sourcing
+discipline~\cite{vendor_announcements_2026}; the four
+settlement specifications themselves
+(AP2~\cite{spec_ap2}, Visa TAP~\cite{spec_visa_tap},
+Mastercard Agent Pay, ERC-8004~\cite{spec_erc8004}) carry
+the behavioural claims about the
+intent-mandate-receipt envelope. The four
+candidates are AP2, Visa TAP, Mastercard Agent Pay, and
+ERC-8004. They are competitors at the spec level but a
+co-stack at the architectural level
+(\S\ref{sec:emerging:commerce}). UCP~\cite{spec_ucp} sits
+above all four and is treated below on a different basis,
+because its adoption evidence at the cutoff is institutional
+rather than deployment-side.
+
+\paragraph{PayPal AP2.}
+PayPal's reference implementation of AP2 is the canonical
+shipping deployment of the protocol at GA, integrated
+into PayPal's existing payment flows. The deployment
+demonstrates the intent-mandate-receipt envelope in
+production: an agent acting on behalf of a principal
+proposes a transaction, the principal's mandate is
+verified against the proposed intent, and the receipt of
+execution is cryptographically attested through PayPal's
+existing settlement chain.
+
+\paragraph{Visa TAP.}
+Visa Trusted Agent Protocol is at GA status with select
+issuer-bank deployments. The Visa specification binds the
+intent-mandate-receipt envelope to the EMVCo card-network
+settlement substrate; the deployment pattern is that
+issuer banks integrate TAP-attested agent transactions
+into their existing card-network flows rather than
+running a parallel rail. The architectural choice has
+operational consequences: TAP-enabled transactions
+flow through the same authorisation and clearing
+infrastructure as card-present transactions, which makes
+deployment fast but couples TAP to the existing
+card-network governance.
+
+\paragraph{Mastercard Agent Pay.}
+Mastercard's analogue is in pilot status, targeting a
+similar issuer-bank integration model. The cross-network
+interoperability question
+(\S\ref{sec:emerging:commerce}) asks whether a single
+agent mandate is portable across PayPal, Visa, and
+Mastercard rails. Both Visa and Mastercard acknowledge
+it as a priority. It has not been resolved at
+the spec level at the cutoff. The AAIF Agentic Commerce
+Working Group~\cite{lf_aaif} is the venue where the
+harmonisation is being negotiated.
+
+\paragraph{ERC-8004 reference implementations.}
+The on-chain ERC-8004 effort~\cite{spec_erc8004} is at
+pilot status with reference implementations on
+Ethereum and EVM-compatible chains. The pattern is the
+direct on-chain analogue of the off-chain commerce
+protocols: the mandate is a smart contract, the receipt
+is a transaction record, and the principal-to-agent
+binding is expressed as a signature against the
+mandate contract. The pilot deployments are concentrated
+in the agentic-DeFi sector: agents that execute DeFi
+strategies on behalf of crypto-native principals. They
+are a useful demonstration of the layered taxonomy
+extending into substrates the off-chain payment networks
+cannot reach.
+
+\paragraph{UCP.}
+UCP~\cite{spec_ucp} is the one commerce-layer protocol whose
+adoption evidence at the cutoff is institutional rather than a
+named deployment. It is founded by Google and Shopify, and its
+Tech Council also seats Etsy, Target, and Wayfair
+(\S\ref{sec:emerging:commerce}). Shopify's participation is
+the notable part, because it puts merchant-side distribution
+and a search-and-assistant platform in the same governing
+body. That is a statement of commercial intent, not a
+deployment claim. No merchant or platform implementation was
+publicly verifiable at 2026-Q1, so the table records no status
+for UCP. The survey's sourcing discipline
+(\S\ref{sec:adoption}) does not let a membership list stand in
+for a shipped integration. Whether the roster converts is the
+question the next revision should answer.
+
+\paragraph{Adjacent A2A and MCP deployments.}
+Two adjacent deployments are worth flagging because they
+demonstrate the composition pattern: Stripe's MCP
+implementation (at GA) exposes Stripe's payment APIs as
+MCP tools, allowing agents to invoke payments
+imperatively; Shopify's A2A merchant-agent pilot exposes
+merchant-side agents to upstream orchestrators over
+A2A, with the actual payment transaction executed
+through the commerce stack underneath. Neither
+deployment is a commerce-settlement protocol in itself.
+Both rely on AP2 or Visa TAP for the
+intent-mandate-receipt envelope. But both illustrate
+that the commerce layer composes with the peer-messaging
+and tool-binding layers in production.
+
+\subsection{Healthcare}
+\label{sec:adoption:healthcare}
+
+The healthcare vertical's deployment landscape is
+sparser in public disclosure than the enterprise SaaS
+or commerce verticals, for structural reasons that
+the survey should name explicitly rather than working
+around. Pilot announcements
+(\cite{vendor_announcements_2026}) and the proprietary
+intra-organisational deployments noted below are the
+two visible patterns at the 2026-Q1 cutoff.
+
+\paragraph{The disclosure gap.}
+HIPAA and equivalent regulations create incentives for
+healthcare vendors to integrate inter-agent
+capabilities behind proprietary interfaces rather than
+through public protocol specifications. The visible
+result is that healthcare deployments that exist are
+often invisible at the protocol level even when they
+exist in production. Hippocratic AI's clinical agents,
+for example, are deployed at GA in multiple hospital
+systems but use proprietary internal interfaces; the
+public claim is ``LLM agents'' rather than ``MCP
+servers'' or ``A2A agents.''
+
+\paragraph{Named A2A pilots.}
+Epic agent connectivity (in pilot) and the Cedars-Sinai
+plus Anthropic collaboration (in pilot) are the two
+named A2A-relevant deployments at the cutoff. Both
+target the multi-agent coordination pattern in clinical
+workflows: a primary care agent invoking specialist
+agents, a diagnostic agent invoking imaging-analysis
+agents. The pilots use A2A's AgentCard convention for
+discovery but layer their own authorisation policies
+on top to satisfy HIPAA's principal-delegation
+requirements. The rubric scores that layering low
+on Axis 3 (\S\ref{sec:rubric:axis3}) precisely because
+A2A does not provide it natively.
+
+\paragraph{Named MCP deployments.}
+Nuance DAX Copilot (now part of Microsoft) operates at
+GA status and uses MCP-style tool integration
+internally. Hippocratic AI's clinical agent platform
+exposes MCP tools for selected clinical workflows.
+Both are GA but proprietary in important ways: the
+MCP servers they expose are not third-party
+addressable. The deployment pattern in healthcare
+favors what we will call \emph{intra-organisational
+MCP}: MCP as an architecture choice within a single
+vendor's stack, not as an interoperability protocol
+across vendors.
+
+\paragraph{The compliance-shaped roadmap.}
+Healthcare adoption of A2A and MCP at the
+cross-organisational level requires a delegation layer
+that the contemporary protocols do not provide at
+spec level (\S\ref{sec:security:authz}, O1). The HL7
+FHIR community has begun discussion of an
+inter-agent extension to FHIR-based identity flows
+that would carry HIPAA-compliant delegation tokens
+alongside A2A messages; this work is at the
+pre-specification stage at the cutoff. Until it
+matures, the healthcare adoption pattern is likely to
+remain intra-organisational rather than
+inter-organisational, with the
+disclosure-gap consequence that the publicly visible
+deployment list under-represents what is actually
+running.
+
+\subsection{Finance}
+\label{sec:adoption:finance}
+
+The finance vertical has its own version of the
+disclosure problem: financial-services vendors deploy
+inter-agent systems but seldom publish protocol
+specifications, both for competitive reasons and
+because financial regulation favours proprietary
+audit-and-control surfaces over standard ones. The
+named pilots below are the visible public
+deployments~\cite{vendor_announcements_2026}; the
+custom-protocol pattern that dominates the vertical is
+discussed in the closing paragraph.
+
+\paragraph{Named A2A and MCP deployments.}
+Bloomberg AI's selected-feeds pilot uses A2A for
+inter-agent coordination across Bloomberg's data
+products. BlackRock Aladdin AI's tool integration
+layer is in pilot with MCP. JPMorgan's IndexGPT
+family of agents is in pilot and uses MCP internally
+for tool calls. All three are pilot rather than GA;
+all three target intra-organisational coordination
+rather than cross-organisational interoperability.
+
+\paragraph{The settlement-adjacent commerce angle.}
+Finance adoption of the agentic commerce stack is
+concentrated in settlement-adjacent use cases. DTCC
+has pilot work on settlement-agent flows that use the
+commerce-settlement layer's primitives (the
+intent-mandate-receipt envelope) for cryptographically
+attested securities settlement. The pattern is the
+finance analogue of the PayPal AP2 deployment but in
+a different settlement substrate. The pilot is the
+clearest indication at the cutoff that the
+commerce-settlement layer's primitives generalise
+beyond consumer payments into institutional finance.
+
+\paragraph{Custom protocols dominate.}
+The dominant finance pattern at the cutoff remains
+custom protocols (FIX-adjacent extensions, proprietary
+banking APIs, internal multi-agent frameworks) rather
+than the standardised inter-agent protocols that this
+survey scores. The reason is not technical
+inadequacy of A2A or MCP. They would serve most
+finance-internal use cases adequately. The reason is a
+regulatory and operational preference for proprietary
+interfaces with proprietary audit chains. The
+cross-organisational financial-data pattern (a buy-side
+agent invoking a sell-side agent across firms) is the
+case where standardised protocols would matter most;
+no major public deployment exists at the cutoff. The
+governance analysis in \S\ref{sec:governance} returns
+to this question as an institutional matter.
+
+\subsection{What the adoption pattern says about the protocols}
+\label{sec:adoption:synthesis}
+
+Three synthesising observations close the section.
+
+\paragraph{Adoption clusters by layer, not by vendor.}
+The tool-binding layer (MCP, ACP) and the peer-messaging
+layer (A2A) cluster differently across verticals. MCP
+adoption is densest in developer tooling, where the
+tool-binding pattern is the natural fit. A2A adoption is
+densest in business applications, where the peer-messaging
+pattern is the natural fit. The commerce-settlement
+layer is concentrated in the payment networks, where the
+intent-mandate-receipt envelope is the natural fit. The
+clusters indicate that the three-layer taxonomy
+(\S\ref{sec:taxonomy:layers}) maps to real
+deployment-shape decisions rather than to a purely
+analytical convenience.
+
+\paragraph{Cross-organisational deployment lags
+intra-organisational.}
+Every vertical exhibits the same pattern: an organisation
+adopts an inter-agent protocol within its own boundaries
+faster than it integrates across organisational
+boundaries. The schema-fragmentation risk
+(\S\ref{sec:semantic:fragmentation}) and the
+authorisation-propagation gap (\S\ref{sec:security:authz})
+are the two technical causes the
+survey has identified for this lag; the
+non-technical causes (competitive incentives,
+disclosure preferences, regulatory uncertainty) compound
+them. The result is that the inter-agent protocols of
+the 2024 to 2026 wave are, at the cutoff, principally
+intra-organisational integration substrates, with
+cross-organisational adoption as the next-cycle question.
+
+\paragraph{Adoption density is uncorrelated with rubric
+strength.}
+The protocols with the highest rubric coverage
+(ACNBP at 10/12 on Axis 8, LOKA at level 3 on Axis 9)
+have the smallest deployment footprints; the protocols
+with the lowest rubric coverage (A2A, MCP, and ACP, all
+at 1/12 on Axis 8) have the largest. The pattern is consistent with
+the institutional analysis of \S\ref{sec:governance}:
+governance maturity, vendor backing, and
+ecosystem support drive adoption more than technical
+rigour. The rubric measures technical quality at the
+specification level; the adoption table measures
+institutional traction; the two are
+correlated only loosely and the survey should not pretend
+otherwise.

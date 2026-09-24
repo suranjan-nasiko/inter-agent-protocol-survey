@@ -1,0 +1,786 @@
+\section{The Evaluation Rubric}
+\label{sec:rubric}
+
+The rubric is the central contribution of this survey
+(Contribution C1, \S\ref{sec:intro:contributions}) and the
+primary instrument by which subsequent sections compare the
+eight protocols of the tool-binding and peer-messaging
+layers. It comprises ten evaluation axes spanning
+discovery, identity, authorization, transport, task
+semantics, async behaviour, multi-modal handling, security,
+semantic interoperability, and governance. Seven of the ten
+axes (Axes 1, 2, 3, 5, 6, 7, and 9) use anchored ordinal
+scoring on a 0 to 3 scale; one (Axis 4, Transport) is a
+structured tuple; one (Axis 8, Security) is a count over a
+fixed twelve-item threat catalogue; one (Axis 10,
+Governance/License/Observability) is a composite triple
+combining a categorical governance class, a license
+identifier, and a 0 to 3 observability score. The asymmetry
+between ordinal, tuple, count, and composite forms is
+deliberate (\S\ref{sec:rubric:goals}): forcing every axis
+into the same numerical form would impose a false precision
+on dimensions where it is not warranted.
+
+\subsection{Design goals}
+\label{sec:rubric:goals}
+
+Four design constraints shaped the rubric.
+
+\paragraph{D1: Uniform applicability across heterogeneous
+protocols.} The rubric must apply consistently to a
+tool-binding protocol (MCP) and a peer-messaging protocol
+(A2A) and a commerce-settlement protocol (AP2) without
+re-defining axes per layer. Where an axis is structurally
+inapplicable to a given protocol (e.g., multi-modal content
+handling for a settlement-attestation protocol), the score
+records \emph{not applicable} rather than artificially low.
+
+\paragraph{D2: Anchored descriptors, not free-form numerals.}
+Each ordinal level (0, 1, 2, 3) for an ordinal axis carries an
+explicitly named anchor descriptor in this section. A score
+of 2 for Axis 1 (Discovery) on protocol P means \emph{P
+exhibits the level-2 descriptor}, not \emph{P is somewhere
+between protocols Q and R}. Anchoring is the only way to
+prevent the score from collapsing into the surveyor's
+subjective ordering, which is the principal weakness of the
+qualitative comparison tables in the prior
+surveys~\cite{yang2025survey, ehtesham2025interop}.
+
+\paragraph{D3: Refusal to manufacture composite scores.}
+The rubric is presented as a multi-dimensional matrix
+(Table~\ref{tab:rubric-matrix}), a heatmap
+(Figure~\ref{fig:heatmap}), and per-protocol radar charts
+(Figure~\ref{fig:radar}). No single composite score is
+computed. Composite scores would invite ranking, ranking
+would invite optimization-by-vendor, and the resulting
+benchmark-gaming dynamic has repeatedly distorted
+comparable agent-evaluation work. Per-axis scores remain
+defensible; their sum or weighted average does not.
+
+\paragraph{D4: Re-runnable figures from a machine-readable
+source of truth.} Every score in Table~\ref{tab:rubric-matrix},
+every cell in Figure~\ref{fig:heatmap}, and every spoke in
+Figure~\ref{fig:radar} is regenerated from
+\texttt{data/protocol-scores.yaml} by the scripts in the
+companion repository (Contribution C4,
+\S\ref{sec:intro:contributions}). A future reader who
+disputes a score can fork the YAML, change the cell, and
+re-run the figure generation; the survey's claims are
+re-runnable rather than only re-readable. This goal
+concerns the path from a score to a figure. It says nothing
+about whether a second rater would assign the same score,
+which is a separate property that
+\S\ref{sec:rubric:calibration} addresses on its own terms.
+
+\subsection{The ten axes}
+\label{sec:rubric:axes}
+
+\subsubsection{Axis 1: Discovery and Registry Model}
+\label{sec:rubric:axis1}
+
+This axis evaluates how an agent locates another agent and
+acquires the metadata necessary to interoperate. It captures
+both the discovery primitive (well-known endpoint, DNS-like
+directory, DID resolver, content-addressed registry) and the
+strength of the verifiability guarantees the discovery layer
+provides.
+
+\begin{description}
+  \item[Score 0: Out-of-band only.] No protocol-level
+    discovery primitive. Agents must be configured with
+    endpoints through external means (configuration files,
+    environment variables, hand-edited registries). MCP in
+    its stdio-only configuration sits near this baseline.
+  \item[Score 1: Well-known endpoint or
+    config-mediated.] A documented convention by which a
+    client can probe a host for a service descriptor
+    (e.g., A2A's \texttt{/.well-known/agent-card.json}~\cite{spec_a2a}).
+    Centralized; trust delegated to the hosting authority.
+  \item[Score 2: Federated directory with structured
+    descriptors.] A directory-like service (registry,
+    federated catalogue, on-chain index) returning typed
+    descriptors. ACNBP's Agent Name Service~\cite{spec_acnbp}
+    and Coral's MCP-mediated \texttt{list\_agents} flow~\cite{spec_coral}
+    sit here.
+  \item[Score 3: Decentralized verifiable resolution.]
+    Discovery returns cryptographically-verifiable
+    descriptors resolvable independently of any single
+    authority. Typified by DID-resolver-based discovery in
+    ANP~\cite{spec_anp} and LOKA's Semantic Discovery
+    Fabric~\cite{spec_loka}.
+\end{description}
+
+Evidence supporting an Axis 1 score must point to a specific
+section of the protocol specification that describes the
+discovery primitive, the descriptor schema, and the
+verification mechanism (or its explicit absence).
+
+\subsubsection{Axis 2: Identity and Authentication}
+\label{sec:rubric:axis2}
+
+This axis evaluates the mechanism by which an agent
+establishes who it is to its counterparties and how that
+claim can be verified. Modern inter-agent protocols span a
+range from process-bound identity (the stdio-invoked
+process inherits its parent's trust) through bearer-token
+schemes (OAuth~\cite{rfc6749}) to fully decentralized
+identifiers (DIDs~\cite{w3c_did_core}) with verifiable
+credentials~\cite{w3c_vc_data_model}. The anchors below name
+those three standards, so a reader can check a score against
+the normative text rather than against our paraphrase.
+
+\begin{description}
+  \item[Score 0: Process trust or unspecified.] No
+    protocol-level identity mechanism. Trust derives from
+    process-control (the parent invoked the child) or is
+    deferred to the deployment environment.
+  \item[Score 1: Bearer tokens (OAuth 2.x or
+    equivalent).] Identity carried by a token issued by a
+    third-party authority. A2A in its standard
+    configuration~\cite{spec_a2a}, MCP over HTTP+OAuth
+    2.1~\cite{spec_mcp}, and ACP all sit at level 1.
+  \item[Score 2: Bearer tokens hardened with mTLS or
+    signed envelopes.] Bearer credentials augmented with
+    cryptographic transport binding or message-level
+    signatures resistant to bearer-token theft. ACNBP's
+    X.509 + OCSP + ECC-signed envelope
+    structure~\cite{spec_acnbp} sits at level 2.
+  \item[Score 3: Decentralized identifiers with
+    verifiable credentials.] Identity established by a
+    cryptographic identifier (typically a
+    DID~\cite{w3c_did_core}) whose
+    associated keys can sign arbitrary
+    challenge-response exchanges, paired with W3C
+    Verifiable Credentials~\cite{w3c_vc_data_model} for
+    attribute assertions.
+    ANP~\cite{spec_anp}, LOKA~\cite{spec_loka}, and Coral
+    (DIDs plus Solana wallets) sit at level 3.
+\end{description}
+
+The prior survey by Kong et al.~\cite{kong2025communication}
+treats identity primarily through the security lens; we
+score it separately here to distinguish the
+\emph{identity-modeling} contribution of a specification
+from its \emph{threat-mitigation coverage} (Axis 8).
+
+\subsubsection{Axis 3: Authorization and Delegation Model}
+\label{sec:rubric:axis3}
+
+This axis evaluates how a protocol expresses what an
+authenticated agent is allowed to do, and how authorization
+propagates across delegation chains (agent A asks agent B
+to do X on behalf of principal P). The contemporary
+literature treats this as the most under-developed area of
+the contemporary protocols~\cite{authz_propagation,
+agentic_jwt}; the rubric captures the gap explicitly.
+
+\begin{description}
+  \item[Score 0: Unspecified.] No protocol-level
+    authorization primitives. Authorization, if any, is
+    enforced at the application layer.
+  \item[Score 1: Scope tokens or token forwarding.]
+    OAuth-style scopes carried in bearer tokens; or the
+    token-forwarding pattern in which agent A passes its
+    own access token onward to agent B. Carries no
+    cryptographic delegation chain; the receiver cannot
+    distinguish ``the principal authorized this agent''
+    from ``a previous agent in the chain authorized this
+    onward call.'' A2A sits at level 1 because it
+    standardises no delegation credential: \S7.5 of the
+    specification makes authorization logic
+    implementation-specific and leaves the choice of
+    delegation mechanism to the surrounding identity
+    architecture~\cite{spec_a2a}. Deployments then adopt
+    token forwarding, which is where the security
+    literature observes it~\cite{authz_propagation,
+    agentic_jwt}. MCP's OAuth scopes also sit at level 1.
+    The level is an omission at the specification layer,
+    not a pattern either specification prescribes.
+  \item[Score 2: Verifiable-credential-scoped
+    capabilities or structured delegation tokens.]
+    Authorization expressed as a signed capability with
+    explicit scope, audience, and time bounds, but
+    without a fully standardized chain-of-custody format.
+    ANP's VC-scoped capabilities~\cite{spec_anp}, LOKA's
+    smart-contract lifecycle policies~\cite{spec_loka}, and
+    ACNBP's Capability Binding ceremony~\cite{spec_acnbp}
+    sit at level 2. Each binds authority cryptographically
+    between two named parties. None specifies how that
+    authority travels further.
+  \item[Score 3: Cryptographically-bound capability
+    chains.] Multi-step delegation expressed as a
+    composable chain of signed capabilities (or a
+    capability-binding ceremony) in which each
+    intermediate agent's authorization is independently
+    verifiable. The second clause is the demanding one: a
+    downstream agent must be able to check an upstream
+    grant it did not witness. No peer-messaging protocol in
+    the scored set reaches this level
+    (\S\ref{sec:comparison:derivation}). The
+    commerce-settlement protocols
+    (\S\ref{sec:industry-protocols}) do reach it, by
+    construction, through their intent-mandate-receipt
+    envelope, and the agentic-JWT
+    proposal~\cite{agentic_jwt} is the leading candidate
+    for porting the level to the peer-messaging layer.
+\end{description}
+
+\subsubsection{Axis 4: Transport and Wire Format}
+\label{sec:rubric:axis4}
+
+The transport axis is recorded as a structured tuple rather
+than an ordinal score. A single number cannot capture the
+joint specification of transport bindings, serialization
+format, streaming mechanism, and async-delivery primitive.
+The tuple has the following fields, each populated from the
+protocol specification:
+
+\begin{itemize}
+  \item \texttt{transports}: ordered list of binding
+    technologies (e.g., \texttt{HTTPS/JSON-RPC 2.0},
+    \texttt{stdio}, \texttt{HTTP+SSE}, \texttt{streamable-HTTP},
+    \texttt{gRPC}, \texttt{REST}, \texttt{WebSocket}).
+  \item \texttt{serialization}: payload encoding
+    (e.g., \texttt{JSON}, \texttt{JSON-LD}, \texttt{multipart},
+    \texttt{Protocol Buffers}).
+  \item \texttt{streaming}: in-protocol streaming mechanism
+    if any (\texttt{SSE}, \texttt{chunked HTTP},
+    \texttt{WebSocket frames}, \texttt{none}).
+  \item \texttt{async}: long-running-operation delivery
+    primitive (\texttt{push notifications},
+    \texttt{polling}, \texttt{webhooks},
+    \texttt{durable resumable tasks}, \texttt{intent-centric
+    peer-to-peer}).
+\end{itemize}
+
+The tuple is reported alongside the ordinal axes in
+Table~\ref{tab:rubric-matrix}; it is not aggregated. Its
+purpose is to support the comparison of like-with-like
+transport choices (e.g., MCP's \texttt{stdio} versus
+\texttt{streamable-HTTP} variants) without collapsing
+distinct engineering trade-offs into a single
+``transport richness'' score.
+
+\subsubsection{Axis 5: Task and Conversation Model}
+\label{sec:rubric:axis5}
+
+This axis evaluates whether the protocol treats
+multi-message interactions as first-class objects with a
+defined lifecycle, or treats them as ad-hoc sequences of
+independent request-response exchanges.
+
+\begin{description}
+  \item[Score 0: Stateless request/response only.] No
+    notion of a multi-message interaction; each message
+    stands alone. The receiver carries no protocol-level
+    state from one call to the next.
+  \item[Score 1: Session-scoped but no task object.]
+    A session identifier groups related messages but the
+    protocol defines no terminal status or artifact
+    aggregation. MCP in its standard request/response
+    configuration sits near level 1.
+  \item[Score 2: Persistent multi-participant
+    interaction.] A stateful conversation object groups
+    messages, supports multiple participants, but lacks a
+    full lifecycle state machine with sub-task
+    delegation. Coral's persistent threads~\cite{spec_coral}
+    sit at level 2.
+  \item[Score 3: Full task object with lifecycle,
+    artifacts, and sub-task delegation.] Tasks are
+    first-class with defined lifecycle states (e.g.,
+    \emph{submitted}, \emph{working}, \emph{input-required},
+    \emph{completed}, \emph{failed}, \emph{canceled}), an
+    artifact aggregation model, and primitives for
+    delegating to a sub-task. A2A~\cite{spec_a2a} and
+    ACNBP's 10-step bound-execution
+    machine~\cite{spec_acnbp} sit at level 3.
+\end{description}
+
+\subsubsection{Axis 6: Async and Long-Running Operations}
+\label{sec:rubric:axis6}
+
+This axis evaluates the protocol's support for operations
+whose duration exceeds the lifetime of a single connection
+or even the lifetime of either communicating agent. It is
+distinct from Axis 5 (which evaluates whether tasks exist
+as first-class objects) because a protocol can offer rich
+task semantics over short-lived connections and still
+struggle with multi-hour operations.
+
+\begin{description}
+  \item[Score 0: No async primitive.] All operations
+    complete within a single request/response cycle or
+    fail.
+  \item[Score 1: Polling-based.] Long-running
+    operations are tracked by an identifier that the
+    client must poll. No push delivery from server to
+    client.
+  \item[Score 2: Server-initiated notifications.]
+    The server can push notifications or events back to
+    the client via a long-lived stream (SSE,
+    WebSockets) but the conversation is bound to the
+    open connection.
+  \item[Score 3: Durable resumable tasks.] Operations
+    survive connection loss; on reconnect, the client
+    resumes the task by its identifier and receives a
+    complete or partial result and any backfilled
+    events. A2A's push notifications combined with
+    durable resumable tasks~\cite{spec_a2a} sits at
+    level 3; LOKA's checkpoint-and-recovery
+    machinery~\cite{spec_loka} is conceptually at level
+    3 though implementation-incomplete.
+\end{description}
+
+\subsubsection{Axis 7: Multi-Modal Content Handling}
+\label{sec:rubric:axis7}
+
+This axis evaluates the protocol's vocabulary for content
+beyond plain text. Multi-modal handling has emerged as a
+first-class concern only in the 2024 to 2026 wave; older
+ACLs and most service-oriented stacks treated content as
+opaque payload with at most a MIME type.
+
+\begin{description}
+  \item[Score 0: Plain text payload only.] Messages
+    carry text; binary or structured content is the
+    caller's problem.
+  \item[Score 1: Text plus referenced attachments.]
+    Messages can reference external content via URLs or
+    file handles but do not specify a typed inline part
+    model.
+  \item[Score 2: Typed content blocks.] A small set of
+    typed parts (text, image, structured data, file)
+    that can be composed within a single message. MCP's
+    typed content blocks~\cite{spec_mcp} sit at level 2.
+  \item[Score 3: Typed parts with inline-or-reference
+    duality and content negotiation.] A complete part
+    model in which each part declares its MIME type, its
+    transmission mode (inline or by reference), and can
+    participate in capability negotiation between
+    sender and receiver. A2A's TextPart/FilePart/DataPart
+    model~\cite{spec_a2a} sits at level 3.
+\end{description}
+
+\subsubsection{Axis 8: Security Threat Surface}
+\label{sec:rubric:axis8}
+
+This axis is the only count-based axis in the rubric. We
+maintain a fixed twelve-item catalogue of inter-agent
+protocol threats, drawn from synthesis of the security
+literature~\cite{kong2025communication, a2asecbench,
+zhan2024injecagent, agentleak, protocol_exploits,
+a2a_weaknesses, threatmodel2026, did_vc_agents} and
+applied uniformly:
+
+\begin{enumerate}
+  \item Authentication bypass
+  \item Replay attacks
+  \item Message tampering / man-in-the-middle
+  \item Supply-chain attacks (registry poisoning,
+    descriptor tampering)
+  \item Denial-of-service
+  \item Side-channel privacy leakage
+  \item Decentralized-or-untrusted registry compromise
+  \item Capability escalation through ambiguous
+    descriptors
+  \item Cross-agent privilege confusion
+  \item Foundation-model layer prompt injection
+  \item Audit-trail tampering / non-repudiation breach
+  \item Delegation-chain forgery
+\end{enumerate}
+
+A protocol's Axis 8 score is the count $N \in [0, 12]$ of
+threats explicitly addressed at the specification level
+(not at the deployment level), with citations to the
+specification sections that establish each mitigation. The
+threat-catalogue and the per-protocol coverage details
+are presented as the threat-coverage matrix
+in \S\ref{sec:security}. The axis is intentionally a
+\emph{count} rather than an ordinal score because the
+twelve threats are heterogeneous and weighting them inside
+the axis would re-introduce subjective ranking. A high
+count is a necessary but not sufficient condition for
+protocol security; \S\ref{sec:security} discusses the
+difference.
+
+\paragraph{Why the count alone is not enough, and what we
+report beside it.}
+A count treats every threat as one unit. Two protocols can
+score the same and leave very different amounts of risk
+behind, because one of them addressed the two cheapest
+classes. Registry poisoning hands an attacker every
+consumer of a poisoned descriptor; denial of service costs
+availability and recovers when the load stops. Counting
+them equally is the weakness a reviewer of this rubric
+identified, and the count cannot answer it on its own.
+
+Our answer is a second view, not a replacement score.
+Table~\ref{tab:severity-coverage} in \S\ref{sec:security}
+reports \emph{severity-weighted coverage} beside the count.
+Each of the twelve classes carries a band (critical, high,
+or moderate) and an integer weight (3, 2, or 1). The table
+reports the addressed weight over the applicable weight,
+and the unaddressed weight in the critical and high bands.
+
+Three stated criteria assign the band. Does exploitation
+let the attacker make the agent \emph{act}, rather than
+only observe? Is the compromise recoverable from evidence
+the protocol itself keeps? Does one exploit reach beyond
+the pair of agents involved? Those criteria borrow their
+structure from the OWASP AI Vulnerability Scoring
+System~\cite{owasp_aivss}. That work argues that agentic
+risk is dominated by loss of control over agent actions,
+not over data alone. We do not report an AIVSS score.
+AIVSS scores a concrete vulnerability in a concrete
+deployment. We band a threat class against a
+specification, which carries no exploit-maturity signal
+and no environment.
+
+This is deliberately consistent with D3 rather than an
+exception to it. The severity view is a second reported
+column, not a collapsed protocol quality score. Its
+weights are published in the companion repository, so a
+reader who disputes a band can change the weight and
+regenerate the table. What D3 refuses is a single number
+standing in for ten axes. Reporting a count and a
+severity-weighted view of the same axis, with the weights
+exposed, is the opposite move. It makes the weighting
+argument explicit instead of hiding it inside an ordinal.
+
+\subsubsection{Axis 9: Semantic Interoperability}
+\label{sec:rubric:axis9}
+
+This axis evaluates the protocol's mechanism for ensuring
+that the meaning of an exchanged capability description,
+intent, or parameter is interpretable by parties that did
+not jointly author the descriptor. Section~\ref{sec:semantic}
+treats this as a distinct concern from message passing.
+
+\begin{description}
+  \item[Score 0: Free-text only.] Descriptors are
+    natural-language strings with no machine-tractable
+    semantics.
+  \item[Score 1: Structured schemas with free-text
+    descriptions.] Typed input/output schemas (e.g.,
+    JSON Schema) for parameters, but the human-meaningful
+    description of what a capability does remains free
+    text. MCP, A2A, and Coral all sit at level 1.
+  \item[Score 2: Ontology-base or semantic-discovery
+    indexing.] An ontology, vocabulary, or
+    semantic-indexing mechanism that constrains
+    capability descriptors to a shared term space.
+    ANP's JSON-LD vocabulary with Agent Description
+    Protocol~\cite{spec_anp} sits at level 2 at the
+    cutoff; \S\ref{sec:semantic:ontology} records a
+    post-cutoff narrowing of that commitment.
+  \item[Score 3: Full capability ontology with
+    semantic matching.] A specified ontology of
+    capabilities and intents, supported by a matching
+    mechanism (semantic-similarity search or
+    logic-based reasoning) that produces verifiable
+    semantic alignments. LOKA's Polyglot Intent Engine
+    and capability ontologies~\cite{spec_loka} are
+    aspirational level 3; no surveyed protocol
+    \emph{ships} level 3 as of 2026-Q1.
+\end{description}
+
+The recurring gap between level 1 (where the LLM-era
+protocols cluster) and level 3 (where FIPA-SL and full
+ontology commitments once aimed) is the principal subject
+of \S\ref{sec:semantic} and of the open-problems
+agenda (\S\ref{sec:openproblems}).
+
+\subsubsection{Axis 10: Governance, License, and Observability}
+\label{sec:rubric:axis10}
+
+The final axis is a composite triple recording three
+institutional and operational characteristics that the
+prior surveys treat only in passing:
+
+\begin{itemize}
+  \item \textbf{Governance}: the legal entity or
+    community that holds standardization authority over
+    the specification. We record the entity by name
+    (e.g., \emph{Linux Foundation}, \emph{Linux
+    Foundation AAIF}~\cite{lf_aaif},
+    \emph{community / W3C-aligned}~\cite{w3c_agent_protocol_cg},
+    \emph{individual authors}, \emph{Coral Protocol team},
+    \emph{academic authors}).
+  \item \textbf{License}: the license under which the
+    specification (and any reference implementation) is
+    distributed (e.g., Apache~2.0, MIT-equivalent,
+    CC-BY-4.0, CC-BY-NC-SA~4.0).
+  \item \textbf{Observability}: an ordinal 0 to 3 score on
+    the protocol's specification of audit, tracing, and
+    monitoring primitives (level 0 = unspecified;
+    level 1 = logging hooks emerging; level 2 = trace
+    fields specified, no audit primitive; level 3 =
+    immutable audit trail and observability primitives
+    specified).
+\end{itemize}
+
+The triple of steward, license, and observability score
+is reported as a single composite cell in
+Table~\ref{tab:rubric-matrix} and is unpacked into its
+component analyses in \S\ref{sec:governance}.
+
+\subsection{Scoring methodology}
+\label{sec:rubric:method}
+
+Scores are derived from a structured reading of each
+protocol specification at its declared surveyed version
+(2026-Q1 cutoff). The procedure for each
+\emph{(protocol, axis)} pair is:
+
+\begin{enumerate}
+  \item Identify the specification section(s) relevant to
+    the axis.
+  \item Map the section's behaviour to the anchored
+    descriptors of the axis.
+  \item Record the resulting score, a one-sentence
+    evidence summary, and the citation(s) supporting the
+    evidence.
+  \item Where a protocol specification is ambiguous, the
+    score reflects what the specification \emph{requires},
+    not what reference implementations \emph{do}. A
+    facility provided only by a non-canonical
+    implementation is recorded in evidence but does not
+    elevate the score.
+\end{enumerate}
+
+Scores are stored as \texttt{data/protocol-scores.yaml} in
+the companion repository (Contribution C4) and regenerate
+Table~\ref{tab:rubric-matrix} and Figures~\ref{fig:heatmap}
+and~\ref{fig:radar} mechanically. Anyone more interested
+in the basis of a given score should consult the cited
+specification section first and the YAML entry second; the
+entry will name the specific evidence the score rests on.
+
+\paragraph{What the rubric does not produce.} The rubric
+does not produce a single composite ``protocol quality''
+score. It does not produce a ranking. It does not produce
+a recommendation: the appropriate choice of protocol
+depends on deployment-specific axes that lie outside the
+specification (operational maturity, ecosystem support,
+internal toolchain compatibility) and that no
+spec-reading exercise can determine. The rubric produces
+a \emph{normalized comparison surface}; the user of the
+comparison brings the application-specific weighting.
+
+\subsection{Calibration, adjudication, and rater agreement}
+\label{sec:rubric:calibration}
+
+The procedure above says how a score is derived. It does
+not say how two people applying it reach the same number.
+An anchored rubric that different readers score differently
+is not yet a normalized comparison surface. This subsection
+closes that gap in three parts. First, the calibration
+rules a rater applies at a contested boundary. Second, two
+worked examples of those rules deciding a real case. Third,
+an honest statement of what agreement evidence this survey
+does and does not carry.
+
+\paragraph{Four calibration rules.}
+Every contested call in this survey was settled by the same
+four rules, applied in order.
+
+\begin{enumerate}
+  \item \textbf{Normative text beats prose.} A mechanism
+    counts at the level the specification \emph{requires}
+    it. Language in an overview, a rationale, or a
+    non-normative appendix supports at most the level
+    below.
+  \item \textbf{Spec beats implementation.} A facility that
+    only a reference implementation provides is recorded in
+    the evidence field and does not raise the score. This
+    is rule 4 of \S\ref{sec:rubric:method}, restated here
+    because it decides more boundary cases than any other.
+  \item \textbf{The lower anchor wins a tie.} If a rater
+    can argue the case at either of two adjacent levels,
+    the score is the lower one. The asymmetry is
+    deliberate. It makes the rubric under-credit rather
+    than over-credit, which is the safer error for a
+    reader deciding whether to depend on a protocol.
+  \item \textbf{Absence of a primitive is not
+    inapplicability.} \emph{Not applicable} is reserved for
+    a threat or facility that is structurally outside the
+    protocol's scope, not for one the protocol simply
+    omits. MCP has no AgentCard, so the AgentCard
+    supply-chain class is \texttt{na} for MCP. ACP has an
+    unsigned manifest that plays the same role, so the same
+    class is \texttt{not\_addressed} for ACP, not
+    \texttt{na}.
+\end{enumerate}
+
+\paragraph{Worked example 1: ACP, Axis 2 and the
+impersonation cell.}
+An early pass scored ACP's identity layer as
+OAuth-scope-based, on the strength of the specification's
+prose about deployment behind an authenticating reverse
+proxy. Re-reading the OpenAPI document showed it declares
+no \texttt{securitySchemes} at all. Rule 1 settles it: the
+prose is not normative, the machine-readable contract is,
+and a mechanism the contract does not declare cannot be
+scored. Rule 2 blocks the fallback argument that ACP
+deployments do authenticate in practice. The impersonation
+cell moved to \texttt{not\_addressed} and ACP's Axis 8
+count moved to 1. A second rater who applies rules 1 and 2
+to the same OpenAPI document reaches the same cell. The
+question the rules ask has a yes-or-no answer in the
+document rather than a judgement.
+
+\paragraph{Worked example 2: AGNTCY, the audit-log
+tampering cell.}
+AGNTCY persists scan reports as OCI referrers and emits
+OpenTelemetry traces. Both are real, specified, and
+relevant to audit. Neither is a tamper-evident log: nothing
+in the specification prevents a party with write access
+from rewriting the record. The candidate scores are
+\texttt{addressed} (an audit mechanism is specified) and
+\texttt{partial} (the mechanism is specified but the
+integrity property is not). Rule 3 decides it as
+\texttt{partial}, and the cell's evidence field records the
+reason in the same words. The same rule applied to Coral's
+blockchain-anchored trail returns \texttt{addressed},
+because there the integrity property is the mechanism. The
+contrast is what makes the boundary reproducible: the rater
+is not asked whether the audit story is good, but whether
+the specification names an integrity guarantee.
+
+\paragraph{Adjudication when the rules do not settle it.}
+Two cases survive the four rules. The first is a
+specification whose text is genuinely ambiguous about what
+it requires. Here we wrote to the specification's authors,
+and where they answered, the answer is recorded as evidence
+and the score follows it. Two scores in this survey moved
+that way. ACNBP's Axis 3 dropped from 3 to 2 after a lead
+author confirmed that the Capability Binding ceremony is a
+two-party protocol. Multi-agent delegation is outside its
+scope (\S\ref{sec:security:authz}). ANP's task-model scope
+was recorded as deliberate rather than underspecified after
+the same kind of exchange. The second
+case is a specification that changed after we scored it.
+There the cutoff governs: the score stands at the surveyed
+version, and the drift is recorded rather than silently
+absorbed (\S\ref{sec:rubric:limits}).
+
+\paragraph{What agreement evidence we have, and what we do
+not.}
+We state this plainly, because the rubric's value depends
+on it. This survey does not report an inter-rater
+reliability statistic. No second rater independently scored
+the full matrix. We therefore have no Cohen's $\kappa$ and
+no agreement percentage to offer, and we decline to compute
+one from a process that would not support it.
+
+What we have instead is an auditable change history. Every
+score lives in \texttt{protocol-scores.yaml} with an
+evidence string. Every change to a score is a commit with a
+stated reason. The counting rule for Axis 8 is enforced by
+a check in the companion repository, which fails the build
+when a count and the threat matrix disagree. That check
+exists because they did disagree: four protocols carried
+counts that had absorbed \texttt{partial} cells, which the
+axis definition excludes, and nothing caught it because
+nothing was checking. Coverage of the manuscript prose was
+added to the same check for the same reason.
+
+An auditable trail is weaker evidence than two independent
+raters, and we do not present it as equivalent. It supports
+a narrower claim: that each score is traceable to a
+specification passage a disputing reader can check, and
+that no score has moved without a recorded reason. The
+axes most exposed by the gap are the two most
+judgement-heavy ones: semantic interoperability (Axis 9)
+and the observability component of Axis 10. In both, the
+anchors describe a degree of specification rather than the
+presence of a named mechanism. A two-rater pass over them
+is the highest-value item in the rubric's own future work,
+and \S\ref{sec:openproblems:benchmarking} lists it there.
+
+\subsection{Limitations of the rubric}
+\label{sec:rubric:limits}
+
+Four limitations of the rubric require explicit
+acknowledgement.
+
+\paragraph{The rubric covers eight of the thirteen surveyed
+protocols.} Every score in this survey is a score of one of
+the eight tool-binding or peer-messaging protocols. The five
+commerce-settlement protocols (AP2, Visa TAP, Mastercard
+Agent Pay, ERC-8004, UCP) are surveyed and compared, in
+\S\ref{sec:emerging:commerce} and
+Table~\ref{tab:commerce-stack}, but they are not rubric
+scored. The reason is that six of the ten axes have no
+referent in a settlement envelope: it has no task state
+machine, no async resumption model, no multi-modal content
+negotiation, and its discovery and transport are those of
+whichever peer-messaging protocol carries it. Scoring them
+anyway would produce rows of \texttt{n/a} and a set of
+figures whose averages moved for reasons of scope rather
+than of substance.
+
+UCP is the one member of the layer where that reason is
+weaker. It specifies discovery, authentication,
+authorization, and four transport bindings
+(\S\ref{sec:emerging:commerce}), so four axes would return a
+defensible score. It is left unscored anyway, on two
+grounds. It is a commerce-orchestration layer rather than a
+peer-messaging protocol, so the axes it does answer are
+answered for a different purpose. And scoring one member of
+the commerce layer while four remain unscored would move the
+figures' averages for reasons of scope. Its per-axis
+evidence is recorded in
+\texttt{data/protocol-scores.yaml} so that a later revision
+widening the rubric does not start from nothing. The cost of
+the choice is that the commerce layer cannot be ranked
+against the other two, and a reader wanting one comparable
+number across all thirteen will not find it here.
+
+\paragraph{Subjectivity at the anchor boundaries.} The
+boundary between two adjacent anchored levels is
+necessarily a judgment call. We have made each boundary
+description as concrete as the specification language
+allows, and the four calibration rules of
+\S\ref{sec:rubric:calibration} settle a contested boundary
+in a stated order rather than by preference. Still, some
+boundaries remain thin. A \emph{level-1} discovery primitive
+is a well-known endpoint and a \emph{level-2} one is a
+federated directory. Which side A2A's AgentCard convention
+falls on depends on whether one reads it as a
+``federation'' or as ``a
+hosted convention.'' Where the boundary is contestable, we
+record the reasoning in the YAML evidence field. The
+residual limitation is the one
+\S\ref{sec:rubric:calibration} states directly: the rules
+make a boundary call reproducible in principle, and no
+second rater has independently confirmed that it
+reproduces.
+
+\paragraph{Version drift across the review cycle.}
+Protocols at the active 2025 to 2026 frontier are evolving
+on a quarterly cadence. A score recorded against
+A2A v1.0 may not hold against the version current at
+publication. The companion repository's update discipline
+addresses this directly: the YAML carries
+\texttt{spec\_version} and \texttt{retrieved} fields per
+protocol; a future reader can compute the staleness
+delta. The survey itself reports scores at the declared
+cutoff and does not silently update them in proof.
+
+\paragraph{Evidence tier asymmetry.} Some protocols
+(A2A, MCP) have multi-tier sourcing: an official
+specification, peer-reviewed security analyses, and
+production deployments. Others (ACNBP, LOKA) are at
+arXiv-paper stage with no formal SDO and no large-scale
+production deployment to validate the spec's
+operational claims. Where the specification declares a
+mechanism the rubric scores the declaration; where the
+declaration depends on infrastructure that does not
+yet exist (LOKA's level-3 semantic interoperability via
+the Polyglot Intent Engine), the evidence field records
+the gap. We are weighing scores by source tier;
+\S\ref{sec:industry-protocols} and
+\S\ref{sec:emerging-protocols} present the
+implementation-maturity context alongside the rubric
+scores.

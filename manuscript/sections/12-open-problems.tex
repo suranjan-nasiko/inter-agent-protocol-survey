@@ -1,0 +1,590 @@
+\section{Open Problems and Research Agenda}
+\label{sec:openproblems}
+
+This section consolidates the open problems flagged
+throughout the survey into a single agenda for the next
+standardisation cycle. The six security-specific items
+identified in \S\ref{sec:security:open} (O1 to O6) carry
+forward into this section as the substrate for the
+broader research agenda; we re-label them here as items
+P1 to P6 to mark that the open-problems agenda is broader
+than security alone. P7 to P12 are problems flagged
+elsewhere in the survey: the Axis 9 schema gap, the
+cross-network mandate harmonisation, the trust-bootstrap
+problem across heterogeneous registries, the
+benchmarking gap, the economic-incentive question, and
+the regulation-readiness gap. The dozen items together
+constitute what the survey treats as the agenda the
+field should address by the end of the 2026 to 2027
+revision cycle.
+
+Section~\ref{sec:openproblems:convergence} treats the
+convergence-versus-fragmentation question that frames the
+rest of the agenda. Sections~\ref{sec:openproblems:trust}
+through~\ref{sec:openproblems:regulation} unpack five
+problem clusters, each grouping a small number of P-items
+that share a common substrate. The survey takes positions
+where the literature is clear and refrains from positions
+where the literature is open; the closing
+section~\ref{sec:openproblems:priorities} ranks the
+P-items by tractability and impact for the benefit of
+researchers selecting where to work.
+
+\subsection{Convergence versus fragmentation}
+\label{sec:openproblems:convergence}
+
+The framing question for the entire open-problems agenda
+is whether the contemporary protocols converge to a
+single dominant pattern or remain a co-stack of
+specialised protocols indefinitely. The survey's
+position, after weighing the evidence from
+Sections~\ref{sec:industry-protocols} to \ref{sec:governance},
+is that \emph{partial convergence at the primitive level
+is likely; full convergence at the protocol level is not}.
+
+\paragraph{The convergence argument.}
+Three of the four large peer-messaging protocols (A2A,
+ANP, AGNTCY) are converging on shared primitives at the
+identity, discovery, and task-lifecycle layers under
+the AAIF and W3C umbrellas. The agentic commerce stack
+is converging on the intent-mandate-receipt envelope
+across AP2, Visa TAP, Mastercard Agent Pay, and
+ERC-8004. The tool-binding layer has effectively
+converged on MCP at the production cutoff. The
+direction is unmistakable: the field is moving toward
+a smaller set of shared primitives.
+
+\paragraph{The fragmentation counter-argument.}
+At the same time, the three architectural layers of
+\S\ref{sec:taxonomy:layers} are not collapsing into a
+single layer. A2A and MCP remain structurally distinct
+because the questions they answer are structurally
+distinct; the commerce-settlement layer remains
+structurally distinct from peer-messaging because the
+intent-mandate-receipt envelope has no analogue in
+inter-agent task semantics. The pattern is convergence
+\emph{within} layers and persistent diversity
+\emph{across} layers. This is consistent with how
+HTTP, TLS, and DNS converged within their respective
+layers while remaining different protocols.
+
+\paragraph{Implication for the research agenda.}
+The convergence-versus-fragmentation framing affects
+what research direction the field should reward.
+Within-layer convergence rewards primitive-level
+research (better identity primitives, better
+delegation primitives, better content models)
+because the primitives will be adopted across
+multiple protocols. Cross-layer divergence rewards
+composition-pattern research (how layers stack
+cleanly, what bridges between them look like, how
+end-to-end traces flow across layers) because that
+work is not subsumed by any single protocol's
+specification.
+
+\subsection{Trust bootstrapping and identity portability}
+\label{sec:openproblems:trust}
+
+The first cluster of P-items concerns identity and the
+trust bootstrap that supports it.
+
+\paragraph{P1: Cryptographic delegation chains.}
+The single most-cited gap (O1 of
+\S\ref{sec:security:open}). No surveyed protocol
+standardises a delegation credential, and token forwarding
+remains the de-facto pattern deployments adopt in its
+absence. The candidate successor patterns are the Agentic
+JWT~\cite{agentic_jwt} and the
+authorisation-propagation chain~\cite{authz_propagation}.
+ACNBP's capability-binding
+ceremony~\cite{spec_acnbp} is a third ingredient rather
+than a third candidate: it makes one hop verifiable
+without an authorisation server, and it says nothing about
+composing hops. The research question is which
+of the candidates the field standardises and how the
+chosen pattern bridges the OAuth-bearer-token
+deployments to a cryptographic-chain world without
+breaking deployed implementations. The AGRP envelope
+(Contribution C6, \S\ref{sec:proposals:agrp}) provides a
+container in which any of these patterns can be carried
+forward as the \texttt{filter\_signature} chain; AGRP does
+not specify the chain mechanism, only the envelope that
+transports it.
+
+\paragraph{P2: Identity rotation.}
+O2 of \S\ref{sec:security:open}. No contemporary
+protocol specifies how an agent's identifier rotates
+without breaking in-flight tasks. The research question
+is whether the rotation primitive belongs at the
+identity layer (DID document updates with grace
+periods) or at the task layer (Task lifecycle
+extensions for identifier migration); the survey
+takes no position.
+
+\paragraph{P7: Trust bootstrapping across heterogeneous
+registries.}
+A new problem not previously enumerated. Agents
+registered under different discovery infrastructures
+(A2A AgentCards under one well-known endpoint, ANP
+DIDs under a DID resolver, Coral agents under a
+Coral Server, AGNTCY agents in an OASF directory) must
+trust each other across the boundary. No protocol
+specifies how this cross-registry trust bootstraps:
+how does an A2A-registered agent verify the
+authenticity of an ANP-registered counterpart?
+The naive answer (each registry must be trusted by
+each consumer) does not scale; the candidate
+mechanisms (cross-registry attestation, federated
+trust anchors, blockchain-anchored cross-resolution)
+are at the pre-specification stage. The OWA scoping
+scheme (Contribution C5, \S\ref{sec:proposals:owa})
+partially addresses this by anchoring organizational
+trust in DNSSEC and providing a normative workspace
+tier across which trust can be expressed; the
+cross-registry attestation question remains open.
+
+\subsection{Cross-protocol bridging and gateways}
+\label{sec:openproblems:bridging}
+
+The second cluster concerns the composition and bridging
+mechanisms between layers and between protocols within a
+layer.
+
+\paragraph{P8: ANP-to-A2A identity bridges.}
+The composition that the rubric matrix most clearly
+recommends (\S\ref{sec:comparison:stack}: ANP's
+identity-layer strengths + A2A's task-layer strengths)
+is not yet a deployed stack. The bridge specification
+would say: an ANP-resolved DID presents itself across
+an A2A AgentCard with the AgentCard fields populated
+from the ANP AgentDescription. The AAIF working group
+has begun the bridge but has not published a
+specification at the cutoff. This is the single
+composition that the survey's rubric most clearly
+indicates would deliver more capability per spec-word
+than any other.
+
+The scope of the bridge is narrower than the protocol pair,
+and stating it narrowly is what makes the problem
+tractable. ANP is a suite of sub-protocols, and only the
+identity mechanism composes cleanly: a DID carries no
+dependency on the rest of ANP. Agent Description and Agent
+Discovery overlap what the A2A AgentCard already provides,
+so the bridge must decide which descriptor is
+authoritative rather than populate one from the other in
+both directions (\S\ref{sec:comparison:stack}). The
+tractable version of P8 is a one-way binding: the DID
+authenticates the agent, the AgentCard describes it, and
+the bridge specifies only how the card commits to the DID.
+Attempting to reconcile two descriptor formats is a
+different and larger problem, and conflating the two is
+one reason the bridge has not shipped.
+
+\paragraph{P9: Cross-network mandate harmonisation in
+the commerce stack.}
+The commerce-settlement layer leaves a cross-network
+interoperability gap (\S\ref{sec:emerging:commerce},
+\S\ref{sec:adoption:commerce}): a single agent
+mandate should be portable across PayPal AP2, Visa
+TAP, Mastercard Agent Pay, and ERC-8004 settlement
+substrates without re-signing per network. The AAIF
+Agentic Commerce Working Group~\cite{lf_aaif} has
+begun the harmonisation; the open question is whether
+the harmonised envelope is a wire-format unification
+(all four protocols carry the same envelope schema)
+or a semantic unification (different schemas with a
+specified translation) or a higher-level meta-mandate
+that wraps the four substrates.
+
+\paragraph{P10: The gateway-versus-translator
+question.}
+A meta-level open question raised by P8 and P9: should
+the bridges between protocols be \emph{gateways} (a
+deployed intermediary that translates between
+protocols at the message boundary) or \emph{translators}
+(a specification primitive that each protocol's
+implementations consume directly)? The two answers
+have different governance, deployment, and security
+implications. The SAGA architecture~\cite{saga2026}
+implicitly chooses the gateway pattern; the OASF
+descriptor~\cite{spec_agntcy} implicitly chooses the
+translator pattern. The field has not yet decided.
+
+\subsection{Benchmarking gaps}
+\label{sec:openproblems:benchmarking}
+
+The third cluster concerns the evaluation
+infrastructure that would let the field measure
+progress on the other open problems.
+
+\paragraph{P11: A rubric-stable benchmark for
+inter-agent protocols.}
+The Axis 8 security benchmark
+(A2ASecBench~\cite{a2asecbench}) is the most mature
+empirical benchmark at the cutoff, but it covers
+only one rubric axis and only one protocol family
+(A2A). MultiAgentBench~\cite{multiagentbench} and
+COMMA~\cite{comma_tmlr25} cover the collaboration
+and multimodal-coordination dimensions but do not
+align with the rubric axes.
+AgentsNet~\cite{agentsnet} measures coordination and
+collaborative reasoning over agent graphs, and
+H\"arer~\cite{spec_eval_cyber} evaluates specified
+multi-agent systems on cybersecurity tasks. Both
+measure agent behaviour rather than what a
+specification requires, which is the distinction the
+rubric turns on. A rubric-stable
+benchmark would cover all ten axes and would let
+the field measure protocol revisions against a
+fixed scoring instrument. The ``Which LLM
+Multi-Agent Protocol to Choose''
+benchmark~\cite{protocolbench} is the closest
+candidate to this aim at the cutoff but is
+implementation-leaning rather than spec-leaning.
+The research question is whether a spec-leaning
+benchmark of the rubric's form is practical and
+who maintains it.
+
+A complementary implementation track should preserve the
+rubric score while measuring behavior. For privacy, this
+requires capture-completeness indicators and results by
+actual disclosure channel, including at minimum inter-agent
+messages, shared memory, tool-call arguments, and final
+output, rather than a single output-only pass rate.
+Source channels (user input and tool response) and
+lifecycle stages (pool construction, selection, execution,
+and output) must be represented separately. A benchmark
+that evaluates context selection should also join each
+content-free selection decision to later disclosures by a
+stable candidate reference and retain logging or fallback
+failures as explicit observations. Risk-weighted summaries
+may supplement these primary measurements, but an
+unpublished scoring method cannot serve as a citable
+primary outcome.
+
+Two prerequisites of that benchmark are missing and are
+worth naming as work items rather than assumptions. The
+first is a two-rater pass over the rubric. This survey
+reports calibration rules, worked examples, and an auditable
+change history, and no independent second scoring
+(\S\ref{sec:rubric:calibration}). A benchmark built on a
+scoring instrument whose reproducibility has never been
+measured inherits that gap. The axes to measure first
+are the two most judgement-heavy ones: semantic
+interoperability (Axis 9) and the observability component of
+Axis 10. The
+second is a labelled corpus of inter-agent messages with
+ground-truth sensitive spans. Without it, no egress filter's
+false-negative and false-positive rates can be reported, so
+no privacy-preserving envelope can be evaluated on the
+property that actually matters
+(\S\ref{sec:proposals:agrp:open}). Both are cheaper than the
+benchmark they enable, and neither exists at the cutoff.
+
+\paragraph{P12: Multi-tenant evaluation harness.}
+Existing evaluation work assumes single-tenant
+deployments. The cross-tenant policy enforcement
+question (P4) requires an evaluation harness that
+simulates multiple tenants with conflicting
+policies and measures whether the protocol's
+implementations enforce isolation correctly. No
+such harness exists at the cutoff. The research
+question is what the harness should require of
+the protocols and whether the harness lives at the
+protocol-conformance layer or the deployment
+layer.
+
+\paragraph{Benchmarking discipline beyond AI evals.}
+A meta-observation that the survey should record:
+the inter-agent benchmark space is structurally
+different from the LLM-evaluation space because
+the unit of comparison is a specification (or an
+implementation conformance) rather than a model. The
+existing benchmark discipline does not import cleanly,
+and the open-problems agenda for this area is more
+methodological than the others: the field needs to
+develop benchmarking conventions appropriate to
+protocol specifications.
+
+\subsection{Economic and incentive design}
+\label{sec:openproblems:economic}
+
+The fourth cluster concerns the economic incentives
+that will shape adoption.
+
+\paragraph{Pricing and metering.}
+A protocol-level question that the survey has
+not yet addressed: how are agent-invoked services
+priced and metered? The dominant pattern at the
+cutoff is per-invocation pricing
+(every MCP tool call is a billable event), but
+the commerce-settlement layer enables mandate-bounded
+pricing (the principal authorises spending up to
+budget X for outcome Y, regardless of how many
+invocations it takes). The two pricing models
+have different governance and audit implications;
+no contemporary protocol specifies which model the
+protocol assumes, leaving the question to
+deployment.
+
+\paragraph{Reputation and ranking.}
+A second open question: how does the discovery
+layer rank competing agents? The naive answer is
+that the registry returns all matches and the
+caller chooses; the practical answer is that
+discovery layers will increasingly include
+reputation signals (success rate, response time,
+audit cleanliness) that influence ranking. The
+research question is whether the protocol
+specifies the reputation primitive or leaves it
+to the discovery infrastructure, and how the
+reputation signal resists manipulation.
+
+\paragraph{Network-effect protection.}
+A third open question, motivated by
+\S\ref{sec:governance}: how does the
+inter-agent protocol ecosystem avoid the
+winner-take-all dynamic that the network-effect
+literature predicts for similar-shaped
+infrastructures? The
+license-permissiveness argument
+(\S\ref{sec:governance:foundations}) is one
+mechanism; the AAIF founding-member breadth is
+another; the open question is whether these
+mechanisms are sufficient or whether
+additional structural protection is needed.
+
+\subsection{Regulation-ready protocol design}
+\label{sec:openproblems:regulation}
+
+The fifth cluster concerns the protocols' alignment
+with the regulatory environment they will operate in.
+
+\paragraph{P3: Prompt-injection mitigation as a
+spec-level requirement.}
+O3 of \S\ref{sec:security:open}. Regulators in
+multiple jurisdictions are converging on the
+position that agent operators are responsible
+for protecting principals against adversarial
+content; the protocol-level question is
+whether the protocols themselves carry the
+mitigation requirement or leave it to
+operator-level policy. ACNBP and LOKA are the
+only surveyed protocols that include
+prompt-injection mitigation as part of the
+specification; the research question is whether
+the AAIF working groups will follow. The AGRP
+envelope (Contribution C6,
+\S\ref{sec:proposals:agrp}) makes
+prompt-injection mitigation a spec-level requirement
+by mandating that the egress filter run before the
+message is signed; AGRP partially addresses P3 by
+making the requirement normative and verifiable,
+though the filter rules themselves are
+organization-controlled rather than
+protocol-mandated.
+
+\paragraph{P4: Cross-tenant policy enforcement.}
+O4 of \S\ref{sec:security:open}. Multi-tenant
+agentic deployments need per-tenant policy
+isolation that the contemporary protocols do
+not provide. The SAGA architecture is the
+leading proposal; the research question
+includes whether SAGA's TEE-anchored gateway
+becomes a normative requirement, an
+implementation pattern, or a regulatory
+recommendation.
+
+\paragraph{P5: Contextual integrity for
+forwarding.}
+O5 of \S\ref{sec:security:open}. The
+conversation-history forwarding pattern leaks
+content that the principal did not authorise
+the remote agent to receive. Regulatory
+attention on this dimension is increasing
+(particularly in healthcare and finance
+verticals where forwarding crosses regulated
+boundaries). The protocol-level question is
+whether the forwarding decision is made by the
+protocol (with a specified contextual-integrity
+primitive) or by the orchestrator (with the
+protocol providing only the metadata to enable
+the decision). The
+\emph{Beyond Message Passing} position
+\cite{beyond_message_passing} argues for the
+protocol-layer answer; the
+\emph{Semantic-Driven} position
+\cite{semantic_driven} argues for the
+orchestrator-layer answer. The survey proposes
+ACSP (Contribution C7,
+\S\ref{sec:proposals:acsp}) as the protocol-layer
+candidate: a wire-level selection envelope that
+records which items the sender forwarded, which
+it dropped, and an attestation chain the receiver
+can verify. AGRP's classification labels
+(Contribution C6,
+\S\ref{sec:proposals:agrp:schema}) provide the
+metadata an orchestrator-layer decision would
+also need, and ACSP composes with AGRP rather
+than replacing it
+(\S\ref{sec:proposals:acsp:composition}). The
+orchestrator-versus-protocol dispatch remains
+open: whether ACSP displaces the orchestrator-layer
+alternatives or composes with them depends on
+empirical evidence the field does not yet have.
+
+The missing empirical design has two parts. First, the
+same candidate must be evaluated under declared
+same-workspace, cross-workspace, and cross-organisation
+boundaries so that authorisation is not inferred from
+semantic relevance. Second, a content-free selection
+record must be joined to later observations on the actual
+inter-agent, shared-memory, tool-call, and final-output
+channels. Hard policy violations, graded risk, necessary
+context recall, and end-task success should be reported as
+separate outcomes; an unavailable channel must not be
+counted as a non-disclosure.
+
+\paragraph{P6: Side-channel metadata privacy.}
+O6 of \S\ref{sec:security:open}. The metadata
+associated with inter-agent messages leaks
+information about the principal's actions even
+when the content is encrypted. No contemporary
+protocol addresses action privacy in the
+metadata layer. The research question is
+whether action-privacy primitives belong in the
+protocol (ACNBP's ring signatures suggest one
+direction) or in a privacy-preserving deployment
+layer. AGRP (Contribution C6) provides
+metadata-field encryption hooks within the
+envelope but does not specify the
+metadata-privacy primitive normatively; this
+remains an open question for a future revision
+of AGRP.
+
+\subsection{The schema fragmentation problem}
+\label{sec:openproblems:schema}
+
+A standalone problem that the survey treats as the
+single largest open question.
+
+\paragraph{P-axis-9: Escaping the level-1
+semantic-interoperability equilibrium.}
+The Axis 9 gap of \S\ref{sec:semantic}. No
+contemporary protocol ships a level-3 mechanism
+for capability semantics; the field is unsure
+that closing the gap is the right objective. The
+research question is the one
+\S\ref{sec:semantic:fragmentation} closes with:
+ontology-base or semantic-matchmaker, and at
+what layer (protocol or orchestrator) does the
+mechanism live. The
+\emph{Beyond Message Passing} and
+\emph{Semantic-Driven} lines disagree; the
+consequences (the substantially lower
+inter-organisational call success rate
+documented by the AAIF interoperability working
+group~\cite{lf_aaif}, the retrofit cost when
+adding schemas after deployment, and the
+matchmaker drift across foundation-model
+upgrades) are visible enough that the gap will
+be addressed within the review cycle. The form
+the address takes is not yet legible, though one piece of
+post-cutoff evidence points away from the ontology-base
+answer: ANP, the only protocol shipping a level-2
+mechanism, narrowed its JSON-LD commitment at the
+description layer in its 1.1 release and cited
+readability~\cite{spec_anp_v11}. A researcher choosing
+between the two families should treat ontology adoption as
+reversible rather than monotonic
+(\S\ref{sec:semantic:ontology}). The OWA workspace tier
+(Contribution C5, \S\ref{sec:proposals:owa})
+narrows the cross-organizational schema gap by
+making per-workspace policy enforcement
+explicit, but does not specify the capability
+ontology or matchmaker; the Axis 9 gap remains
+the largest unresolved research-and-standardization
+question even after the C5/C6/C7 triplet.
+
+\subsection{Priorities for the next revision cycle}
+\label{sec:openproblems:priorities}
+
+The agenda is large. The survey closes with a
+priority ranking organised by tractability and
+impact, for the benefit of researchers selecting
+where to work.
+
+\paragraph{Tier 1: High impact, near-term
+tractable.}
+The cryptographic delegation chain (P1) is the
+single highest-priority item, and it is the one item on
+this agenda that no specification currently addresses at
+all. The ingredients are well-developed (the Agentic JWT
+derivation pattern, ACNBP's single-hop capability
+binding), the deployment urgency is high (token forwarding
+is in production today), and the AAIF working group
+is the natural institutional home for the
+specification. A2A's extension mechanism is the
+plausible route: it lets a candidate chain be
+developed and evaluated in the field before any
+proposal to move it into the core specification. The route
+is Microsoft's suggestion, made when we contacted it about
+this survey, rather than ours. The ANP-to-A2A identity
+bridge (P8) is the second-highest priority for
+similar reasons.
+
+\paragraph{Tier 2: High impact, multi-cycle.}
+The schema-fragmentation problem
+(P-axis-9), cross-network mandate harmonisation
+(P9), and cross-tenant policy enforcement (P4)
+are high-impact but require multi-cycle work.
+The schema problem requires either a new
+vocabulary or a matcher architecture, both of
+which need substantial development before
+specification; the mandate harmonisation
+requires multi-network coordination at the
+governance level; the cross-tenant problem
+requires both protocol specification and
+deployment-infrastructure work.
+
+\paragraph{Tier 3: Important, longer-term.}
+Prompt-injection mitigation as a spec
+requirement (P3), contextual integrity for
+forwarding (P5), and identity rotation (P2) are
+important problems that the field is not yet
+ready to address normatively. The candidate
+mechanisms are not mature enough; the research
+work to mature them is the prerequisite for the
+specification work.
+
+\paragraph{Tier 4: Methodological.}
+The benchmarking gap (P11, P12) is at a
+different level than the other items: it is
+the instrument the field needs to measure
+progress on the other items. Tier-4 in
+priority is not Tier-4 in importance; the
+benchmark work is necessary for the rest of
+the agenda to be tractable. The cheapest item in
+this tier applies to this survey's own instrument: a
+second rater scoring Axis 9 and the observability
+component of Axis 10, the two most judgement-heavy
+axes. This survey reports no inter-rater agreement
+statistic (\S\ref{sec:rubric:calibration}), so the
+reproducibility of the rubric is at present an
+argued property rather than a measured one.
+
+\paragraph{What this section does not predict.}
+The survey closes the open-problems agenda
+with the caveat that the empirical
+deployment evidence (\S\ref{sec:adoption})
+shows adoption density uncorrelated with
+technical rigour. The agenda above lists
+what the survey considers the technically
+important problems; the field will work on
+what the institutional incentives reward. The
+two sets overlap but do not coincide, and the
+survey's role is to make the technical agenda
+legible enough that researchers and
+practitioners can advocate for the
+high-impact items even when the institutional
+incentives point elsewhere.

@@ -1,0 +1,28 @@
+The 2024 to 2026 period produced an explosion of inter-agent protocols: Google
+A2A, Anthropic MCP, IBM ACP, Cisco AGNTCY/SLIM, ANP, Coral, LOKA, ACNBP, AP2,
+Visa TAP, ERC-8004, and UCP each address fragments of one coordination
+problem. Four surveys exist. What is missing is a basis for comparing them.
+
+This survey contributes a uniform rubric of ten axes: discovery, identity,
+authorization, transport, task model, async, multi-modal handling, security
+threat surface, semantic interoperability, and governance. We cover thirteen
+protocols across three layers: tool-binding, peer-messaging, and
+commerce-settlement. The eight tool-binding and peer-messaging protocols are
+scored on the full rubric. The five commerce-settlement protocols are compared
+structurally, since the task, transport, and threat axes do not apply to a
+settlement envelope. Scores come from one rater reading each specification
+under stated calibration rules. We report an auditable change history over a
+machine-readable score file, and no inter-rater agreement statistic. We map
+adoption across enterprise SaaS, agentic commerce, healthcare, and finance,
+and survey the security literature.
+
+We then identify the unresolved problems that should drive the next
+standardization cycle. From that agenda we propose three extensions. OWA is a
+URI scoping scheme, adding a workspace tier between the organizational trust
+root and the agent identifier. ACSP is a sibling envelope recording the
+sender's declared context-selection step: which candidate items were
+considered, which kept, which dropped, under which token budget and objective.
+AGRP is a normative A2A envelope binding every cross-boundary message to a
+classification-label set and a commitment-bearing redaction log. The three
+close one loop, naming to selection to attestation, that no current protocol
+provides. All three are specification sketches, not validated standards.

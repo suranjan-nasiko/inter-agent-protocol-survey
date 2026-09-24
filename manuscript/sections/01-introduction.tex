@@ -1,0 +1,322 @@
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{Motivation}
+\label{sec:intro:motivation}
+
+Between April 2025 and the end of 2025-Q1 2026, the inter-agent
+interoperability landscape passed through what is, by any reasonable
+counting, a Cambrian phase. Google launched the Agent2Agent (A2A)
+protocol in April 2025 and donated it to the Linux Foundation later in
+the year~\cite{spec_a2a, lf_aaif}. Anthropic's Model Context Protocol
+(MCP), introduced in late 2024, became the de-facto tool-binding
+standard and was adopted by every major model vendor within
+months~\cite{spec_mcp}. The Agent Network Protocol (ANP) published its
+white paper in August 2025~\cite{spec_anp}. IBM's ACP/BeeAI,
+Cisco-led AGNTCY and its SLIM secure messaging layer, Coral Protocol,
+the LOKA framework, and the Agent Capability Negotiation and Binding
+Protocol (ACNBP) all reached public specifications within the same
+twelve-month window~\cite{spec_coral, spec_loka, spec_acnbp}.
+In parallel, the agentic-commerce stack took shape: Google's Agent
+Payments Protocol (AP2), Visa's Trusted Agent Protocol (TAP),
+Mastercard's Agent Pay, and the Ethereum community's ERC-8004.
+A fifth specification, the Universal Commerce Protocol (UCP),
+followed at the start of 2026 and covers the commerce transaction
+around the payment rather than the payment itself.
+These specifications introduced a third architectural layer. It is
+concerned not with tool invocation or peer messaging but with
+cryptographically-attested commerce settlement on behalf of an
+agent principal.
+
+Four broad surveys of inter-agent protocols already
+exist~\cite{yang2025survey, ehtesham2025interop, kong2025communication,
+commcentric2025survey}. They establish taxonomies and identify research
+directions. Kong et al.~\cite{kong2025communication} additionally
+provide a deep security analysis in 48 pages and 18 figures. None,
+however, proposes a normalized scoring rubric that could be applied
+uniformly across the protocol landscape; none covers the
+agentic-commerce stack at the spec level; none maps industry adoption
+by vertical; and none ships a machine-readable companion artifact that
+remains usable as protocol versions drift during the typical 6 to 9
+month review cycle of an archival journal. The contribution gap
+motivating this survey is
+precisely that intersection:
+\emph{a rubric that scores existing specs uniformly, applied across the
+full inter-agent protocol landscape including commerce, grounded in
+named industry deployments, and re-runnable from a machine-readable
+score file.} Re-runnable is a claim about the artifact, not about
+scoring reliability: every score here is one rater's, and
+\S\ref{sec:rubric:calibration} states what agreement evidence that
+does and does not give us.
+
+\subsection{Why now: the 2024 to 2026 protocol explosion}
+\label{sec:intro:whynow}
+
+Three forces converged to produce the protocol explosion that this
+survey records. First, the maturation of frontier LLMs as tool-using
+agents created an immediate demand for a standardized
+context-injection contract, which MCP filled. Second, multi-agent
+deployment patterns made it apparent that a tool-binding protocol
+alone was insufficient. Those patterns include supervisor-and-worker,
+peer-to-peer specialist teams, and long-running task delegation
+across organizational boundaries. Peer-messaging protocols (A2A,
+ACP, ANP, AGNTCY, Coral) emerged within months of MCP's
+stabilization. Third, the
+rise of agent-initiated transactions on behalf of human principals
+exposed an unmet need for cryptographically verifiable
+authorization, leading the major card networks and a parallel
+on-chain effort (ERC-8004) to specify what we treat in this survey
+as the commerce-settlement layer of inter-agent coordination.
+
+The result is a landscape with substantial overlap but no clear
+ranking: a practitioner choosing among A2A, ANP, and Coral for a
+multi-agent deployment finds extensive specifications but no
+neutral basis for comparison. The four prior surveys provide
+taxonomies and qualitative observations; this survey provides a
+normalized scoring framework, anchored against the eight
+protocols of the tool-binding and peer-messaging layers and
+applied to thirteen protocols in total across the three layers,
+alongside an industry
+adoption synthesis and a security threat-coverage matrix.
+
+\subsection{Contributions}
+\label{sec:intro:contributions}
+
+This survey makes seven distinct contributions.
+Contributions C1 to C4 are survey contributions, each of
+which is absent from the four prior surveys of the
+landscape~\cite{yang2025survey, ehtesham2025interop,
+kong2025communication, commcentric2025survey}.
+Contributions C5, C6, and C7 are protocol-design
+proposals derived from the open-problems agenda the
+survey identifies; they are narrowly-scoped extensions
+to the contemporary protocol stack, not free-standing
+protocols, and they are presented in
+\S\ref{sec:proposals} after the survey is complete.
+
+\paragraph{Contribution C1: A uniform 10-axis rubric.}
+We propose an evaluation rubric of ten axes. The axes are Discovery
+and Registry
+Model, Identity and Authentication, Authorization and Delegation,
+Transport and Wire Format, Task and Conversation Model, Async and
+Long-Running Operations, Multi-Modal Content Handling, Security
+Threat Surface, Semantic Interoperability, and Governance / License /
+Observability. We apply the ten axes to the eight tool-binding and
+peer-messaging protocols (\S\ref{sec:rubric};
+Table~\ref{tab:rubric-matrix}), and compare the four
+commerce-settlement protocols on the structural axes that do apply to a
+settlement envelope (Table~\ref{tab:commerce-stack}). Every rubric score
+in this survey is therefore one of eight protocols, and the count of
+thirteen refers to the surveyed set. Seven axes use
+anchored ordinal scoring (0 to 3) with explicitly named anchor
+descriptors per level; one axis (Transport) is a structured
+tuple to avoid the false precision of ordinal scoring over a
+configuration space; one axis (Security) is a count over a fixed
+twelve-item threat catalog; and one axis (Governance / License /
+Observability) is a composite triple of categorical steward,
+license identifier, and 0 to 3 observability score. Prior surveys propose taxonomies
+(Yang~\cite{yang2025survey}, Kong~\cite{kong2025communication}) or
+adoption roadmaps (Ehtesham~\cite{ehtesham2025interop}) but no
+normalized scoring framework that lets a reader rank a new protocol
+against existing ones.
+
+\paragraph{Contribution C2: First-class treatment of the
+agentic-commerce stack.}
+We treat AP2, Visa TAP, Mastercard Agent Pay, ERC-8004, and UCP as a
+first-class third architectural layer of inter-agent coordination,
+alongside tool-binding (MCP and its descendants) and peer-messaging
+(A2A, ANP, ACP, AGNTCY, Coral, LOKA, ACNBP). Section~\ref{sec:industry-protocols}
+analyzes the commerce stack at the spec level. That analysis covers
+its intent-mandate-receipt envelope, its principal-delegation chain
+semantics, its on-chain versus off-chain settlement models, and
+the cross-network interoperability work underway in the Agentic
+AI Interoperability Foundation~\cite{lf_aaif}. It also covers UCP's
+alternative to that harmonisation: fix the transaction layer above
+the settlement protocols and treat the mandate as a negotiated
+extension. No prior survey
+covers the commerce-settlement layer at this depth; Yang and
+Kong predate its emergence; Ehtesham's four-protocol scope omits
+it; the communication-centric survey~\cite{commcentric2025survey}
+treats payments as out of scope.
+
+\paragraph{Contribution C3: Industry adoption mapped by vertical.}
+Section~\ref{sec:adoption} and Table~\ref{tab:industry-adoption}
+synthesize industry adoption across four verticals: enterprise
+SaaS, agentic commerce and payments, healthcare, and finance. The
+synthesis names production deployments rather than treating protocols
+in the abstract. We track which protocols are shipping in identifiable
+products, which carry pilot-stage announcements, and which remain
+research artifacts. Prior surveys do not provide this mapping; the
+absence is particularly notable in Yang and Kong, where adoption
+is treated only at the level of which vendor designed which
+specification.
+
+\paragraph{Contribution C4: A machine-readable companion artifact.}
+We ship a companion repository (\companionrepo) carrying \texttt{protocol-scores.yaml}
+(the source of truth behind Table~\ref{tab:rubric-matrix},
+Figure~\ref{fig:heatmap}, and Figure~\ref{fig:radar}), the threat
+coverage and adoption matrices as YAML, and the scripts that
+regenerate the tables and figures built from them. This artifact addresses the
+staleness risk that broadly threatens any protocol survey across
+a 6 to 9 month review cycle: scores remain re-runnable as protocol
+versions drift, and a reader can fork the YAML to score a ninth
+protocol without re-implementing the comparison. Prior surveys do
+not provide machine-readable comparison artifacts. Its contents
+and license terms are listed in the reproducibility checklist of
+Appendix~\ref{sec:appendix:repro}.
+
+\paragraph{Contribution C5: The OWA scoping scheme.}
+We propose a three-tier \emph{org / workspace / agent} URI naming
+scheme (\S\ref{sec:proposals:owa}) that extends the
+\texttt{agent://} URI scheme of Rodriguez~\cite{agent_uri_scheme}
+with an explicit workspace tier between the organizational trust
+root and the capability path. The workspace tier is missing from
+every contemporary identifier scheme: \texttt{agent://}, the
+Agent Name Service IETF draft~\cite{ans_ietf}, A2A AgentCard URIs,
+W3C DIDs, and Ruflo's cross-machine federation~\cite{ruflo}.
+Yet the empirical reality of enterprise deployments points the
+other way (\S\ref{sec:adoption:saas}). Multiple agents with
+overlapping capabilities operate under different workspace
+governance regimes. OWA names the workspace as a first-class
+URI segment, enabling per-workspace policy enforcement, cross-org
+trust bootstrap through DNS, and the boundary detection that
+Contribution C6 depends on. The proposal addresses P7
+(trust-bootstrapping across heterogeneous registries) of the
+open-problems agenda (\S\ref{sec:openproblems:trust}).
+
+\paragraph{Contribution C6: The AGRP guardrails envelope.}
+We propose a normative envelope extension to A2A
+(\S\ref{sec:proposals:agrp}) that wraps every cross-boundary
+inter-agent message with classification labels, a
+fingerprint-evidenced redaction log, and cryptographic
+attestation that an egress filter ran. The envelope is bound to
+the sender's OWA identity (Contribution C5), allowing the
+receiver to verify the egress-filtering property at the
+\emph{message} layer rather than relying on the sending
+deployment to enforce it. The proposal is positioned explicitly
+as a composition partner with the most-developed deployment-layer
+precedent, Pipelock~\cite{pipelock}: the AGRP envelope's
+\texttt{mediator\_receipt} field is designed to carry Pipelock
+receipts forward, yielding a defence-in-depth deployment of
+deployment-layer enforcement plus protocol-layer cross-vendor
+verifiability. AGRP addresses three open security problems, as
+catalogued in \S\ref{sec:security:open}. They are
+O3 (prompt-injection mitigation as spec-level requirement),
+O5 (contextual integrity for forwarding), and O6 (side-channel
+metadata privacy).
+
+\paragraph{Contribution C7: The ACSP context selection envelope.}
+We propose a sibling envelope extension to A2A
+(\S\ref{sec:proposals:acsp}) that records the
+\emph{declared selection step itself}: which candidate items from
+the sender's context pool were considered, which were
+kept, which were dropped, under which token budget and
+optimisation objective, with a keyed per-candidate
+commitment and an attestation chain signed by the
+sender's OWA-bound key (Contribution C5). Where AGRP
+attests the cleaning of \emph{spans within} forwarded
+items, ACSP attests the prior decision of \emph{which
+items} crossed the boundary. That is the gap AgentLeak's
+output-only audits miss 41.7\% of the
+time~\cite{agentleak}. ACSP is positioned as the
+protocol-layer answer to the contextual-integrity
+question \S\ref{sec:security:privacy} leaves open, and
+is anchored on the PACMS~\cite{pacms_cikm_demo} reference
+implementation (submodular facility-location selection;
+the classical coverage guarantee is not asserted for the
+audited token-knapsack implementation without its required
+conditions). The three proposals are co-designed: OWA
+names the boundary; ACSP selects which items cross it;
+AGRP redacts the spans within those items. The triplet
+closes the contextual-integrity loop at the wire layer
+in a way no contemporary protocol provides.
+
+\subsection{What this survey is not}
+\label{sec:intro:notwhat}
+
+The scope of this survey is deliberately bounded, and several
+adjacent literatures are explicitly out of frame.
+
+This is \emph{not} a survey of LLM agents or single-agent reasoning
+frameworks. AutoGen~\cite{wu2023autogen},
+MetaGPT~\cite{hong2024metagpt}, ChatDev~\cite{qian2024chatdev},
+CAMEL~\cite{li2023camel}, and their successors
+are foundational context for the protocols we evaluate, but they
+are not themselves subjects of the rubric and do not appear in
+Table~\ref{tab:rubric-matrix}.
+
+This is \emph{not} a survey of multi-agent reinforcement learning.
+Where coordination questions overlap (e.g., consensus, role
+assignment), we cite the MARL literature for context only.
+
+This is \emph{not} a re-derivation of the security threat
+literature. The deep security analysis of inter-agent communication
+already exists in Kong et al.~\cite{kong2025communication} and the
+parallel red-team
+catalogs~\cite{a2asecbench, zhan2024injecagent, a2a_weaknesses}.
+Section~\ref{sec:security} synthesizes these as a 12-threat
+spec-level coverage matrix per protocol; for primary security
+analysis the reader is referred to Kong directly.
+
+This is \emph{predominantly} a survey, not a protocol-design
+proposal. The rubric (Contribution C1) scores existing
+specifications; it does not specify a new one. The three
+exceptions are Contributions C5, C6, and C7, which sit in
+a final dedicated section (\S\ref{sec:proposals}) and are
+derived directly from the open-problems agenda
+(\S\ref{sec:openproblems}). The proposals are narrowly
+scoped: a workspace-aware URI extension to the
+\texttt{agent://} scheme~\cite{agent_uri_scheme}, a
+normative guardrails envelope extension to A2A, and a
+sibling context-selection envelope. They are
+positioned as candidates the AAIF and W3C working groups
+can adopt, extend, or reject. They are reference designs,
+not validated specifications; \S\ref{sec:proposals} is
+explicit about the implementation-maturity caveat.
+
+Finally, the survey is bounded by a declared cutoff date of
+\textbf{2026-Q1}. Specifications and primary literature published
+after that date may be referenced in footnotes but are not
+exhaustively covered. The companion repository carries the
+canonical updatable rubric scores past that horizon.
+
+\subsection{Reading guide}
+\label{sec:intro:guide}
+
+Section~\ref{sec:background} locates the 2024 to 2026 protocol wave
+in the prior heritage of agent communication languages, from
+FIPA-ACL and KQML through SOAP/WSDL, REST, and OpenAPI to the
+JSON-RPC 2.0 substrate that all current inter-agent protocols
+share. Section~\ref{sec:taxonomy} introduces the three-layer
+architectural grid (tool-binding, peer-messaging,
+commerce-settlement) and the orthogonal classification axes
+(open versus consortium-governed; registry-based versus
+peer-discovery; sync versus async-first) that organize the
+remainder of the survey. Section~\ref{sec:rubric} defines the
+ten-axis rubric in full; it is the novelty anchor of the survey
+and is the only section the time-pressed reader should not skim.
+Sections~\ref{sec:industry-protocols} to \ref{sec:emerging-protocols}
+apply the rubric to industry-led and research-led protocols
+respectively. Section~\ref{sec:comparison} presents the master
+rubric matrix, the heatmap, and the radar charts.
+Section~\ref{sec:security} synthesizes the security threat
+literature into a 12-threat coverage matrix.
+Section~\ref{sec:semantic} treats semantic interoperability as
+a distinct concern from message passing.
+Section~\ref{sec:adoption} maps industry adoption by vertical.
+Section~\ref{sec:governance} analyzes governance, licensing, and
+observability as institutional factors that decide protocol
+survival. Section~\ref{sec:openproblems} catalogues the
+unresolved problems that should drive the next standardization
+cycle. Section~\ref{sec:proposals} presents the three
+narrowly-scoped protocol-design proposals (Contributions
+C5, C6, and C7) that derive from the open-problems
+agenda, with the three differentiation tables that
+position each proposal against its prior art.
+Section~\ref{sec:conclusion} concludes.
+
+The reader who wants only the bottom line of the comparison
+should turn directly to Table~\ref{tab:rubric-matrix} on
+page~\pageref{tab:rubric-matrix} and Figures~\ref{fig:heatmap}
+and~\ref{fig:radar}; everything else in the survey is
+explanation, evidence, and context for those three artifacts.

@@ -1,0 +1,718 @@
+\section{Security and Threat Surface}
+\label{sec:security}
+
+This section synthesises the security and threat-modelling
+literature on inter-agent protocols and applies the twelve-class
+threat catalogue introduced as Axis 8 of the rubric
+(\S\ref{sec:rubric:axis8}) protocol-by-protocol.
+Section~\ref{sec:security:model} fixes a composite threat model
+covering the four principal entities of a contemporary agentic
+deployment (user, orchestrator, remote agent, tool or MCP
+server) and identifies where on that model each of the twelve
+threat classes manifests.
+Section~\ref{sec:security:identity} to \ref{sec:security:tee}
+each treat one major threat category in depth, drawing on the
+specification-level coverage in
+Table~\ref{tab:threat-surface} and the empirical and analytical
+literature catalogued in our references.
+Section~\ref{sec:security:open} closes with the unresolved
+problems that should drive the next standardisation cycle.
+Half of these reappear in \S\ref{sec:openproblems} as the
+top-priority items on the survey's open-problems agenda.
+
+This is deliberately \emph{not} a re-derivation of the security
+literature (\S\ref{sec:intro:notwhat}, D3). Kong et
+al.~\cite{kong2025communication} already provide a 48-page
+treatment that is the canonical primary source for the field.
+What \S\ref{sec:security} adds is the spec-coverage view: a
+matrix that says, for each protocol's published
+specification at the 2026-Q1 cutoff, which threats the spec
+addresses with normative language, which it acknowledges only
+in non-normative recommendations, and which it leaves out of
+scope entirely.
+
+\subsection{Composite threat model}
+\label{sec:security:model}
+
+The threat model spans four entities and the three edges
+between them. The model is consistent with the layered
+architectures of
+Kong~\cite{kong2025communication}, A2ASecBench~\cite{a2asecbench},
+and the threat-modelling survey~\cite{threatmodel2026}, and
+serves as the geometry against which we locate each of the
+twelve threat classes.
+
+\begin{description}
+  \item[Entity 1: User principal.] A human or
+    organisational identity on whose behalf an orchestrator
+    is acting. The principal authorises specific intents and
+    delegates a bounded mandate to the orchestrator. Threats:
+    cross-tenant identity confusion, principal-impersonation
+    via stolen mandates, mandate-replay across delegation
+    boundaries.
+  \item[Entity 2: Orchestrator agent.] The primary
+    agent (typically an LLM with an associated runtime)
+    that holds the principal's mandate and selects which
+    remote agents or tools to invoke. Threats:
+    prompt injection at the principal-orchestrator
+    boundary, orchestrator output validating
+    a downstream attack, side-channel leakage through
+    orchestrator logs.
+  \item[Entity 3: Remote agent.] A peer agent reached
+    via A2A, ANP, AGNTCY/SLIM, Coral, or an equivalent
+    peer-messaging substrate. Threats: agent impersonation,
+    AgentCard supply-chain attacks, capability escalation
+    through ambiguous Skill descriptions, registry poisoning
+    against the discovery convention.
+  \item[Entity 4: Tool or MCP server.] A
+    capability-providing endpoint reached via MCP or an
+    equivalent tool-binding protocol. Threats: tool
+    poisoning, indirect prompt injection through tool
+    results, malicious schema in tool input contracts,
+    confused-deputy attacks where the orchestrator's
+    OAuth scope is exceeded by tool calls it doesn't
+    authorise.
+\end{description}
+
+The three edges carry the messages on which all
+twelve threats land: principal-to-orchestrator,
+orchestrator-to-remote-agent, and
+orchestrator-to-tool. Twelve threats is the smallest count
+that lets every one of the six published threat-modelling
+papers~\cite{kong2025communication, a2asecbench,
+threatmodel2026, protocol_exploits, a2a_weaknesses,
+zhan2024injecagent} map onto a single matrix without
+hiding a threat under an unrelated heading; the granularity
+is set by the literature, not by the survey's preferences.
+
+\clearpage
+
+Table~\ref{tab:threat-surface} presents the matrix.
+Eight of the twelve threats land on multiple edges
+simultaneously. Registry poisoning, for example, is an
+attack against the discovery infrastructure. Its impact
+flows along every edge that consumes a poisoned descriptor.
+The matrix records the protocol's spec-level coverage of
+each threat regardless of which edges that protocol mediates,
+with the \texttt{na} marker reserved for threats that are
+structurally outside the protocol's scope (e.g., MCP has no
+AgentCard, so the AgentCard supply-chain row is
+\texttt{na} for MCP).
+
+\input{tables/table3-threat-surface}
+
+The matrix renders three structural observations, and a
+fourth that only appears once the twelve classes are
+weighted by how much each one costs.
+
+\paragraph{The widely-deployed protocols cluster at one
+addressed class each.}
+A2A, MCP, and ACP each address exactly one of the twelve
+classes, and in all three cases it is message tampering, via
+transport encryption. A2A adds three partial mitigations and
+MCP two, so the specifications are not silent on security;
+they are non-normative about it. The reason is consistent
+across the cluster: each protocol
+specifies its identity and transport-encryption layers,
+the identity layer without binding it cryptographically,
+then relies on deployment-level mitigations
+(WAFs, OAuth scopes, application-layer audit logging) for
+the rest. AGNTCY is the counterexample that shows this is a
+choice rather than a constraint of industry sponsorship: it
+is equally industry-led and addresses six classes, because
+MLS~\cite{rfc9420}, Sigstore signing~\cite{sigstore2022}, and
+content addressing are specified
+normatively rather than recommended. The literature
+converges on the assessment that
+the cluster's posture is the principal residual risk in
+production: A2ASecBench~\cite{a2asecbench} reports
+exploitable variants of nine of the twelve classes against
+deployed A2A endpoints in its 2026 evaluation; the A2A
+weakness analysis~\cite{a2a_weaknesses} catalogues eight
+named threats against the same spec.
+
+\paragraph{Decentralised-identity protocols invert the
+profile.}
+LOKA (6 addressed), ANP (5 addressed), and Coral (3
+addressed) trade spec coverage of operational
+threats for coverage of identity, authentication, and
+audit-log threats via DIDs, Verifiable Credentials, and (in
+Coral's and LOKA's cases) blockchain-anchored audit
+trails. The cluster's weakness is the inverse: prompt
+injection, capability escalation, delegation token theft,
+and denial of service are unaddressed or only partial
+throughout. Coral is the weakest of the three on the count
+because its cryptographic guarantees attach to the payment
+path rather than the message path. The
+DIDs-and-VCs-for-agents paper~\cite{did_vc_agents} treats
+this trade-off explicitly, framing it as the consequence of
+specifying identity rigorously but leaving execution-time
+threats to higher layers.
+
+\paragraph{ACNBP is a positive outlier.}
+ACNBP's ten of twelve addressed classes, with the remaining
+two partial rather than absent (side-channel privacy via
+ring signatures, and cross-agent privilege confusion via
+agent quarantine), is the highest spec-level threat
+coverage in the surveyed set, achieved by the explicit
+MAESTRO seven-layer threat-modelling pass within the
+specification (\S\ref{sec:emerging:acnbp})~\cite{spec_acnbp}.
+ACNBP's deployment maturity is the lowest in the cluster:
+the protocol exists at arXiv-draft stage with no
+formal SDO. The design is still instructive. It shows what
+specification-level threat coverage looks like when it is
+written as part of the protocol rather than retrofitted
+afterwards. \S\ref{sec:security:open} returns to ACNBP as
+the model against which the industry-led protocols' threat
+coverage gap should be benchmarked.
+
+\paragraph{Severity-weighted coverage separates protocols
+the count places together.}
+The three observations above all read the matrix by
+counting. Counting is the wrong instrument for the question
+a deployer actually asks, which is how much risk is left
+over. Table~\ref{tab:severity-coverage} reports the
+severity-weighted view defined in \S\ref{sec:rubric:axis8}.
+Each class carries a weight of 3, 2, or 1 by band. The
+table reports addressed weight over applicable weight, and
+the last column reports the unaddressed weight in the
+critical and high bands alone.
+
+\input{tables/table6-severity-coverage}
+
+Three things follow that the count does not show. First,
+the one-addressed cluster is worse off than its count
+suggests. A2A, MCP, and ACP each address one class, and in
+every case it is message tampering. That class sits in the
+high band, not the critical one. All three therefore
+carry zero of five critical classes. The two industry
+protocols with the widest deployment leave 23 and 19 points
+of critical-and-high weight unaddressed at the
+specification level. Second, MCP's slightly higher
+percentage is an artefact of scope, not of strength. Two
+classes are \texttt{na} for MCP, so its denominator is
+smaller, and the residual column is the fairer comparison.
+Third, the gap between ACNBP and everything else widens
+rather than narrows. ACNBP addresses all five critical
+classes, so its residual is 2 against a field where the
+next best is 11.
+
+The parity that the count suggests between AGNTCY and LOKA
+survives the reweighting. It is worth saying why, since
+a weighting scheme that flattened every distinction would
+be doing no work. Both address two of five critical classes
+and four of five high, from different directions. AGNTCY
+gets there through MLS, Sigstore signing, and content
+addressing. LOKA gets there through DIDs, post-quantum
+signatures, and a blockchain-anchored trail. The equal weighted score records
+a real equivalence in residual risk, reached by
+non-overlapping means.
+
+The severity view does not rank protocols and is not
+combined with any other axis. It answers one question the
+count cannot, and it inherits the count's limits. It scores
+specifications, not deployments. A specification that
+addresses a critical class badly scores the same as one
+that addresses it well.
+
+\subsection{Identity and authentication}
+\label{sec:security:identity}
+
+Identity is the foundation on which every other security
+property in inter-agent protocols rests, and the dimension
+on which the contemporary protocols differ most. The rubric
+matrix already records the three-way split
+(\S\ref{sec:comparison:matrix}): industry-led protocols at
+OAuth-bearer-token identity (Axis 2 score 1), ACNBP at
+hardened-bearer-tokens-plus-PKI (Axis 2 score 2), and the
+DID-anchored protocols at decentralised verifiable
+identity (Axis 2 score 3).
+
+\paragraph{The OAuth-bearer-token failure mode.}
+A2A, MCP, and ACP all sit at OAuth-2.x identity. The
+specification mandates bearer tokens issued by a third-party
+authorisation server, with mTLS and JWT-with-signing as
+optional hardenings. The empirical security
+literature~\cite{a2asecbench, a2a_weaknesses} reports that
+the optional hardenings are rarely used in the surveyed
+deployments, and that bearer-token theft via downstream
+log capture, browser cache leakage, or compromised
+intermediaries is the most-frequent attack against deployed
+A2A and MCP endpoints. The remediation under discussion in
+the AAIF working group~\cite{lf_aaif} is to elevate the
+mTLS-plus-message-signing pattern from optional to required
+for production deployments, which would move A2A and MCP to
+the rubric's Axis 2 level 2 in a future version.
+
+\paragraph{The DID-anchored alternative.}
+ANP, Coral, and LOKA all use W3C DIDs paired with Verifiable
+Credentials (or, in Coral's case, Solana wallet signatures
+over the DID). The advantage at the identity layer is
+direct: a DID document carries the public keys necessary to
+verify a challenge-response from the agent, and no
+third-party authorisation server can be compromised to
+issue tokens for an agent without the agent's
+private-key cooperation. The
+literature~\cite{did_vc_agents, spec_anp, spec_loka} reports
+no published bypass of the
+DID-plus-VC-challenge-response pattern; the residual risks
+move down to private-key compromise (which is outside the
+protocol scope) and to capability-layer attacks
+(\S\ref{sec:security:authz}).
+
+\paragraph{The PKI-hardened middle ground.}
+ACNBP's X.509-plus-OCSP-plus-ECC envelope structure
+\cite{spec_acnbp} sits between the OAuth and DID camps. The
+operational advantage is compatibility with existing
+enterprise PKI deployments; the operational disadvantage is
+the cost of running an OCSP infrastructure that scales to
+agent-population sizes. The literature is too thin to
+report on real-world deployments of ACNBP's identity layer
+because no such deployments exist at the cutoff; the
+analysis here rests on the specification's own threat
+model in \S VII of the ACNBP paper.
+
+\paragraph{The protocol-level remaining problem.}
+None of the contemporary protocols, including ACNBP,
+addresses the \emph{identity rotation} problem. An agent
+that needs to rotate its identifier (whether for compromise
+recovery, key rotation, or organisational migration)
+breaks any in-flight tasks that hold references to the
+prior identifier. The DID specification supports rotation
+in principle through DID-document
+updates~\cite{w3c_did_core}, but no agent
+protocol specifies how an in-flight Task's identity
+mid-flight migrates from the old identifier to the new.
+This is a candidate first item on the open-problems
+agenda (\S\ref{sec:security:open}).
+
+\subsection{Authorization propagation across agent chains}
+\label{sec:security:authz}
+
+The most underdeveloped area of the contemporary protocols
+is the authorisation layer. Section~\ref{sec:rubric:axis3}
+and the per-cell derivation in §\ref{sec:comparison:derivation}
+already recorded the gap: A2A, MCP, and ACP at scope tokens
+with no standardised delegation credential (level 1), and
+ANP, Coral, LOKA, and ACNBP at scoped capabilities or a
+two-party binding ceremony (level 2). Nothing reaches
+cryptographically-bound capability chains. The level-3
+cell is empty across the scored set, which makes this the
+only axis where the strongest protocol and the weakest
+differ in degree of partial coverage rather than in
+whether the problem is addressed at all.
+
+A distinction matters here and the survey keeps it
+throughout. Not standardising a cryptographic delegation
+chain and prescribing token forwarding are different
+claims, and an earlier version of this survey ran them
+together. We contacted Microsoft about that wording, and
+this paragraph is the correction. A2A does the first and not
+the second. It states
+security requirements, advertises authentication schemes in
+the AgentCard, and defines an in-task authorization flow
+with an auth-required task state, but it leaves
+authorization policy and the choice of delegation mechanism
+to the surrounding identity and security
+architecture~\cite{spec_a2a}. The level-1 score records the
+omission. The failure mode below is a property of what
+deployments then build, and the evidence for it is
+deployment evidence.
+
+The exclusion is also explicit rather than tacit. A2A's
+\S7.6.4 states in normative language that the protocol does
+not define the scope, representation, validity, or revocation
+semantics of an authorization credential, and forbids reading
+the auth-required transition as authorization for any
+operation (\S\ref{sec:industry:a2a})~\cite{spec_a2a}. The
+protocol supplies authorization knobs so that many
+authorization solutions can sit above it. We contacted Cisco
+as well, which pointed us to this clause and supplied that
+reading. That is a design
+choice, and the survey does not score it as a defect of
+intent. It does score the consequence: a receiver holding
+only protocol-level evidence still cannot verify a
+delegation chain. A deliberate exclusion and an accidental
+omission leave the receiver in the same position, which is
+what the axis measures, so the survey keeps the two apart in
+prose and does not distinguish them in the number.
+
+\paragraph{The token-forwarding failure mode.}
+A failure mode documented for multi-agent deployments is
+OAuth token forwarding: orchestrator A
+receives an OAuth token from the user; A invokes remote
+agent B and passes that same token onward; B may invoke C
+and pass it onward again. The pattern is invisible to the
+authorisation server, which sees only that the token is
+being used; the chain of agents through which the token
+flowed is not recoverable from the audit log. The threat
+class is documented in the \emph{Authorization Propagation
+in Multi-Agent AI Systems} analysis~\cite{authz_propagation}
+and in the Agentic JWT design~\cite{agentic_jwt}, both of
+which propose successor patterns.
+
+\paragraph{The capability-binding alternative, and where it
+stops.}
+ACNBP's Capability Binding ceremony (Definition 10 of the
+spec~\cite{spec_acnbp}) replaces token forwarding for a
+single hop with a mutually-signed commitment between the
+calling and called agent. The caller signs a request
+describing the specific capability to be invoked and the
+bound parameters. The callee counter-signs the binding, and
+the resulting artifact is the authorisation token for that
+specific call. The binding is cryptographically verifiable
+without consulting an external authorisation server, which
+is what token forwarding cannot offer.
+
+The ceremony does not, however, compose into a chain, and
+the survey previously read it as though it did. ACNBP
+specifies the binding between one requester and one
+provider. It does not specify how a provider that becomes
+a requester carries forward the authority it received, nor
+how a third agent verifies the first grant. A lead author
+confirmed in correspondence that the protocol is a
+two-party negotiation-and-binding protocol and that
+multi-agent delegation lies outside its scope. So the
+ceremony is a better one-hop primitive than a forwarded
+bearer token, and it is not yet an answer to the
+propagation problem. Composing it is the open work, and it
+is the reason the level-3 cell of Axis 3 is empty across
+every protocol surveyed.
+
+\paragraph{The Agentic JWT proposal.}
+The Agentic JWT design~\cite{agentic_jwt} adapts the
+JWT-based delegation pattern to multi-agent contexts. An
+agent receives a JWT scoped to a specific intent class and
+audience; when delegating to a downstream agent, the
+upstream agent issues a derived JWT bound to the original
+JWT's identifier through a cryptographic chain. Each
+downstream agent can verify the chain without consulting the
+original authorisation server. The proposal is not yet
+adopted into any of the surveyed protocols; the AAIF
+working group is reportedly studying it as a candidate
+extension for the next A2A revision.
+
+\paragraph{The cross-tenant boundary.}
+A separate but related problem is cross-tenant
+authorisation. When a single A2A agent serves multiple
+principals from multiple tenants, the protocol does not
+specify how the agent's per-call authorisation state
+isolates one tenant's mandates from another's. The SAGA
+governance architecture~\cite{saga2026} proposes a
+tenant-policy layer that sits above the protocol and
+enforces the isolation, but the residual risk is that the
+protocol itself does not require the layer to exist.
+\S\ref{sec:governance} returns to the question as an
+institutional matter.
+
+\subsection{Prompt injection as a protocol-level attack}
+\label{sec:security:injection}
+
+Prompt injection is a class of attack that did not exist
+in the FIPA-ACL era (\S\ref{sec:background:fipa-kqml}): a
+deterministic message parser cannot be ``confused'' by
+unexpected natural-language content because it ignores
+content outside its grammar. With LLM-based agents, the
+content of a message is interpreted by a probabilistic
+reasoner whose behaviour is sensitive to the literal text
+in ways that the protocol specification cannot enumerate.
+Prompt injection is therefore a protocol-level attack in
+the precise sense that no application-level filter can
+fully prevent it; the protocol must include the
+defensive structure as a normative requirement.
+
+\paragraph{The InjecAgent empirical baseline.}
+Zhan et al.'s InjecAgent benchmark~\cite{zhan2024injecagent}
+established that indirect prompt injection through tool
+results is a measurable, reproducible threat across every
+tool-binding deployment they evaluated. The
+deployment-level mitigation (LLM-based filtering of
+tool-output strings) is reported to remove the most
+trivial attacks but leaves a long tail of more subtle
+embeddings. The protocol-level mitigation that would
+address the class is structured tool-output: typed
+content blocks with content-negotiation guarantees
+between the tool and the orchestrator. MCP's level 2 on
+the rubric's Axis 7 is the closest the cutoff specs come
+to this discipline; full level 3 (typed parts with
+inline-or-reference duality and capability-negotiated
+content) would substantially raise the bar.
+
+\paragraph{The cross-agent injection vector.}
+A second injection vector is cross-agent: an attacker who
+controls remote agent B can craft a response to
+orchestrator A that contains adversarial natural-language
+content. The attack is conceptually the same as
+tool-output injection but the mitigation is harder
+because the response is opaque task output rather than
+a structured tool result. A2A's DataPart content model
+permits structured-data responses
+but does not require them; the current convention is to
+emit free-text. The
+``From Prompt Injections to Protocol Exploits''
+analysis~\cite{protocol_exploits} reports cross-agent
+injection chains against deployed A2A endpoints and
+recommends that A2A elevate DataPart from optional to
+required for inter-agent message bodies, leaving TextPart
+for the user-facing summary only.
+
+\paragraph{The DECP partial mitigation.}
+LOKA's Dynamic Ethics and Constraint
+Protocol~\cite{spec_loka} is the only surveyed protocol
+that includes prompt-injection filtering as part of the
+specification, scored partial on Axis 8 because the
+mechanism is described conceptually rather than
+operationally. The mechanism applies a contextual-ethics
+filter at the message-receive boundary, refusing to act
+on messages whose intent fails ethical-policy validation.
+The specification's threat-model treatment is more
+explicit than the operational guidance, which is the
+reason for the partial rather than addressed marker.
+
+\paragraph{The MAESTRO foundation-model-layer treatment.}
+ACNBP's MAESTRO threat analysis (\S VII.I of the
+spec~\cite{spec_acnbp}) treats the foundation-model layer
+as one of seven analysis layers and prescribes
+spec-level mitigations including: a content-quarantine
+boundary for untrusted message content, a
+capability-scoped sandbox for tool outputs consumed by
+the orchestrator, and a mandatory structured-output
+format for inter-agent task results that prevents
+free-text content from entering the orchestrator's
+reasoning surface. The cost is operational complexity;
+the benefit is the only spec-level treatment of prompt
+injection across the surveyed set.
+
+\subsection{Multi-agent privacy leakage}
+\label{sec:security:privacy}
+
+Privacy in multi-agent systems is structurally different
+from privacy in single-agent systems because the message
+boundary is no longer the trust boundary. When agent A
+delegates a task to agent B, A's input to B may carry
+context information that A's principal did not authorise
+B to receive. The AgentLeak full-stack
+benchmark~\cite{agentleak} establishes that this leakage
+is a measurable, reproducible threat across every
+multi-agent deployment they evaluated, and that the
+typical leakage vector is conversation-history forwarding
+in task-handoff payloads.
+
+For evaluation, two dimensions must remain distinct.
+\emph{Lifecycle stages} describe when data is handled
+(input, candidate-pool construction, selection, execution,
+and output); \emph{channels} describe where AgentLeak
+observes it. In the AgentLeak trace model,
+\texttt{user\_input} and \texttt{tool\_response} are source
+channels. The core disclosure channels for forwarding
+experiments are \texttt{inter\_agent\_message},
+\texttt{shared\_memory}, \texttt{tool\_call}, and
+\texttt{final\_output}; \texttt{log} and
+\texttt{generated\_file} are additional operational
+disclosure channels when instrumented. A selection record
+is therefore joined to later channel events by candidate
+lineage; it is not relabelled as a disclosure channel.
+
+\paragraph{The conversation-history vector.}
+Across the coordinator-worker configurations evaluated by
+AgentLeak, forwarding prior conversation history to a
+remote agent is a recurrent leakage vector. The convenience
+advantage is direct: the remote agent does not need to ask
+clarifying questions. The privacy cost is that the
+history may include content from prior turns that the
+principal would not have shared with the remote agent if
+asked directly. The protocol specifications do not
+require the orchestrator to filter history, and the
+AgentLeak benchmark~\cite{agentleak} reports that
+\textbf{inter-agent messages leak personally-identifiable
+content at 68.8\%}, compared to 27.2\% on the
+multi-agent output channel and 43.2\% on the single-agent
+output channel. Total-system exposure across the four
+evaluated domains (healthcare, finance, legal, corporate)
+reaches 68.9\%. The asymmetry is the central empirical
+finding: inter-agent communication is the dominant
+leakage vector, and output-only audits miss roughly
+41.7\% of violations~\cite{agentleak}.
+
+\paragraph{The contextual-integrity model.}
+The literature converges on Nissenbaum's contextual
+integrity~\cite{nissenbaum2009privacy} as the conceptual
+framework: information should flow only according to
+norms appropriate to the original context. Kong et
+al.~\cite{kong2025communication} is where the framework
+enters the inter-agent protocol literature. The protocol
+implication is that the orchestrator's
+forwarding decision should be context-sensitive.
+Forwarding a billing query to a finance agent is
+appropriate; forwarding it to a calendar agent is not.
+None of the contemporary protocols specifies a
+contextual-integrity primitive; the open question is
+whether the primitive belongs at the protocol layer or
+at the orchestrator's policy layer. The survey's own
+candidate for the protocol-layer answer is the ACSP
+context selection envelope of \S\ref{sec:proposals:acsp}
+(Contribution C7), which specifies a wire-level audit log
+on the sender's selection step that the receiver can
+verify; we hold the orchestrator-versus-protocol dispatch
+open in \S\ref{sec:openproblems:regulation} (P5).
+
+An implementation study of this primitive must report the
+hard boundary decision separately from graded risk and
+task utility. Per-channel incidence, entity type, severity,
+and repeated propagation are diagnostics of observed
+disclosure; none can substitute for the allow/deny policy
+that governs whether an item may cross a boundary. An
+unobserved channel is missing evidence, not a clean result.
+
+\paragraph{Side-channel leakage.}
+Beyond the content-bearing channels measured by AgentLeak,
+a separate open privacy threat is side-channel leakage through
+metadata: task lifecycle timestamps, retry counts, error
+messages, and AgentCard metadata can together reveal
+information about the principal's actions even when the
+message content is encrypted. This survey's specification
+review found no explicit treatment of that metadata-flow
+threat in the surveyed protocols, even
+in the strongest cases (LOKA's contextual-ethics
+policies cover content but not metadata; ACNBP's
+ring signatures address sender privacy but not action
+privacy).
+
+\subsection{Confidential computing and TEE-based hardening}
+\label{sec:security:tee}
+
+The most recent direction in the literature is the
+proposal that orchestrators and remote agents should run
+inside Trusted Execution Environments (TEEs), such as
+Intel SGX, AMD SEV-SNP, Apple Secure Enclave, or AWS
+Nitro Enclaves. The protocol would carry remote
+attestation of the TEE's measurement as part of agent
+identity. The
+\emph{When Agents Handle Secrets} survey~\cite{confidential_computing}
+catalogues the proposal space and identifies three
+distinct claims it can make: (a) the orchestrator's
+reasoning surface is unobservable to the host,
+(b) the orchestrator's key material is unextractable, and
+(c) the orchestrator's policy
+configuration is tamper-evident.
+
+\paragraph{What TEEs solve.}
+Within the threat model of \S\ref{sec:security:model},
+TEEs are well-matched to the
+orchestrator-implementation-compromise threat: an
+adversary who controls the host on which the
+orchestrator runs cannot inspect the orchestrator's
+prompts, intermediate reasoning, or tool-call payloads.
+The remote-attestation protocol allows downstream agents
+to verify that they are communicating with a
+TEE-resident counterpart rather than a host-resident
+impostor.
+
+\paragraph{What TEEs do not solve.}
+TEEs do not address the principal-orchestrator threat
+boundary (the principal still has to trust the
+orchestrator's prompt to it), the
+orchestrator-remote-agent threat boundary (the remote
+agent is still itself an untrusted entity from the
+orchestrator's perspective), or the
+foundation-model layer threats. The literature is in
+agreement~\cite{confidential_computing, trism} that TEEs
+are a useful component in a defence-in-depth architecture
+but cannot stand alone.
+
+\paragraph{The TRiSM framework.}
+The TRiSM framework for agentic AI~\cite{trism} provides
+the architectural integration: identity (DIDs), authorisation
+(capability chains), runtime trust (TEEs and attestation),
+and observability (audit logs) compose into a single
+governance posture. The framework is descriptive rather
+than prescriptive: it does not propose a new protocol.
+It still usefully aligns the dispersed
+literature around a four-pillar model.
+
+\paragraph{The SAGA architecture.}
+The SAGA paper~\cite{saga2026} (NDSS 2026) is the most
+concrete proposal for a TEE-anchored governance layer
+above the contemporary protocols. SAGA proposes that
+each tenant's policy be enforced by a TEE-resident
+gateway that validates every inter-agent message against
+the tenant's policy before passing the message to the
+underlying protocol. The cost is a per-message latency
+hit; the benefit is that tenant policy is enforced
+cryptographically rather than relying on the
+underlying protocol to comply. SAGA is the most cited
+recent proposal for the residual cross-tenant problem
+identified at the end of \S\ref{sec:security:authz}.
+
+\subsection{Open security problems}
+\label{sec:security:open}
+
+The security literature, taken together, identifies six
+unresolved problems that no contemporary protocol fully
+addresses. We list them with their priority ranking from
+the literature; \S\ref{sec:openproblems} returns to half
+of them as the highest items on the survey's
+open-problems agenda.
+
+\paragraph{O1: Cryptographic delegation chains.}
+The single most-cited gap, and the one no surveyed
+protocol closes. No protocol standardises a delegation
+credential, so token forwarding is the de-facto pattern
+deployments adopt, and it is recoverable only by a
+successor pattern that carries verifiable
+chain-of-custody information. The Agentic
+JWT~\cite{agentic_jwt} and authorisation-propagation
+\cite{authz_propagation} proposals are the leading
+candidates. ACNBP's Capability Binding ceremony
+\cite{spec_acnbp} is the most rigorous spec-level
+treatment of a single hop, and composing single hops into
+a verifiable chain is exactly the part it leaves open.
+
+\paragraph{O2: Identity rotation.}
+None of the contemporary protocols specifies how an
+agent's identity rotates without breaking
+in-flight tasks. The problem is operationally critical
+for compromise recovery and key rotation. No published
+proposal at the cutoff fully addresses it.
+
+\paragraph{O3: Prompt-injection mitigation as a
+spec-level requirement.}
+Only ACNBP's MAESTRO treatment~\cite{spec_acnbp} and
+LOKA's DECP~\cite{spec_loka} include prompt-injection
+mitigation as part of the specification. The
+industry-led protocols leave it as an
+application-level concern. The next protocol revision
+in the AAIF working group~\cite{lf_aaif} should
+include a normative content-quarantine boundary at the
+message-receive layer.
+
+\paragraph{O4: Cross-tenant policy enforcement.}
+Multi-tenant agentic deployments require per-tenant
+policy isolation that the contemporary protocols do not
+provide. SAGA~\cite{saga2026} is the leading proposal
+for a TEE-anchored gateway architecture; the open
+question is whether the gateway is a protocol concern
+or an infrastructure concern.
+
+\paragraph{O5: Contextual integrity for
+multi-agent forwarding.}
+The conversation-history forwarding pattern is the
+dominant privacy leak in production multi-agent
+deployments~\cite{agentleak}. No contemporary protocol
+specifies a contextual-integrity primitive that would
+let the orchestrator make forwarding decisions
+according to context-appropriate norms.
+
+\paragraph{O6: Side-channel metadata privacy.}
+Even when content is encrypted, the metadata associated
+with inter-agent messages (lifecycle timestamps, error
+patterns, retry counts) leaks information about the
+principal's actions. ACNBP's ring signatures address
+sender privacy partially; no protocol addresses
+action privacy. The literature is thin on this front,
+which is itself an indicator of how early the field
+is in treating side-channel threats.
+
+These six problems together comprise what we treat in
+\S\ref{sec:openproblems} as the security agenda for the
+next standardisation cycle.

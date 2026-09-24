@@ -1,0 +1,153 @@
+% A Rubric-Based Survey of Inter-Agent Protocols:
+% Industry Standards, Security Posture, Open Problems,
+% and Three Co-Designed Protocol Extensions
+%
+% Target venue: Journal of Artificial Intelligence Research (JAIR).
+% Typeset with the official JAIR class from the JAIR AuthorKit. jair.cls
+% extends acmart (it loads it with acmlarge, natbib=false, screen), so the
+% author blocks, floats, and \cite calls carry over from the previous acmart
+% setup. Two things changed with the swap and matter when editing:
+%
+%   1. Bibliography. natbib is off. References go through biblatex with the
+%      biber backend and the acmauthoryear style, so it is \addbibresource
+%      plus \printbibliography, not \bibliography plus \bibliographystyle.
+%      The build needs biber: `brew install biber`.
+%   2. Style is frozen. The AuthorKit README forbids changes to the JAIR
+%      style: margins, type sizes, leading, list and paragraph definitions,
+%      and manual \vspace. Do not add any here or in preamble.tex.
+%
+% jair.cls and the three biblatex support files (acmauthoryear.bbx/.cbx,
+% acmdatamodel.dbx) are vendored next to this file, copied unmodified from
+% JAIR AuthorKit/JAIR_Example_Template/. acmart itself comes from the TeX
+% installation. Keeping the JAIR files local means the build does not depend
+% on jair.cls reaching CTAN.
+%
+% Authors: Suranjan Goswami, Manu Ghulyani, Karan Bharadwaj,
+%          Roland R. Rodriguez Jr., Faouzi El Yagoubi,
+%          Alejandro Quintero, Ranwa Al Mallah
+% Cutoff: 2026-Q1
+%
+% Build: from repo root, `make pdf-latex` (latexmk runs biber automatically)
+%        or `make pdf-typst` (fallback via pandoc+typst, no LaTeX required)
+
+% `review` adds line numbers for referees. Drop it for camera-ready and for
+% the arXiv posting; scripts/make_arxiv_bundle.sh does that automatically.
+\documentclass[manuscript, screen, review]{jair}
+
+% Two builds come out of this file. The JAIR submission carries the journal's
+% own furniture: the reference-format block, the associate-editor line, the
+% volume and article numbers, the publication date in the page footer, and a
+% DOI. The arXiv posting must carry none of it. Every one of those values is a
+% placeholder until JAIR assigns it, and a preprint that displays them claims
+% a publication that has not happened. Nothing here touches jair.cls, which
+% the AuthorKit forbids editing; the overrides are applied from this file.
+%
+% scripts/make_arxiv_bundle.sh flips this to \arxivtrue. Leave it false in the
+% repository so `make pdf-latex` builds the submission version.
+\newif\ifarxiv
+\arxivfalse
+
+\setcopyright{cc}
+
+\ifarxiv
+  % No DOI, and no ACM/JAIR reference-format block or associate-editor line.
+  % printacmref=false suppresses both, since jair.cls prints them together.
+  \acmDOI{}
+  \settopmatter{printacmref=false}
+  % The page-1 copyright block prints \@formatdoi unconditionally, so an empty
+  % DOI renders as a bare "doi:" with nothing after it. Print nothing when the
+  % argument is empty, and behave as before when it is not. This affects the
+  % topmatter only; bibliography DOIs come from biblatex, not from this macro.
+  % The argument arrives as the macro \@acmDOI rather than as its text, so the
+  % emptiness test has to expand it first.
+  \makeatletter
+  \def\@formatdoi#1{%
+    \edef\jair@doitest{#1}%
+    \ifx\jair@doitest\@empty\else
+      \textsc{doi:} \href{https://doi.org/#1}{#1}%
+    \fi}
+  \makeatother
+\else
+  \acmDOI{10.1613/jair.1.xxxxx}
+  % Assigned by JAIR, not by the authors. The placeholders below are the
+  % AuthorKit's own defaults and get replaced from the acceptance
+  % correspondence. \JAIRTrack is empty because this is a regular submission
+  % and not part of a special track; jair.cls suppresses the line when it is.
+  \JAIRAE{Insert JAIR AE Name}
+  \JAIRTrack{}
+\fi
+
+\acmVolume{1}
+\acmArticle{1}
+\acmMonth{1}
+\acmYear{2026}
+
+% jair.cls sets the running footer to "Journal of Artificial Intelligence
+% Research, Vol. 1, Article 1. Publication date: January 2026." from its own
+% \AtBeginDocument. This hook runs after the class's, so it wins. The arXiv
+% version keeps a bare page number and asserts no venue or date.
+\ifarxiv
+  \AtBeginDocument{%
+    \fancyfoot{}%
+    \fancyfoot[C]{\footnotesize\thepage}%
+    \fancypagestyle{firstpagestyle}{%
+      \fancyhf{}%
+      \fancyfoot[C]{\footnotesize\thepage}%
+    }%
+  }
+\fi
+
+\RequirePackage[
+  datamodel=acmdatamodel,
+  style=acmauthoryear,
+  backend=biber,
+  giveninits=true,
+  uniquename=init
+  ]{biblatex}
+
+\renewcommand*{\bibopenbracket}{(}
+\renewcommand*{\bibclosebracket}{)}
+
+\addbibresource{../refs/references.bib}
+
+\input{preamble}
+
+\begin{document}
+
+\input{sections/00-frontmatter}
+
+% A survey this long is navigated, not read front to back, so it carries a
+% contents list. Depth 2 (sections + subsections) lists all 14 sections and 64
+% subsections. Depth 3 would add 35 subsubsections, most of them inside the
+% rubric axis walkthrough and the three proposals, and push the list past three
+% pages without adding a landmark a reader looks for.
+\setcounter{tocdepth}{2}
+\clearpage
+\tableofcontents
+\clearpage
+
+\input{sections/01-introduction}
+\input{sections/02-background}
+\input{sections/03-taxonomy}
+\input{sections/04-rubric}
+\input{sections/05-industry-protocols}
+\input{sections/06-emerging-protocols}
+\input{sections/07-comparison}
+\input{sections/08-security}
+\input{sections/09-semantic-interop}
+\input{sections/10-industry-adoption}
+\input{sections/11-governance}
+\input{sections/12-open-problems}
+\input{sections/13-proposals}
+\input{sections/14-conclusion}
+
+% biblatex, not BibTeX. The acmauthoryear style is set in the preamble above.
+\printbibliography
+
+% JAIR requires the reproducibility checklist, so the appendix is not
+% optional here. See sections/15-appendix-reproducibility.tex for what each
+% answer rests on.
+\appendix
+\input{sections/15-appendix-reproducibility}
+
+\end{document}

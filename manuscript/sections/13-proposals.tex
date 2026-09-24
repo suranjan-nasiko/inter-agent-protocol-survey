@@ -1,0 +1,3106 @@
+\section{Proposed Protocol Extensions}
+\label{sec:proposals}
+\setlength{\emergencystretch}{3em}
+
+This section presents the three protocol extensions the
+survey introduces as Contributions C5, C6, and C7
+(\S\ref{sec:intro:contributions}). The proposals are not
+the survey's primary contribution; the rubric and the
+comparison artefacts are. They do fall out directly
+from the open-problems agenda of \S\ref{sec:openproblems},
+so we include them as derived contributions. That is more
+honest than leaving them in the closing-paragraph
+speculation that typically ends a survey of this kind.
+
+The three proposals are co-designed: Contribution C5 (the
+OWA naming scheme, \S\ref{sec:proposals:owa}) provides the
+identifier substrate; Contribution C6 (the AGRP guardrails
+envelope, \S\ref{sec:proposals:agrp}) provides the
+span-level egress-attestation envelope; Contribution C7
+(the ACSP context selection envelope,
+\S\ref{sec:proposals:acsp}) provides the
+item-level selection envelope that decides which items
+cross the boundary before AGRP cleans the spans within
+them. The boundary-detection primitive that both AGRP
+(\S\ref{sec:proposals:agrp:boundary}) and ACSP rely on is
+derived directly from prefix comparison of OWA URIs. The
+closing
+subsection~(\S\ref{sec:proposals:codesign}) explains why
+the co-design is intrinsic rather than incidental, and
+why no pair of the three proposals is sufficient without
+the third.
+
+All three proposals are at specification-sketch stage at
+the 2026-Q1 cutoff, with no validated protocol
+implementation in the cutoff corpus. Because that phrase is
+easy to read past, we state exactly what it excludes. There
+is no formal proof of any security property claimed here.
+Nothing proves that AGRP's tier semantics are unforgeable.
+Nothing proves that ACSP's verification steps are sound or
+complete against a stated adversary. Nothing proves that
+OWA's prefix comparison decides the boundary correctly under
+adversarial naming. There are no measured overheads either:
+no latency distribution, no throughput figure, and no size
+cost for either envelope on a real workload. And there is one partial
+reference implementation, not three. A post-cutoff PACMS
+artefact (\S\ref{sec:proposals:acsp:pacms}) instantiates the
+selector side of part of ACSP for single-organisation use. It
+carries none of its signatures, receiver verification, or
+inter-organisational protocol. OWA and AGRP have no
+implementation at all.
+
+What the proposals do carry is precision: an ABNF for OWA,
+schemas and normative verification steps for both envelopes,
+and a stated failure mode for each. Each proposal's open
+questions subsection names the ones we consider
+load-bearing. Two of them are properties a deployer would
+want to know before adopting. ACSP's selection log discloses
+candidate-set membership across a boundary
+(\S\ref{sec:proposals:acsp:open}, Q3). Every AGRP guarantee
+is conditional on a content classifier that will be wrong in
+both directions (\S\ref{sec:proposals:agrp:open}, Q4). Both
+are analysed rather than listed.
+
+All three are candidates for the next AAIF and W3C revision
+cycles that the governance analysis of
+\S\ref{sec:governance:survival} anticipated. The survey is
+honest about this maturity gap (R3 in our source-tier
+discipline, \S\ref{sec:intro:notwhat}): the proposals are
+reference designs, not validated specifications, and the
+section positions them accordingly.
+
+The security-gating code and deterministic feasibility
+harness described later were produced in a post-cutoff
+collaboration artefact (August 2026). They are reported to
+make the proposed evaluation reproducible, but they do not
+change the 2026-Q1 literature corpus, differentiation
+tables, or rubric scores. No count from that harness is a
+survey result.
+
+The contemporary literature on inter-agent naming,
+guardrails, and context selection is more developed than
+the early-2025 baseline of the prior surveys; the three
+differentiation tables of this section
+(Table~\ref{tab:owa-differentiation},
+Table~\ref{tab:agrp-differentiation}, and
+Table~\ref{tab:acsp-differentiation}) are the centrepiece
+of the proposals' positioning, and the reader who is only
+checking that the proposals are non-trivial against the
+literature should turn directly to those tables.
+
+\subsection{OWA Scoping Scheme (Contribution C5)}
+\label{sec:proposals:owa}
+
+\subsubsection{Problem statement}
+\label{sec:proposals:owa:problem}
+
+The contemporary inter-agent protocol landscape has
+accumulated multiple naming and addressing schemes, none of
+which carve out an explicit \emph{workspace} tier between
+the organizational trust root and the agent identifier. A2A
+identifies agents by an AgentCard URI hosted at a
+well-known path of the agent's host; ANP uses DIDs; the
+Agent Identity URI Scheme~\cite{agent_uri_scheme} introduces
+a stable \texttt{agent://} URI but leaves workspace
+tenancy unaddressed; the Agent Name Service IETF
+draft~\cite{ans_ietf} flattens organizational identity into
+a single \texttt{Provider} field that conflates the
+organization with the workspace.
+
+The problem this collapses is the empirical reality that
+enterprises run \emph{multiple agents performing
+overlapping capabilities under different workspace
+policies}: a billing agent under the finance workspace, a
+billing agent under the customer-support workspace, and a
+billing agent under the engineering workspace are three
+distinct agents that share a capability descriptor but
+that exist under three different governance regimes.
+The regimes differ in access scopes, audit policies,
+escalation paths, and egress filters.
+Existing schemes either collapse the three into a single
+identifier (losing the workspace distinction) or
+hostname-mangle the workspace into the FQDN
+(\texttt{finance.acme.com}). The subdomain form works for
+a single deployment but has three specific drawbacks that
+we develop in \S\ref{sec:proposals:owa:related}:
+it fragments the organizational trust root across
+subdomains, it couples workspace lifecycle to DNS-zone
+administration, and it does not accommodate the
+cardinality and churn rates at which workspaces are
+created and retired in production.
+
+The trust-bootstrapping problem (P7 of
+\S\ref{sec:openproblems:trust}) overlays this naming gap:
+agents from heterogeneous registries that need to
+cross-trust each other have no normative way to express
+which workspace the trust applies to. A2A AgentCards
+under one organization's well-known endpoint and ANP DIDs
+under another organization's DID resolver can not name
+the same workspace without an out-of-band convention.
+
+\subsubsection{Related work and differentiation}
+\label{sec:proposals:owa:related}
+
+Table~\ref{tab:owa-differentiation} compares OWA against
+the eight most-relevant prior works in the inter-agent
+naming space. The comparison covers two dimensions of
+naming-scheme design (does the scheme have an
+organizational tier? a workspace tier?), two dimensions
+of semantic content (does the scheme carry capability
+semantics? does it separate identity from location?), and
+the co-design relationship with the survey's other
+proposal.
+
+\begin{table*}[t]
+  \centering
+  \caption{OWA differentiation matrix. The five-property
+    argument: no prior scheme simultaneously provides all
+    five of (a) DNS-anchored org trust root, (b) first-class
+    workspace tier, (c) capability semantics, (d) stable
+    identity decoupled from location, and (e) co-design with
+    cross-boundary guardrails.}
+  \label{tab:owa-differentiation}
+  \footnotesize
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{p{3.2cm}p{2.4cm}cccc p{3.0cm}}
+    \toprule
+    Prior work & Form & Org? & Workspace? & Capability? & Identity~$\neq$~location? & OWA improvement \\
+    \midrule
+    \texttt{agent://} URI~\cite{agent_uri_scheme}
+      & \texttt{agent://root/cap/id}
+      & yes & \textbf{no} & yes & yes
+      & adds workspace tier under distinct \texttt{agent+owa://} scheme suffix; reuses trust-root and capability-path layers \\
+    ANS IETF draft~\cite{ans_ietf}
+      & \texttt{proto://id.cap.provider.vN}
+      & yes (Provider) & \textbf{no (flat)} & yes & partial
+      & separates org tenancy from workspace tenancy that ANS collapses \\
+    A2A AgentCard~\cite{spec_a2a}
+      & \texttt{https://host/.well-known/agent.json}
+      & implicit & no & no & \textbf{no (coupled)}
+      & stable identity decoupled from host (Saltzer 1982) \\
+    W3C DID
+      & \texttt{did:method:id}
+      & no & no & \textbf{no} & yes
+      & adds capability and tenancy that DIDs leave to higher layers \\
+    Email~(RFC~5321, real SMTP)
+      & \texttt{local@domain}
+      & yes & only via \texttt{+suffix} hack & \textbf{no} & partial (MX)
+      & full email transport has prohibitive latency / metadata / spam dynamics for inter-agent \\
+    Email-syntax IAM identity~\cite{gcp_service_accounts, entra_service_principals}
+      & \texttt{name@project.iam.gsa.com} (GCP) / \texttt{name@tenant.onmicrosoft.com} (Entra)
+      & yes (DNS) & via project/tenant, no native workspace tier & \textbf{no} & yes
+      & cross-vendor protocol-level standardisation; capability path; explicit workspace tier \\
+    HTTP URI
+      & \texttt{https://host/path}
+      & implicit & path-only, no semantics & path-only & \textbf{no}
+      & separates identity from location \\
+    AWCP~\cite{awcp}
+      & delegation protocol
+      & n/a & as behaviour & partial & n/a
+      & names workspaces; AWCP delegates within them (complementary) \\
+    Ruflo federation~\cite{ruflo}
+      & mTLS + ed25519 + WS
+      & yes (per-machine) & \textbf{no normative scheme} & no & partial
+      & gives Ruflo's federation a normative workspace name \\
+    AI Catalog~\cite{ai_catalog}
+      & \texttt{urn:air:pub:ns:name}
+      & yes (publisher) & namespace tier (optional, hierarchical) & \textbf{no} & yes
+      & adds ABNF, canonical form, prefix-matchability; OWA workspace is a normative tier, not optional \\
+    AgentDNS~\cite{agentdns}
+      & \texttt{agentdns://org/cat/name}
+      & yes (registered at a root) & \textbf{no} & yes (category) & yes (resolved metadata)
+      & DNS-bootstrapped org root instead of a registering authority; workspace tier; no proxy in the invocation path \\
+    AI Identity gaps survey~\cite{ai_identity_gaps}
+      & survey
+      & flags the gap & flags the gap & flags the gap & flags the gap
+      & OWA is the proposal the survey calls for \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table*}
+
+Three cells of the table warrant prose elaboration because
+they carry the differentiation argument most heavily.
+
+\paragraph{The agent:// scheme is the closest precedent.}
+Rodriguez~\cite{agent_uri_scheme} introduced
+\texttt{agent://} explicitly to separate identity from
+location, citing Saltzer's 1982 analysis that names should
+be resolved to addresses rather than used as addresses. The
+scheme's three-tier structure
+(\texttt{trust-root/}\allowbreak
+\texttt{capability-path/}\allowbreak\texttt{agent-id}) covers
+organizational identity and capability semantics with the
+stable-identity discipline that A2A's AgentCard URI lacks.
+OWA adopts the scheme's identity discipline verbatim, adopts
+its trust-root layer (DNS-anchored organizational identity)
+and its capability-path layer (hierarchical, prefix-matched),
+and inserts a workspace tier between the trust root and the
+capability path.
+
+OWA is not a transparent extension of \texttt{agent://} at
+the URI-parsing layer. An unmodified \texttt{agent://}
+resolver that receives an OWA URI does not error cleanly:
+the reference parser treats the trailing typed identifier
+as the agent-id and folds the interstitial
+\texttt{/w/<workspace>/c/<cap>/a/} into the capability
+path, yielding a DHT key over the wrong canonical name and
+a resolver query that will never hit the intended record.
+The single-character delimiters \texttt{/w/}, \texttt{/c/},
+and \texttt{/a/} also collide with legal single-character
+capability segments in
+\texttt{agent://}'s published test vectors, so a parser
+cannot distinguish an OWA delimiter from a capability
+segment without explicit knowledge of the OWA grammar.
+Because of both, we introduce OWA as a distinct URI scheme
+suffix, \texttt{agent+owa://}, following the
+\texttt{git+ssh://} and \texttt{stratum+tcp://} convention:
+the suffix signals to any parser that OWA-aware path
+grammar is required, and \texttt{agent://}-only parsers
+reject the URI cleanly rather than silently mis-parsing.
+Backwards compatibility at the \emph{resolver} layer is
+preserved: an organization's \texttt{agent://} DNS root,
+its \texttt{.well-known/agent-keys.json}, and its
+attestation infrastructure serve both schemes unchanged.
+Only URI parsers and DHT-key-deriving components need to
+be OWA-aware.
+
+\paragraph{ANS conflates the workspace into Provider.}
+The ANS IETF draft~\cite{ans_ietf} extends DNS conventions
+with capability-aware resolution, producing identifiers
+like \texttt{a2a://textProcessor.}\allowbreak
+\texttt{DocumentTranslation.}\allowbreak
+\texttt{AcmeCorp.v2.1.hipaa}.
+The \texttt{Provider} field carries the organizational
+identity but flattens any intra-organizational tenancy
+into the same flat field. An enterprise with three billing
+agents under three workspaces must either invent provider
+sub-names (\texttt{AcmeCorp-Finance},
+\texttt{AcmeCorp-Support}, \texttt{AcmeCorp-Engineering})
+or rely on the \texttt{AgentID} field to disambiguate.
+Provider sub-names couple workspace identity to provider
+naming, and they make workspace renaming expensive.
+Overloading \texttt{AgentID} loses the
+workspace-as-policy-boundary that the next subsection's
+AGRP proposal requires. OWA gives the workspace its own
+URI segment and resolves both problems.
+
+\paragraph{Ruflo demonstrates the federation-without-naming gap.}
+Ruflo~\cite{ruflo} ships cross-machine agent federation
+with mTLS+ed25519 transport, an optional WireGuard mesh,
+and a 14-type PII detection pipeline applied per
+trust-level (BLOCK / REDACT / HASH / PASS). The federation
+works at deployment time, but the documentation does not
+specify a normative agent name that travels with the
+federated identity. Trust level is computed by a
+trust-scoring engine inside one orchestrator rather than
+expressed in the URI. OWA is the missing piece that would
+let Ruflo-style federation compose across orchestrators
+who don't share a trust-scoring runtime: an OWA URI
+carries the organizational and workspace identity into the
+federation envelope, and the receiver can apply
+trust policies keyed on the URI's components.
+
+\paragraph{AI Catalog adopts the identity/metadata split independently.}
+The AI Catalog working group~\cite{ai_catalog} (Microsoft,
+Google, Cisco, Amazon, Pulse MCP) is developing ongoing
+conventions for identifying and discovering AI artifacts.
+The scope is broader than agents: a catalog entry may carry
+an A2A agent card, an MCP server, a plugin, a dataset, a
+model card, or a nested catalog. Agents are one artifact
+type among several, and the work does not define a universal
+runtime identity for an agent. ADR-0015 recommends
+\texttt{urn:air:\{publisher\}:\{namespace\}:\{name\}} for
+open or federated deployments, where publisher is a DNS
+domain and namespace is optional hierarchical
+colon-separated segments. The \texttt{identifier} field
+itself stays an open text format, so the URN is a strong
+recommendation rather than a settled requirement. The stated
+design rationale adopts the identity/metadata split this
+survey argues for in \S\ref{sec:proposals:owa:tradeoff}: the
+logical name used for discovery and routing is separated
+from the cryptographic identity used for trust verification.
+NANDA's Migration~010 aligns its \texttt{trust\_manifest}
+field to the AI Catalog \texttt{CatalogEntry} schema,
+making AI Catalog upstream of NANDA at the
+trust-metadata layer (though not yet at the identifier
+layer; see \S\ref{sec:proposals:owa:nanda} for the
+narrower claim).
+
+AI Catalog's namespace tier (e.g.,
+\texttt{urn:air:acme.com:finance:billing-agent}) is a
+third data point in the workspace-in-the-URI question: it
+places a hierarchical scope inside the name while keeping
+tenancy out of the identifier grammar. The tier is closer
+to OWA's workspace than to \texttt{agent://}'s flat
+capability path, but differs in three respects that keep
+OWA's contribution non-redundant. First, the identifier is
+deliberately an open text format with no normative ABNF, no
+canonical form, and no stated prefix-matchability, which is
+the same underspecified path grammar that produced the
+silent mis-parse reproduced against OWA in
+\S\ref{sec:proposals:owa:related}. Second, the namespace is
+optional and carries no workspace-as-policy-boundary
+semantics: nothing in the standard ties namespace membership
+to egress policy, audit retention, or delegation scope.
+Third, the standard's own open issues (issue~59,
+proposing that the artifact-type segment move ahead of the
+publisher; issue~70, arguing that the trust manifest's MUST
+rules cannot be satisfied by open identifier formats)
+indicate that the grammar is still under development rather
+than settled prior art. We cite it as ongoing work and pin
+the citation to a commit for that reason. OWA's
+contribution relative to AI Catalog is the normative ABNF,
+the canonical form, the prefix-matchable
+workspace-as-policy-boundary, and the co-design with AGRP's
+boundary detection. The two are not competing for the same
+job: AI Catalog is a discovery and trust container across
+artifact types, and OWA is a naming discipline for one of
+them.
+
+\paragraph{AgentDNS is the centralized answer to the same
+question, and the contrast is the trust root.}
+AgentDNS~\cite{agentdns} proposes
+\texttt{agentdns://org/category/name} as a global service
+identifier, resolved by a root server that also runs
+discovery, authentication, and settlement. The proposal is
+useful evidence for this survey's premise rather than
+against it. A second independent group reached the same
+conclusion: inter-agent naming needs an organizational
+tier, hierarchical semantic categories, and identifiers that
+survive a change of physical address. The
+\texttt{category} segment is the same move OWA's
+\texttt{<cap>} segment makes, and AgentDNS's natural-language
+service search is the semantic-discovery appetite
+\S\ref{sec:semantic} documents from the other direction.
+
+The designs part company on where trust is rooted, and the
+difference has three consequences. First, AgentDNS's
+\texttt{org} segment is a name registered with and verified
+by the AgentDNS root. OWA's \texttt{<org>} segment is a DNS
+domain. Organizational authority is therefore whatever
+authority the organization already has over its own domain,
+and no new registrar has to exist or stay solvent. Second,
+AgentDNS places a service proxy in the invocation path. A
+vendor registers a service, the root creates a proxy for it,
+and calls route through the root. That makes the root a
+mandatory intermediary for traffic as well as for
+resolution, and gives it visibility over every inter-agent
+call in the ecosystem. OWA resolves names and then gets out
+of the way. The message goes directly between the agents,
+which is what lets AGRP and ACSP attest at the sender's
+boundary rather than at a shared middlebox. Third, AgentDNS
+centralizes authentication deliberately, with one
+time-bound token accepted by every registered service. That
+is a genuine ergonomic gain over per-vendor API keys. It is
+also a single point of compromise with the blast radius
+of the whole registry, so the registry-poisoning class of
+\S\ref{sec:security} lands on it with full force.
+
+Neither position is strictly better, and the honest summary
+is that they optimize different things. AgentDNS optimizes
+onboarding: one registration, one credential, one bill.
+OWA optimizes independence and verifiability. It adds no new
+authority and no proxy in the data path. It also carries a
+policy boundary a receiver can check from the name alone,
+namely the workspace tier, which AgentDNS does not
+have. For deployments in
+the regulated verticals of \S\ref{sec:adoption:healthcare}
+to \ref{sec:adoption:finance}, the proxy and the shared
+credential are the two properties most likely to be
+disqualifying. That is the case OWA is built for. The
+appetite AgentDNS demonstrates is real either way, and a
+naming layer that ignores it is unlikely to be adopted.
+
+\paragraph{OWA prefers the path form over the subdomain
+form for three specific reasons.}
+The most common operator instinct when adding workspace
+tenancy to an existing agent identifier is to encode the
+workspace as a DNS subdomain of the organizational root,
+producing hosts of the form \texttt{finance.acme.com}. The
+form works for a single deployment, and we are not aware
+of a published inter-agent naming scheme that adopts it,
+but it is the alternative that reviewers in early drafts
+of this survey most frequently raised, and it warrants
+explicit treatment.
+
+\emph{First, trust-atom singularity.} In
+\texttt{agent://}~\cite{agent_uri_scheme}, the
+organizational trust root runs the key infrastructure that
+resolvers, agents, and callers depend on: a single
+\texttt{.well-known/agent-keys.json}, a single attestation
+issuer, and a single set of signing keys under DNSSEC.
+Subdomaining fragments this across N hosts: does
+\texttt{finance.acme.com} publish its own
+\texttt{.well-known/agent-keys.json}, or inherit
+\texttt{acme.com}'s, and how do federated callers verify
+which one is authoritative? The path form keeps one
+organization as one trust and key atom, with the workspace
+as a policy sub-scope beneath it; the trust-root layer of
+\texttt{agent://} composes into OWA unchanged.
+
+\emph{Second, DNS zone control.} Creating or renaming a
+subdomain is a privileged operation on the organization's
+DNS zone: it requires zone-file edits, propagation
+timing, and per-zone signing if DNSSEC is enabled. In
+enterprises that centralize DNS administration, workspace
+lifecycle becomes gated on a ticket queue outside the
+workspace owner's control. The path form encodes workspace
+as a self-service registry entry that the workspace owner
+manages, decoupling workspace lifecycle from DNS-zone
+administration.
+
+\emph{Third, workspace cardinality and churn.} Empirically,
+workspaces spin up per project, per customer, or per
+environment; production deployments carry hundreds to
+thousands of workspaces that churn on weekly to monthly
+timescales. DNS was engineered for hostnames that change
+on the timescale of infrastructure moves, with propagation
+delays, per-zone signing costs, and TTL considerations
+that assume slow-changing state. A path-segment registry
+entry absorbs the cardinality and churn rate that DNS was
+not built for.
+
+The three reasons together, not any one of them, justify
+the path form over the subdomain form. We do not claim
+that OWA composes across organizations more cleanly than
+subdomains: neither form solves that problem, and it
+remains an open question in
+\S\ref{sec:proposals:owa:open}. Nor do we lean on
+workspace renaming as a differentiator; CNAME records give
+subdomains a mature aliasing mechanism, and the OWA
+migration path (\S\ref{sec:proposals:owa:migration}) uses
+a workspace-catalogue alias that we do not claim is more
+mature than CNAME. The three reasons above are the
+substantive ones.
+
+\paragraph{Email-syntax identifiers are the production-validated
+precedent, not the \texttt{+suffix} hack.}
+The first instinct when reading the table's Email row is
+that real RFC 5321~\cite{rfc5321} mail is what the row
+dismisses. That is
+not the design alternative that warrants serious treatment.
+The substantive alternative is the email-syntax identifier
+used as an IAM anchor without SMTP transport behind it.
+This is the pattern that Google Cloud Service Accounts have
+deployed at scale since circa 2014~\cite{gcp_service_accounts}
+and that Microsoft Entra mirrors with UPN-shaped
+identifiers for service principals and application
+identities~\cite{entra_service_principals}. A GCP Service
+Account address such as \texttt{billing-agent@finance.iam.gserviceaccount.com}
+is identifier syntax; no mailbox accepts mail at it. The
+syntactic form is reused for familiarity, DNS-anchored trust,
+and IAM-operator habits, but the transport is JWT-signed
+HTTPS, not SMTP. The pattern works: it governs the
+authorisation surface of cloud workloads for tens of
+thousands of organisations on each cloud, has accumulated
+ten-plus years of operational hardening, and is the closest
+existing analog to what an inter-agent identity standard
+might look like.
+
+OWA prefers the path form over the email-syntax form for
+three specific reasons. \emph{First}, the email
+local-part is two-tier and flat: capability paths such
+as \texttt{c/workflow/approval/invoice} cannot be encoded
+without inventing a delimiter convention that breaks
+standard email parsers, whereas the OWA URI carries
+capability hierarchies natively. \emph{Second}, workspace
+creation in the email-syntax form requires a DNS
+subdomain. That is operationally heavier than a URI path
+segment in organisations that do not delegate DNS-zone
+control to individual workspace owners. \emph{Third}, an
+email-shaped identifier that happens also to be a
+deliverable mailbox creates a real conflation risk:
+humans who type \texttt{billing-agent@finance.acme.com}
+into a mail client either reach a real mailbox (which
+must then defend against the dominant phishing surface)
+or bounce (UX confusion). The path form
+\texttt{agent://\ldots} is unambiguous about not being
+mail, which is a deployment-discipline property the
+email-shape sacrifices.
+
+The three reasons do not eliminate the email-syntax form's
+real advantages. Those advantages are agent-human
+integration, trigger-by-email patterns, and existing
+IAM-operator familiarity. OWA accommodates them
+through optional aliases discussed in
+\S\ref{sec:proposals:owa:operational}. The reading we
+recommend is that the path form is the canonical
+encoding and the email-shaped form is a defined alias for
+adoption-friction reasons, not that one form is right and
+the other wrong.
+
+\subsubsection{The OWA URI: syntax and component semantics}
+\label{sec:proposals:owa:syntax}
+
+The OWA URI conforms to RFC 3986~\cite{rfc3986} and reuses the
+resolution and trust infrastructure of the
+\texttt{agent://} scheme of~\cite{agent_uri_scheme} under
+a distinct scheme suffix, \texttt{agent+owa://}, that
+signals OWA-aware path grammar to parsers. The ABNF is:
+
+\begin{verbatim}
+owa-uri    = "agent+owa://" org "/w/" workspace "/c/" cap "/a/" agent-id
+org        = host                  ; RFC 3986 host (DNS-anchored)
+workspace  = 1*( ALPHA / DIGIT / "-" / "_" )
+cap        = segment *( "/" segment )
+segment    = 1*( ALPHA / DIGIT / "-" / "_" )
+agent-id   = "agent_" 26( base32 )  ; TypeID over UUIDv7
+\end{verbatim}
+
+A concrete example: \\
+\texttt{agent+owa://acme.com/w/finance/c/workflow/approval/}\\
+\texttt{invoice/a/agent\_01h455vb4pex5vsknk084sn02q}
+
+The scheme suffix, rather than reusing \texttt{agent://},
+is load-bearing. As discussed in
+\S\ref{sec:proposals:owa:related}, an unmodified
+\texttt{agent://} parser silently mis-parses an OWA URI
+into a wrong canonical name, and the \texttt{/w/},
+\texttt{/c/}, \texttt{/a/} delimiters collide with legal
+single-character capability segments in
+\texttt{agent://}'s published test vectors. The
+\texttt{agent+owa://} suffix eliminates both risks:
+non-aware parsers reject the URI cleanly, and aware
+parsers know they are on the OWA grammar. Backwards
+compatibility is preserved at the layers where it matters:
+the trust-root DNSSEC and key-publication infrastructure,
+the capability-path semantics, and the resolution machinery
+below the URI parser serve both schemes without change.
+
+The four components carry the following semantics, each
+specified normatively rather than left to convention:
+
+\paragraph{\texttt{<org>}: organizational trust root.}
+A DNS-anchored hostname identifying the issuing
+organization. Resolution authority over the URI follows
+DNSSEC for the hostname plus the organization's
+chosen agent-resolution mechanism (registry, DHT,
+on-chain index). Cross-organizational trust uses the
+existing DNS+TLS infrastructure as the trust anchor for
+the OWA component.
+
+\paragraph{\texttt{<workspace>}: intra-organizational tenancy boundary.}
+A workspace name within the organization. The workspace
+is the primary unit of policy enforcement: per-workspace
+AGRP egress policies (\S\ref{sec:proposals:agrp}),
+per-workspace audit retention, per-workspace
+delegation roots. Workspace names are
+free-form within the regex above but the organization
+SHOULD publish a workspace catalogue at
+\texttt{https://<org>/.well-known/workspaces.json} for
+discovery.
+
+\paragraph{\texttt{<cap>}: hierarchical capability descriptor.}
+Identical semantics to \texttt{agent://} at the capability-path
+layer: a hierarchical capability path supporting
+prefix-match discovery. The \texttt{agent://} paper's
+empirical validation across 369 production tools applies
+to the capability-path layer unchanged
+\cite{agent_uri_scheme}. The OWA-specific delimiters
+\texttt{/w/}, \texttt{/c/}, \texttt{/a/} are consumed by
+OWA-aware parsers before the capability-path portion is
+extracted, so single-character capability segments remain
+legal and are not shadowed by the delimiters.
+
+\paragraph{\texttt{<agent-id>}: stable typed identifier.}
+A TypeID-prefixed UUIDv7. Stable across the agent's
+lifetime; resolved to a current transport endpoint via
+the organization's registry / DHT. Identity is decoupled
+from location: an agent that migrates from
+\texttt{host-1.acme.com} to \texttt{host-2.acme.com}
+retains its OWA URI.
+
+\subsubsection{Resolution, discovery, and federation}
+\label{sec:proposals:owa:resolution}
+
+Resolution of an OWA URI to a current transport endpoint
+follows the \texttt{agent://} DHT-key pattern with a
+specific asymmetry: the DHT-key derivation
+(SHA256 over a canonical name) is defined over the org
+and agent-id components only, and does \emph{not} fold in
+the \texttt{<workspace>} segment. A resolver that receives
+the URI
+
+\begin{quote}
+\texttt{agent+owa://acme.com/w/finance/c/workflow/approval/}\\
+\texttt{invoice/a/agent\_01h455vb4pex5vsknk084sn02q}
+\end{quote}
+
+first derives the DHT key from the identity-defining
+components, retrieves the endpoint record, and then filters
+or verifies the record against the workspace label
+\texttt{finance} as an additional matching parameter
+carried in the resolver query. The workspace check is a
+policy-metadata comparison on the retrieved record, not
+part of DHT-key derivation, and the endpoint record itself
+carries the workspace attestation. A calling agent
+verifies that the record's workspace label matches its
+expectation; a receiver that obtains an endpoint record
+for the wrong workspace MUST fail closed. This split
+between the identity-defining components (in the DHT
+key) and the workspace as resolution-time policy metadata
+(in the record) is deliberate; we develop the rationale
+in \S\ref{sec:proposals:owa:tradeoff}.
+
+Discovery proceeds in three modes:
+
+\begin{description}
+  \item[Within-workspace.] A direct lookup against the
+    organization's registry filtered by workspace; returns
+    the agent population of that workspace.
+  \item[Cross-workspace within an org.] A federated lookup
+    over the organization's workspace catalogue; the
+    catalogue lists workspaces and their resolver
+    endpoints. Cross-workspace calls are subject to AGRP
+    egress policies (\S\ref{sec:proposals:agrp}).
+  \item[Cross-org.] Resolution against the target
+    organization's resolver, with the OWA URI carrying
+    the full org and workspace identity for policy
+    enforcement at both endpoints.
+\end{description}
+
+Federation across heterogeneous registries (P7 of
+\S\ref{sec:openproblems:trust}) is bootstrapped by the
+DNS trust root: an OWA URI carries the
+organizational FQDN as its org component, and the
+receiver's resolver bootstraps trust through the existing
+DNSSEC infrastructure rather than requiring a
+cross-registry attestation protocol.
+
+\subsubsection{Why workspace belongs in the URI: a trade-off analysis}
+\label{sec:proposals:owa:tradeoff}
+
+A design question worth naming, rather than treating as
+settled, is whether the workspace tier belongs in the URI
+at all. The \texttt{agent://} discipline is to keep in the
+identifier only what is stable and identity-defining, and
+to push mutable operational and governance facts (the
+transport endpoint, capability metadata,
+attestation state) out to the resolved record. By that
+same discipline, workspace membership is a candidate for
+the resolved record rather than the URI: agents move
+between workspaces, workspaces rename, an agent may be a
+member of two workspaces, and workspace access lists
+change on operational timescales. All three properties are
+acknowledged in \S\ref{sec:proposals:owa:open}, and
+\S\ref{sec:proposals:owa:resolution} already treats the
+workspace label as a matching parameter in the resolver
+query rather than as a component of the DHT-key
+derivation. Behaviorally, workspace already looks like
+resolution-time metadata.
+
+OWA nevertheless carries the workspace in the URI. We
+justify this on two grounds, and only two.
+
+\emph{Trust-atom singularity.} The organizational trust
+root is a single atom in \texttt{agent://}: one
+\texttt{.well-known/}\allowbreak\texttt{agent-keys.json}, one attestation
+issuer, one signing-key set under DNSSEC. Keeping the
+organization in the URI as the trust root, with workspace
+as a path-segment sub-scope beneath it, preserves
+that atom. Alternatives that move the workspace out of the
+URI must either replicate the trust atom per workspace
+(fragmenting keys) or drop workspace scope from the trust
+layer entirely (losing the ability to express
+workspace-scoped attestations). We are unwilling to pay
+either price, and note this is the same singularity that
+made the subdomain form unattractive in
+\S\ref{sec:proposals:owa:related}.
+
+\emph{Prefix-detection convenience for AGRP.} AGRP
+(\S\ref{sec:proposals:agrp}) detects the workspace
+boundary of a call by prefix comparison on the sender and
+receiver URIs alone. Moving the workspace label into the
+resolved record instead of the URI would require a record
+fetch on every boundary check, which either introduces a
+per-call round trip on the enforcement path or requires an
+aggressive local cache that reintroduces workspace-membership
+consistency questions. The prefix-detection design is a
+real operational property of the AGRP composition, not a
+free choice, and it needs the workspace to be visible in
+the URI to work.
+
+The concession is explicit: everything about workspaces
+that behaves as mutable governance metadata (membership
+churn as agents move between workspaces, dual-workspace
+membership per \S\ref{sec:proposals:owa:open} Q3,
+workspace-level access lists, workspace deprecation
+timestamps) lives in the resolved endpoint record and the
+workspace catalogue, not in the URI. What the URI carries
+is the workspace's role as a policy sub-scope of the
+organizational trust atom, which is stable identity-defining
+information (in the sense of the trust boundary the agent
+operates within), even though workspace membership itself
+is mutable.
+
+We name this trade-off because a future revision of OWA,
+or a related scheme, may reasonably choose differently:
+if AGRP's prefix-detection property is not required
+(e.g., if boundary detection is delegated to a mediator
+that already fetches records), the trust-atom argument
+alone does not compel keeping workspace in the URI, and
+moving it to the resolved record would leave a cleaner
+identity/metadata separation.
+
+OWA is designed to coexist with the existing identifier
+schemes rather than to replace them.
+
+\paragraph{A2A AgentCard.}
+The A2A AgentCard schema gains an optional
+\texttt{agent\_uri} field carrying the agent's OWA URI.
+Existing AgentCard URIs at \texttt{/.well-known/agent.json}
+continue to work as transport endpoints; the OWA URI
+sits alongside them as the stable identity. Rodriguez
+proposes the same field for
+\texttt{agent://}~\cite{agent_uri_scheme}; OWA reuses the
+proposal verbatim.
+
+\paragraph{MCP.}
+MCP servers identified by stdio or HTTP transport endpoints
+gain an optional OWA URI in the server manifest. The
+workspace tier maps naturally onto MCP's emerging
+tenant-scoping work in the AAIF working group
+(\S\ref{sec:governance:foundations}).
+
+\paragraph{ANP.}
+ANP's DID-based identity resolves to a DID document;
+the DID document gains an optional \texttt{owa\_uri} field
+binding the DID to the OWA URI. The two identifiers
+cross-reference: the OWA URI carries the workspace and
+capability semantics; the DID carries the decentralized
+verifiable identity. The bridge between them
+(P8 of \S\ref{sec:openproblems:bridging}) is exactly what
+the ANP-to-A2A composition that the rubric matrix most
+clearly recommends needs.
+
+\paragraph{ANS.}
+ANS identifiers translate to OWA by mapping
+\texttt{Provider} to \texttt{<org>} and inferring
+workspace from a provider-side convention until the
+provider migrates to native OWA. The migration is
+incremental: ANS providers that adopt OWA can publish a
+bridge entry that maps the legacy ANS name to the OWA
+URI.
+
+\subsubsection{Operational integration: IAM alias and email triggers}
+\label{sec:proposals:owa:operational}
+
+Two operational integration points warrant first-class
+treatment because they are the cases where the
+email-shape pattern (\S\ref{sec:proposals:owa:related})
+genuinely outperforms the path form. OWA accommodates both
+through optional, normatively-specified aliases that do
+\emph{not} replace the canonical URI identifier.
+
+\paragraph{IAM-operator-friendly alias.}
+Compliance, operations, and security teams already know
+how to govern email-shaped identities. Service
+accounts, distribution lists, and automated workflows are
+routine units of IAM management. OWA optionally defines a
+canonical email-shaped alias of the form
+\texttt{<agent-id>.<capability-slug>@<workspace>.<org>},
+derived mechanically from the URI's components. For
+example, the URI
+
+\begin{quote}
+\texttt{agent+owa://acme.com/w/finance/c/workflow/approval/}\\
+\texttt{invoice/a/agent\_01h455vb4pex5vsknk084sn02q}
+\end{quote}
+
+\noindent has the canonical alias
+
+\begin{quote}
+\texttt{agent\_01h455vb4pex5vsknk084sn02q.}\\
+\texttt{workflow-approval-invoice@finance.acme.com}
+\end{quote}
+
+The alias is one-way (parsing the alias mechanically
+recovers the URI components, with the capability slug
+hyphenated for local-part compatibility) and does
+\emph{not} imply a deliverable mailbox. Some tooling
+expects email-shaped identifiers: SIEM dashboards,
+IAM consoles, audit reports, and ticket-routing systems.
+Such tooling can render the alias without operators
+needing to learn URI syntax. The form is intentionally consistent with
+Google Cloud Service Accounts and Microsoft Entra UPNs
+at the operator level~\cite{gcp_service_accounts,
+entra_service_principals}, so an organisation migrating
+from one of those IAM systems can preserve its operator
+workflows even after adopting OWA URIs as the canonical
+agent identifier. The alias is a presentational
+affordance, not a parallel identity.
+
+\paragraph{Trigger-by-real-email.}
+A non-trivial fraction of production agent invocations
+begin with a real email: a customer emails a support
+inbox, a system sends a daily report, a CI hook emails an
+alert, a calendar service sends a meeting reminder. OWA
+optionally defines a trigger-email mapping that captures
+this pattern without coupling the inter-agent protocol to
+SMTP transport. An organisation publishes at
+\texttt{https://<org>/.well-known/agent-triggers.json}
+a map from email-address patterns to OWA URIs:
+
+\begin{verbatim}
+{
+  "triggers": [
+    { "pattern": "support@acme.com",
+      "agent": "agent+owa://acme.com/w/support/c/.../a/triage-01" },
+    { "pattern": "billing-report-*@finance.acme.com",
+      "agent": "agent+owa://acme.com/w/finance/c/.../a/billing-01" }
+  ]
+}
+\end{verbatim}
+
+The organisation's mail infrastructure routes matching
+inbound mail to the corresponding agent's A2A ingress
+endpoint, packaging the email as an A2A
+\texttt{Task} with the agent's OWA URI as the receiver.
+The trigger email is a deliverable mailbox; the OWA URI
+is the canonical agent identity; the two are bound by
+org-controlled routing rather than by the protocol
+specification. This composition separates the
+trigger-channel concern from the inter-agent protocol
+proper, gives the human-to-agent boundary a familiar
+on-ramp, and preserves the path form's expressiveness
+for cross-organizational inter-agent traffic. AGRP
+applies unchanged: messages produced by the
+mail-trigger path enter the agent's A2A surface and are
+subject to the same egress policy as any other inbound
+message.
+
+\paragraph{What this gets the proposal.}
+The two aliases together close the legitimate operational
+gap that the email-shape pattern surfaces: organizations
+whose existing IAM, audit, and trigger infrastructure is
+email-shaped can adopt OWA without abandoning that
+infrastructure. The path form remains the canonical
+identifier and carries the capability semantics
+(\S\ref{sec:proposals:owa:syntax}); the email-shaped
+alias is a deterministic projection for tooling that
+prefers email-syntax; the trigger-email map is a
+routing-layer bridge that has no normative weight beyond
+the org publishing it. OWA does not require either
+alias to be configured. The point is to make adoption
+possible without forcing a green-field rebuild of
+identity infrastructure.
+
+\subsubsection{Migration story}
+\label{sec:proposals:owa:migration}
+
+Three concerns determine whether OWA can be adopted
+without re-architecting existing inter-agent deployments.
+
+\paragraph{Organizations that have not normalized workspace names.}
+The most common deployment state at the 2026-Q1 cutoff
+is that organizations have no formal workspace
+naming convention. OWA accommodates this with a
+\texttt{default} workspace that an organization can use
+until its naming convention stabilises:
+\texttt{agent+owa://acme.com/w/default/c/.../a/...}. The
+\texttt{default} workspace participates in AGRP
+boundary detection as a \texttt{same\_workspace} destination; an
+organization that later carves out workspaces from
+\texttt{default} can do so by extending its workspace
+catalogue without breaking existing references.
+
+\paragraph{Workspace renaming.}
+Workspaces are organizational concepts and can be
+renamed (e.g., \texttt{customer-support} renamed to
+\texttt{revenue-ops}). The OWA URI is stable against the
+\texttt{<agent-id>} but not against the
+\texttt{<workspace>} segment; an organization that
+renames a workspace SHOULD publish an alias record at
+the workspace catalogue mapping the old name to the new
+name. Aliased lookups resolve transparently for a
+migration window the organization specifies.
+
+\paragraph{Coexistence with existing AgentCard URIs.}
+Existing A2A AgentCard URIs continue to work as transport
+endpoints during the migration. The OWA URI is a
+\emph{name} that resolves to a transport endpoint; the
+existing AgentCard URI is one such endpoint. Adopters
+can deploy OWA without breaking any A2A client; clients
+that don't yet speak OWA continue to use the AgentCard
+URI directly.
+
+\paragraph{Coexistence with existing \texttt{agent://} URIs.}
+Organizations that have already deployed
+\texttt{agent://} URIs~\cite{agent_uri_scheme} continue to
+resolve them under the bare \texttt{agent://} scheme.
+OWA URIs use the distinct \texttt{agent+owa://} scheme
+suffix, so a resolver receiving an \texttt{agent://} URI
+knows unambiguously to apply the three-tier grammar, and a
+resolver receiving an \texttt{agent+owa://} URI applies
+the four-tier OWA grammar. A non-OWA-aware
+\texttt{agent://} parser presented with an
+\texttt{agent+owa://} URI rejects the URI on the scheme
+comparison rather than silently mis-parsing the path into
+a wrong canonical name (the failure mode
+\S\ref{sec:proposals:owa:related} identifies). Adoption is
+opt-in per identifier: an organization can issue new
+identifiers under \texttt{agent+owa://} while continuing
+to honor previously issued \texttt{agent://} identifiers
+for their agents' lifetimes.
+
+\subsubsection{Open questions and caveats}
+\label{sec:proposals:owa:open}
+
+\paragraph{Q1: Workspace catalogue governance.}
+The workspace catalogue at
+\texttt{/.well-known/workspaces.json} is an
+organization-controlled resource. The schema for the
+catalogue (workspace list, parent-workspace relations,
+deprecation timestamps) is not specified in OWA itself.
+A future revision should specify the catalogue schema
+normatively; for the 2026-Q1 cutoff, the field carries
+the workspace name as a free-form string within the
+URI regex.
+
+\paragraph{Q2: Nested workspaces.}
+Large organizations have hierarchical workspaces
+(e.g., a \texttt{finance} workspace with sub-workspaces
+\texttt{accounts-payable} and \texttt{accounts-receivable}).
+OWA's \texttt{<workspace>} segment is currently flat. A
+future revision should consider whether nested
+workspaces should be encoded as
+\texttt{/w/finance/accounts-payable/} or whether they
+should be flattened with a dotted convention. The first
+is more naturally extensible; the second is closer to
+existing OAuth scope conventions.
+
+\paragraph{Q3: Cross-organizational workspace identity.}
+Two organizations may both have a \texttt{finance}
+workspace, and a federated deployment may need to
+distinguish between them. OWA disambiguates these via
+the \texttt{<org>} segment; the open question is whether
+a single agent can be a member of two workspaces in two
+organizations simultaneously, and if so, how its URI
+expresses the dual membership.
+
+\paragraph{Q4: Compact-record pointer convention.}
+Composing OWA with a lean-index registry such as
+NANDA's AgentAddr~\cite{nanda_index}
+(\S\ref{sec:proposals:owa:nanda}) leaves the anchor
+record's URL fields reachable only by indirection: the
+stored name is a one-way SHA-256 digest from which no
+URL can be reconstructed. The pointer convention (a
+digest-keyed registry bucket, a trust-root-derived
+AgentFacts location, or another indirection mechanism)
+is unspecified on both sides and needs co-design with
+the registry's replication and caching model.
+
+\paragraph{Q5: What the name denotes.}
+The hardest open question is not syntax. It is what the
+identifier refers to. Suppose the same agent code runs at
+two URLs. The name may denote the software artifact, one
+logical service with two deployments, or two agents.
+ADR-0015 answers part of this for \texttt{urn:air}: its
+rationale requires that relocating a workload not break
+routing or caches, so the identifier denotes a logical
+artifact rather than a deployment~\cite{ai_catalog}. OWA
+inherits that reading, because the workspace tier is an
+organizational scope and not a host. The unanswered half is
+caller-dependent behaviour. Microsoft raised it when we
+contacted it about this survey, and we did not find it
+ourselves. If an endpoint exposes
+different skills to different callers, it is undecided
+whether that is one agent observed in two contexts or two
+agents sharing a host. Nothing in the identifier grammar
+decides it, and the AI Catalog work declares
+identity-varying card generation out of scope and leaves it
+to individual protocols. OWA does not resolve this either,
+and we flag it rather than assume the logical reading
+settles it. A candidate answer is that
+identity is fixed by the publisher's declaration and
+caller-dependent views are authorization outcomes rather
+than distinct agents, which would tie the naming layer to
+Axis 3 and make the denotation rule a security property.
+Establishing that is future work.
+
+\subsubsection{Composition with lean-index registries: the NANDA AgentAddr case}
+\label{sec:proposals:owa:nanda}
+
+The resolution machinery of
+\S\ref{sec:proposals:owa:resolution} assumes some
+registry substrate without mandating one. The closest
+published design for that substrate at deployment scale
+is the NANDA Index~\cite{nanda_index}: a distributed
+registry for an ``Internet of AI Agents'' whose anchor
+tier holds Ed25519-signed \textbf{AgentAddr} records
+constrained to at most 120 bytes. Rich metadata
+(capabilities, endpoints, telemetry) is pushed one tier
+down into \textbf{AgentFacts}, W3C Verifiable Credential
+objects. Federation is handled by a ``registry quilt'' of
+CRDT-replicated, cross-signed registries. The design is
+the natural complement to this section's proposal: NANDA
+specifies the registry infrastructure that
+\texttt{agent://} and OWA leave open, and
+\texttt{agent://} specifies the naming layer that NANDA
+leaves ad hoc. This subsection makes the composition
+concrete, including where it does not compose.
+
+\paragraph{The naming layer is NANDA's underspecified point.}
+An AgentAddr record carries an \texttt{agent\_id}
+(a \texttt{nanda:}-prefixed generic UUID) and an
+\texttt{agent\_name} (a URN-style alias). The published
+examples span several syntaxes
+(\texttt{agent:Company:TranslationAssistant},
+\texttt{urn:agent:salesforce:starbucks}) with no grammar,
+no normalization rule, no capability semantics, and no
+trust scoping. The consequence is structural: because
+capabilities exist only in the AgentFacts tier, the index
+tier cannot answer a capability-scoped query (``agents
+under acme.com that can approve invoices'') without
+fetching and parsing the heavy layer for each candidate.
+Two records naming the same agent under different alias
+syntaxes cannot be identified as equal. These are
+precisely the properties the \texttt{agent://} naming
+discipline provides~\cite{agent_uri_scheme}: a normative
+ABNF, a canonical form, prefix-matchable capability
+paths, and a DNS-anchored trust root. The two designs are
+complementary layers, not competitors.
+
+\paragraph{Aligning upstream does not close the naming gap.}
+The reference implementation has since begun aligning its
+index record to an external schema. Migration~010 adds
+\texttt{version} and \texttt{trust\_manifest} columns for
+parity with the AI Catalog \texttt{CatalogEntry}
+schema~\cite{nanda_index_impl}, which makes AI
+Catalog~\cite{ai_catalog} an upstream standard that NANDA
+consumes rather than the reverse
+(\S\ref{sec:proposals:owa:related}). The alignment sits at
+the trust-metadata layer rather than the identifier layer:
+the two columns carry a SemVer string and a signable
+manifest of identity, attestations, provenance, and a
+detached signature, and both are added to the organization
+row that already scopes the record. Nothing in the
+migration constrains \texttt{agent\_name}. Should the
+identifier layer follow, AI Catalog's
+\texttt{urn:air:\{publisher\}:\{namespace\}:\{name\}}
+supplies the DNS-anchored publisher segment the published
+examples lacked, but it remains an open text format with
+no normative ABNF, no canonical form, and no stated
+prefix-matchability, leaving name equality and
+capability-scoped indexing at the anchor tier unavailable.
+Being variable-length text of unbounded size, it also
+leaves the arithmetic of the following paragraph
+unchanged.
+
+\paragraph{The 120-byte budget forces derivation, not storage.}
+The constraint that makes the composition interesting is
+arithmetic, and it follows from the record layout as
+described in~\cite{nanda_index} rather than from any
+deployed encoding. In the raw binary form that design
+assumes, the fixed fields of an AgentAddr consume 84
+bytes: the Ed25519 signature is 64, the UUID payload is
+16, and the TTL is 4. That leaves
+roughly 36 bytes for the \texttt{agent\_name} and three
+URL fields (\texttt{primary\_facts\_url},
+\texttt{private\_facts\_url},
+\texttt{adaptive\_resolver\_url}). A single typical HTTPS
+URL runs 60 bytes or more, so no literal encoding of even
+one field fits. The budget therefore rules out storing
+\emph{any} name or pointer literally and forces every
+variable-length field through some derivation or
+indirection. Once that is accepted, the length of the
+canonical URI string stops mattering to the anchor tier
+entirely, because what is stored is a fixed-width digest.
+
+\paragraph{The budget is specified, not yet enforced.}
+The arithmetic above is a property of the published
+design rather than of the current reference
+implementation, whose index record is a relational row
+with unbounded \texttt{JSONB} columns, scoped one record
+per publishing organization rather than per agent, and
+carrying no anchor-tier byte
+constraint~\cite{nanda_index_impl}. The figures should
+therefore be read as what a compliant anchor tier must
+satisfy, not as a measurement of deployed code. The
+composition is unaffected either way: a derived,
+fixed-width name is what makes the record fit when the
+budget is enforced, and costs nothing when it is not.
+The implementation is also moving toward the published
+design rather than away from it, having since gated
+activation on a DNS TXT challenge proving control of the
+claimed domain, on the stated reasoning that the domain
+is the namespace the index is keyed on, and added a
+signed trust manifest carrying identity, attestations,
+and provenance.
+
+\paragraph{Field-by-field mapping.}
+Table~\ref{tab:nanda-field-mapping} maps the five AgentAddr
+fields onto the naming components, one row per field.
+
+\begin{table}[h]
+  \centering
+  \footnotesize
+  \begin{tabular}{p{2.4cm}p{3.4cm}p{4.2cm}}
+    \toprule
+    AgentAddr field & NANDA as published & agent:// / OWA contribution \\
+    \midrule
+    \texttt{agent\_id}
+      & \texttt{nanda:} + generic UUID (random, string-encoded)
+      & TypeID: the 16-byte binary UUIDv7 payload, time-sortable for range scans and shard routing \\
+    \texttt{agent\_name}
+      & ad-hoc URN alias, no grammar
+      & the 32-byte SHA-256 digest of the canonical URI's identity-defining components (the key of \S\ref{sec:proposals:owa:resolution}); verifiable against the full URI in AgentFacts \\
+    URL fields
+      & literal URLs, individually over budget
+      & not derivable from the URI; require a pointer convention (Q4, \S\ref{sec:proposals:owa:open}) \\
+    \texttt{signature}
+      & Ed25519 over the record
+      & composes unchanged; capability claims additionally carry PASETO v4.public attestation bound by the coverage rule of~\cite{agent_uri_scheme} \\
+    \texttt{ttl}
+      & seconds
+      & unchanged \\
+    \bottomrule
+  \end{tabular}
+  \caption{Field-by-field mapping between NANDA AgentAddr records and agent:// / OWA naming components.}
+  \label{tab:nanda-field-mapping}
+\end{table}
+
+Two of the five rows are strict improvements with no
+interface change. A random UUID gives a sharded global
+index nothing to sort or range-scan on; a UUIDv7 payload
+is time-ordered at identical width. Replacing an
+ungoverned alias string with the canonical digest gives
+the anchor tier name equality, spoof resistance
+(recomputing the digest from a claimed URI either matches
+the stored name or does not), and capability-scoped
+indexing at the tier where discovery runs.
+
+\paragraph{What derives and what does not.}
+The digest is an index key, not a compression scheme:
+SHA-256 is one-way, so no URL field can be reconstructed
+from the stored name. The three URL fields are genuinely
+dynamic per deployment and must be reached through
+indirection (for instance, a registry bucket keyed by the
+stored digest whose record carries the pointers, or an
+AgentFacts document fetched by a convention derived from
+the trust root's DNS name). Either convention keeps the
+anchor record within budget (84 fixed + 32 digest = 116
+bytes) at the cost of one indirection on the cold path,
+the same cost the AgentFacts tier already imposes. The
+pointer convention itself is not specified by
+\texttt{agent://}, OWA, or the NANDA publications
+reviewed; it is the genuine co-design problem between the
+naming layer and the index, recorded as Q4 in
+\S\ref{sec:proposals:owa:open}.
+
+\paragraph{The workspace tier composes without touching the anchor record.}
+The asymmetry of \S\ref{sec:proposals:owa:resolution},
+in which the workspace label is resolution-time policy
+metadata rather than an input to key derivation, pays off
+here: an \texttt{agent+owa://} URI and its underlying
+identity hash to the same anchor-tier name. A NANDA
+deployment adopting OWA changes nothing at 120-byte
+scale. The workspace label, its attestation, and its
+catalogue entry live in the AgentFacts tier alongside
+other rich metadata, where NANDA already places mutable
+governance facts. This is the same identity/metadata
+split defended in \S\ref{sec:proposals:owa:tradeoff},
+arrived at independently by both designs.
+
+\paragraph{Scope of this composition.}
+\texttt{agent://} and OWA occupy the
+\texttt{agent\_name} and \texttt{agent\_id} fields and
+supply deterministic index keys; they do not replace
+the registry quilt, the AgentFacts credential schema,
+the TTL-driven resolution tiers, or NANDA's
+privacy-path machinery. Nothing above should be read as a
+claim that a URI scheme substitutes for registry
+federation. The privacy-preserving discovery guarantees
+that \texttt{agent://} lists as future work remain
+NANDA's contribution, not ours. A broader survey of the
+registry-solution landscape, including DNS-based,
+DID-based, and distributed-index approaches, is provided
+by Singh et al.~\cite{agent_registry_evolution}.
+
+\subsection{AGRP Guardrails Envelope (Contribution C6)}
+\label{sec:proposals:agrp}
+
+\subsubsection{Problem statement}
+\label{sec:proposals:agrp:problem}
+
+Three of the six open security problems of
+\S\ref{sec:security:open} concern inter-agent message
+content rather than identity or transport:
+O3 (prompt-injection mitigation as spec-level requirement),
+O5 (contextual integrity for conversation-history
+forwarding), and O6 (side-channel metadata privacy). The
+healthcare and finance disclosure gap of
+\S\ref{sec:adoption:healthcare} to \ref{sec:adoption:finance}
+is the institutional analogue: organizations in those
+verticals deploy intra-organizational inter-agent
+coordination but resist cross-organizational deployment
+because the contemporary protocols do not give them
+spec-level control over what content crosses an
+organizational boundary.
+
+The deployment-layer response to this gap is the egress
+proxy. The most-developed example is
+Pipelock~\cite{pipelock}, which provides an out-of-band
+proxy with content inspection (DLP, prompt-injection, and
+MCP tool policies), an RFC-8941 Mediation Envelope, a
+hash-chained Flight Recorder audit log, and
+mediator-signed Action Receipts with a standalone offline
+verifier CLI whose verification key is obtained
+out-of-band and pinned before receipt validation. Pipelock is the
+state of the art for the egress-proxy pattern; the survey
+pins its citation to the \texttt{v3.0.0} tag because
+Pipelock's pattern-catalogue counts grow release-to-release
+and any concrete number cited here would date faster
+than the survey's own review cycle. The survey's
+companion rubric artefact (\S\ref{sec:conclusion:artifact})
+is the mechanism by which successor tags stay tracked
+against the same rubric.
+
+Pipelock's own documentation flags the principal
+limitation of the deployment-layer approach: ``With the
+sandbox enabled or the host/cluster containment topology
+enforced, [the proxy] adds an OS or deployment boundary
+on top of content inspection. Direct egress still has to
+be blocked by that boundary for non-cooperative tools
+that ignore proxy settings''~\cite{pipelock}. Stated more
+generally: a deployment-layer mediator is
+\emph{discoverable} and \emph{bypassable} for an
+attacker who can manipulate environment variables, the
+network stack, or the agent's own configuration. The
+defence is to push the enforcement up to the message
+layer, where the bypass is no longer available because
+the receiver checks the envelope.
+
+AGRP is that message-layer envelope: a normative
+extension to A2A that wraps every cross-boundary message
+with classification labels, a tamper-evident redaction
+log, and attestation that an egress filter ran. The
+attestation is bound to the sender's OWA identity
+(Contribution C5) rather than to a mediator's identity,
+making the egress-filtering property a property of the
+message itself rather than of the deployment that
+produced it.
+
+\subsubsection{Related work and differentiation}
+\label{sec:proposals:agrp:related}
+
+Table~\ref{tab:agrp-differentiation} compares AGRP
+against ten prior works in the guardrails space.
+
+\begin{table*}[t]
+  \centering
+  \caption{AGRP differentiation matrix. The seven-property
+    argument: no prior system simultaneously provides all
+    seven of continuous redaction, filter attestation,
+    receiver verifiability, naming-derived boundary
+    detection, multi-backend attestation composition,
+    cross-vendor verifiability, and normative spec-level
+    requirement.}
+  \label{tab:agrp-differentiation}
+  \footnotesize
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{p{2.7cm}p{2.6cm}cccccc p{2.5cm}}
+    \toprule
+    Prior work & Mechanism & Continuous? & Filter attestation? & Receiver verifies? & Boundary from naming? & Cross-vendor? & Normative? & AGRP improvement \\
+    \midrule
+    Improving A2A~\cite{a2a_weaknesses}
+      & \texttt{USER\_CONSENT} + tunnels
+      & transactional & no & no & no & A2A & partial
+      & continuous; addresses silent leakage \\
+    Pipelock~\cite{pipelock}
+      & egress proxy + content-inspection catalogue + RFC-8941 + signed receipts
+      & yes (proxy) & \textbf{yes (mediator)} & \textbf{yes (offline CLI)} & no & per-deployment & no
+      & AGRP carries Pipelock receipts under a normative Tier~2 semantics; binds to sender identity, not mediator \\
+    Ruflo PII pipeline~\cite{ruflo}
+      & 14-type detect + BLOCK/REDACT/HASH/PASS
+      & yes (per node) & no & trust-score-based & no & one orchestrator & no
+      & filter-attested vs. trust-scored (preventive vs. reactive) \\
+    NeMo Guardrails
+      & programmable rails
+      & per agent & no & no & no & no & no
+      & inter-agent; receiver verifies filter ran at sender \\
+    Galileo / FutureAGI / Maxim
+      & dual-stage I/O validation
+      & per orchestrator & no & no & no & no & no
+      & cross-orchestrator vendor boundary \\
+    OpenHarness~\cite{openharness}
+      & Pre/PostToolUse hooks + permission modes
+      & per tool call & no & no & no & per-deployment & no
+      & protocol-layer; OpenHarness is harness-layer \\
+    Semgrep~\cite{semgrep_a2a}
+      & capability-based authz recommendation
+      & n/a & no & no & no & n/a & no
+      & normative envelope, not a recommendation \\
+    SAGA~\cite{saga2026}
+      & TEE-anchored gateway
+      & yes (gateway) & \textbf{yes (TEE quote)} & yes & no & per-deployment & no
+      & AGRP $\supset$ SAGA's TEE quote as one backend \\
+    Proof-of-guardrail~\cite{proof_of_guardrail}
+      & agent + named guardrail in a TEE, per-response attestation
+      & yes (per response) & \textbf{yes (TEE)} & \textbf{yes (offline)} & no & one TEE vendor & no
+      & inter-agent rather than user-to-agent; AGRP carries the quote as its Tier~2 hardware path and normalizes it across vendors \\
+    A2A v0.3+ AgentCard signing
+      & optional card signing
+      & per agent & yes (identity) & yes (identity) & no & per-A2A & optional
+      & attests content filter, not just identity \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table*}
+
+Two cells of the table carry the differentiation argument
+most heavily. We give each a dedicated paragraph. The
+proof-of-guardrail row~\cite{proof_of_guardrail} carries a
+third argument that is about assurance rather than
+positioning, so \S\ref{sec:proposals:agrp:tee} takes it up
+after the tiers are defined.
+
+\paragraph{The Pipelock relationship: composition, not competition.}
+Pipelock is the closest prior work and the most
+operationally mature implementation in this space. The
+naive reading of AGRP is that it is ``Pipelock at the
+protocol layer'' and that the right deployment posture is
+to use Pipelock without AGRP. Three architectural
+differences argue against this reading.
+
+First, \emph{where the filter lives}. Pipelock runs in a
+proxy process external to the agent. AGRP allows the
+filter to run anywhere: in-process, in a sidecar, in a
+Pipelock mediator, or in a SAGA TEE gateway. The only
+condition is that the attestation in the AGRP envelope
+binds to the sender's OWA URI. This decouples the policy from the
+deployment.
+
+Second, \emph{who attests}. Pipelock receipts are signed
+by the mediator (the Pipelock process, a boundary the
+sender does not control); AGRP envelopes are signed by
+the sender's identity, with the mediator's receipt
+nested inside the envelope's \texttt{mediator\_receipt}
+field. A receiver verifying an AGRP envelope
+independently validates both layers: the
+sender-identity signature confirms the message came
+from the named agent; the nested mediator receipt
+confirms an independent filter actually ran. The two
+attestation chains are orthogonal, and AGRP's tier
+framing (\S\ref{sec:proposals:agrp:tiers}) makes the
+distinction explicit: a Pipelock receipt inside the
+envelope elevates the assurance level from Tier~1
+(sender-signed claim) to Tier~2 (independently-signed
+evidence), and the tightenings of that subsection are
+what keep the elevation honest.
+
+Third, \emph{cross-vendor composition}. Pipelock requires
+the proxy to be co-located with the agent (via
+\texttt{HTTPS\_PROXY} or sidecar). AGRP is a message-level
+invariant any A2A speaker can carry, so an agent at
+organization X can verify the receipt from organization
+Y without organization Y running Pipelock. Organization Y
+only needs to run \emph{some} filter that produces an
+AGRP-compatible attestation. Pipelock-as-mediator under
+AGRP is one such filter; an in-process filter on
+organization Y's agent is another; a SAGA TEE gateway is
+a third. Cross-vendor composition is the property
+Pipelock cannot provide on its own.
+
+The composition pattern (\S\ref{sec:proposals:agrp:composition})
+makes the relationship explicit: AGRP envelope
+$\supseteq$ Pipelock receipt. A
+Pipelock-deployment plus AGRP-protocol pair gives both
+the proxy's network-level enforcement \emph{and} the
+protocol-level cross-vendor invariant; the deployment is
+defence in depth rather than one substituting for the
+other.
+
+\paragraph{The Ruflo relationship: preventive vs. reactive.}
+Ruflo's 14-type PII detection pipeline applied per
+trust-level (BLOCK / REDACT / HASH / PASS) is the
+operational equivalent of AGRP's classification labels
+and redaction actions~\cite{ruflo}. The architectural
+difference is the attestation model. Ruflo computes a
+trust score from behavioural signals (success rate,
+uptime, threat detection, integrity) and downgrades a
+misbehaving agent's trust level. The downgrade is
+\emph{reactive}: by definition, a downgraded agent
+has already leaked once. AGRP's filter attestation is
+\emph{preventive}: the filter must run \emph{before} the
+message is signed, and the receiver fails closed if the
+attestation does not validate. Trust-scoring and
+filter-attestation are not mutually exclusive. A
+deployment can use Ruflo's trust score to choose which
+filter rule-set applies to a message, then AGRP-attest
+that the chosen rule-set ran. They compose in the same
+way Pipelock does.
+
+\subsubsection{The AGRP envelope: schema and semantics}
+\label{sec:proposals:agrp:schema}
+
+The AGRP envelope wraps every cross-boundary A2A message
+with a normative structured-field block adjacent to the
+A2A message body. The envelope is JSON-encoded at the
+A2A transport boundary; the sideband-metadata equivalent
+on HTTP transports uses RFC 8941 Structured Field
+Values~\cite{rfc8941}, matching Pipelock's Mediation
+Envelope choice for compatibility.
+
+\begin{verbatim}
+{
+  "agrp_version": "1.0",
+  "sender":    "agent+owa://acme.com/w/finance/c/.../a/billing-01",
+  "recipient": "agent+owa://acme.com/w/support/c/.../a/chat-02",
+
+  "boundary": {
+    "kind": "cross_workspace",
+    "egress_policy_id":  "acme/finance.outbound.v3",
+    "ingress_policy_id": "acme/support.accept.v2"
+  },
+
+  "classification": {
+    "tier": "internal-confidential",
+    "data_classes": ["financial_record"],
+    "applied_labels": ["pii:redacted", "secret:blocked",
+                       "env_var:blocked"]
+  },
+
+  "redaction_log": [
+    { "jsonpath": "$.message.text",
+      "rule": "redact_ssn",
+      "count": 1,
+      "fingerprint": "sha256:5f2..." },
+    { "jsonpath": "$.message.text",
+      "rule": "block_stripe_key",
+      "count": 1,
+      "action": "blocked" },
+    { "jsonpath": "$.parts[2].data",
+      "rule": "block_env_var",
+      "count": 3,
+      "action": "stripped" }
+  ],
+
+  "attestation": {
+    "filter_id":          "acme-guardrails-v3.2",
+    "filter_measurement": "sha256:1d4f...64-hex-chars...",
+    "signing_key_id":     "owa-key-2026q3",
+    "assurance_tier":     1,
+    "evidence_status":    "self_attested_claim",
+    "filter_signature":   "ed25519:base64url...",
+    "mediator_receipt":   "...",
+    "tee_quote":          "..."
+  },
+
+  "payload": { /* A2A message with redactions applied */ }
+}
+\end{verbatim}
+
+The fields carry the following semantics. The
+\texttt{sender} and \texttt{recipient} fields are OWA
+URIs (Contribution C5). The \texttt{boundary} field
+records the boundary kind derived from prefix comparison
+of the sender and recipient URIs
+(\S\ref{sec:proposals:agrp:boundary}) and the policy
+identifiers that applied at egress and that the
+recipient should apply at ingress. The
+\texttt{classification} field records the
+sensitivity tier and the labels that the egress filter
+identified or applied; the label vocabulary is open
+(an organization can extend it) but the protocol
+specifies a minimum set of nine well-known labels
+(\texttt{pii}, \texttt{secret}, \texttt{env\_var},
+\texttt{financial}, \texttt{phi}, \texttt{credentials},
+\texttt{token}, \texttt{contract}, \texttt{audit}).
+
+The \texttt{redaction\_log} is the most operationally
+consequential field. Each entry records the JSONPath at
+which a rule fired, the rule identifier, the number of
+matches, and either a SHA-256 fingerprint of the redacted
+content (allowing later correlation when an authorised
+verifier has the original or an independently trusted
+receipt binds the same commitment) or an action marker
+(\texttt{blocked}, \texttt{stripped}) for content that
+was removed entirely. The sender signature makes the
+declared fingerprint log tamper-evident in transit. A
+fingerprint alone neither proves that the committed
+plaintext matched the claimed rule nor proves that the
+sender reported every match. At Tier~1 both are sender
+claims. Evidence that a filter actually produced a
+complete log requires a Tier~2 receipt whose independently
+verified statement binds the payload, filter measurement,
+and log commitment.
+
+The \texttt{attestation} block records a signed
+enforcement claim and, when present, independently
+verifiable evidence. The \texttt{filter\_id} and
+\texttt{filter\_measurement} identify the filter binary;
+the \texttt{filter\_signature} is signed by the sender's
+OWA-bound key and authenticates the sender's claim but does
+not by itself prove execution; the \texttt{mediator\_receipt} field is
+optional and carries an independent-mediator receipt
+(Pipelock-style Action Receipt~\cite{pipelock}, or an
+equivalent) when the filter ran outside the sender's
+trust boundary. The field name is AGRP's, and the
+receipt itself follows the mediator's own on-wire
+format. Pipelock v3.0.0, for instance, structures its
+own Mediation Envelope as an RFC-8941 dictionary
+carried in a \texttt{Pipelock-Mediation} HTTP header
+rather than under this field name. The
+\texttt{tee\_quote} field is optional and carries a
+TEE-anchored quote (SAGA-style~\cite{saga2026}) when the
+filter ran inside vendor-attested hardware. The
+combination of which of these three signatures are
+present determines the envelope's attestation tier
+(\S\ref{sec:proposals:agrp:tiers}); the schema also
+reserves an optional \texttt{log\_anchor} sub-field
+inside the attestation block for the append-only-log
+inclusion proof described in the same subsection, kept
+outside the required schema at the cutoff so that
+early implementations are not forced to run a
+transparency log to be conformant.
+
+Both AGRP and ACSP use the same signing profile in the
+reference code: RFC~8785 JSON Canonicalization is applied
+to the complete envelope with only the protocol signature
+field removed, and Ed25519 signs those bytes. The signature
+is base64url encoded with the \texttt{ed25519:} prefix. The
+\texttt{signing\_key\_id} selects an OWA-bound public key
+provisioned independently of the envelope. The signed
+\texttt{assurance\_tier} and \texttt{evidence\_status}
+fields prevent an optional opaque receipt from silently
+upgrading a Tier~1 claim.
+
+\subsubsection{Boundary detection from OWA URIs}
+\label{sec:proposals:agrp:boundary}
+
+The boundary kind in the envelope's \texttt{boundary}
+field is derived by prefix comparison of the sender and
+recipient OWA URIs (Contribution C5). The canonical
+on-wire enum uses snake case:
+\texttt{same\_workspace}, \texttt{cross\_workspace}, and
+\texttt{cross\_org}. The procedure is:
+
+\begin{enumerate}
+  \item Parse both URIs into their org / workspace /
+    capability / agent-id components.
+  \item If the \texttt{<org>} components differ, the
+    boundary is \texttt{cross\_org}.
+  \item Otherwise, if the \texttt{<workspace>} components
+    differ, the boundary is \texttt{cross\_workspace}.
+  \item Otherwise, the boundary is \texttt{same\_workspace}.
+\end{enumerate}
+
+The egress filter consults the sender's per-workspace
+policy catalogue to find the egress rule-set that
+applies to the boundary kind. AGRP is mandatory for
+\texttt{cross\_workspace} and \texttt{cross\_org}
+boundaries and optional for \texttt{same\_workspace}
+messages, on the operational principle that
+within-workspace traffic is already inside a single
+policy domain and the overhead of envelope construction
+is not warranted unless an explicit per-message policy
+demands it.
+
+The coupling between C5 and C6 is intrinsic: AGRP
+without OWA would need to specify its own boundary
+notion (which would duplicate the workspace concept
+under a different name), and OWA without AGRP would
+provide identity scoping but no protocol-layer
+enforcement of the policy boundaries the workspace
+identifies. The same boundary detection serves ACSP
+(\S\ref{sec:proposals:acsp:composition}); the
+broader triplet argument is set out in
+\S\ref{sec:proposals:codesign}.
+
+\subsubsection{Attestation, fail-closed semantics, and receiver verification}
+\label{sec:proposals:agrp:attestation}
+
+The receiver's verification procedure on an inbound AGRP
+envelope is:
+
+\begin{enumerate}
+  \item Verify the \texttt{filter\_signature} against the
+    sender's OWA-bound public key. If invalid, fail
+    closed.
+  \item Check the \texttt{filter\_id} and
+    \texttt{filter\_measurement} against the receiver's
+    allow-list of approved filters for the
+    boundary kind. If the filter is not on the
+    allow-list, fail closed.
+  \item Determine the envelope's attestation tier
+    (\S\ref{sec:proposals:agrp:tiers}) from the
+    presence and independence of the
+    \texttt{mediator\_receipt} and \texttt{tee\_quote}
+    fields. If the receiver's ingress policy requires
+    Tier~2 for this boundary kind or classification
+    tier and only a Tier~1 attestation is present, fail
+    closed.
+  \item Validate the \texttt{mediator\_receipt} if
+    present, using the mediator's verifier key obtained
+    out-of-band ahead of the message (a
+    key delivered inside the envelope MUST NOT satisfy
+    this step).
+  \item Validate the \texttt{tee\_quote} if present
+    against the TEE vendor's attestation
+    infrastructure.
+  \item If the envelope carries the optional
+    log-anchored sub-tier
+    (\S\ref{sec:proposals:agrp:tiers}) and the
+    receiver's ingress policy requires it for this
+    message, verify the inclusion proof against the
+    log's published root; if the proof is missing or
+    invalid, fail closed.
+  \item Apply the receiver's ingress policy to the
+    \texttt{classification} labels and the
+    \texttt{boundary} field. If the labels exceed the
+    ingress policy's accept list, fail closed.
+  \item Validate the \texttt{redaction\_log} schema and
+    commitment syntax. The approved
+    \texttt{filter\_measurement}, not the list of rules
+    that happened to fire, identifies the complete rule
+    set. At Tier~1 an absent match remains a sender claim;
+    at Tier~2 the independent receipt must bind the log
+    commitment and filter measurement.
+\end{enumerate}
+
+The fail-closed discipline is normative: an AGRP-aware
+receiver MUST refuse to process the payload if any of
+the verification steps fail. A receiver that downgrades
+to ``process anyway with a warning'' breaks the
+protocol's guarantees and the receiver SHOULD be flagged
+non-compliant by an AGRP conformance test suite.
+
+The verification chain is independent of the sending
+deployment. A receiver at organization Y can validate
+the AGRP envelope from organization X without sharing
+infrastructure. The verification depends only on the
+sender's OWA-bound key and the receiver's allow-list of
+approved filters. This is the property that Pipelock
+deployment alone cannot give: Pipelock's receipts are
+verifiable only by parties that share Pipelock's PKI;
+AGRP envelopes are verifiable across organizational
+boundaries through DNS and the OWA trust chain.
+
+\subsubsection{Attestation assurance tiers}
+\label{sec:proposals:agrp:tiers}
+
+The envelope schema of
+\S\ref{sec:proposals:agrp:schema} accommodates a
+range of attestation backends, but a receiver making a
+trust decision needs to know which backend produced the
+attestation it just verified. AGRP therefore defines
+two normative assurance tiers, drawing an explicit line
+between an \emph{enforcement claim} and \emph{evidence of
+enforcement}. The line is the same one drawn by the
+Pipelock maintainers' analysis of self-attestation vs.\
+independent
+mediation~\cite{pipelab_independent_attestation}: a
+sender signing ``a filter ran'' with its own key is a
+claim by the party that would benefit from lying, and a
+boundary the sender does not control signing what it
+actually did is evidence. Most of the field blurs the
+two; the tiers below draw the line so that a receiver
+can weight the two cases differently in its ingress
+policy.
+
+\paragraph{Tier 1: self-attested (low assurance).}
+The filter runs inside the sender's own trust boundary.
+That means in the agent's process, in a sidecar the
+agent's operator controls, or in any component whose
+failure mode is indistinguishable from the sender saying
+``trust me.'' The attestation is signed only by the
+sender's OWA-bound key
+(\S\ref{sec:proposals:agrp:schema}, the
+\texttt{filter\_signature} field). The envelope's
+\texttt{mediator\_receipt} and \texttt{tee\_quote}
+fields are absent. Tier~1 is a claim about enforcement,
+not enforcement, and receiver ingress policy SHOULD
+reflect that: Tier~1 is appropriate for
+\texttt{same\_workspace} traffic and for low-sensitivity
+\texttt{cross\_workspace} traffic within a single
+organization, but SHOULD NOT be accepted for
+\texttt{cross\_org} boundaries or for classification
+tiers above \texttt{internal-confidential}.
+
+\paragraph{Tier 2: independently attested (high assurance).}
+The filter runs at a boundary the sender does not
+control, and the attestation is signed by that
+independent boundary. That boundary is either a
+mediator process the sender cannot tamper with, or a
+TEE anchored in vendor-attested hardware. The envelope carries either a
+\texttt{mediator\_receipt} (mediator path) or a
+\texttt{tee\_quote} (hardware path), and the receiver
+verifies the signature against a key published by the
+independent boundary ahead of time. Tier~2 provides
+evidence of enforcement, not merely a claim, and is the
+minimum assurance level receivers SHOULD require for
+\texttt{cross\_org} traffic and for classification tiers
+that carry regulated content (\texttt{financial},
+\texttt{phi}, \texttt{contract}, \texttt{credentials}).
+The canonical Tier~2 mediator implementation at the
+2026-Q1 cutoff is Pipelock v3.0.0, whose Action
+Receipts are signed by the proxy process and verifiable
+offline by a standalone CLI against a key published
+ahead of the traffic. An implementer can
+reproduce that example end-to-end using the Pipelab receipt
+playground~\cite{pipelab_playground} without contacting
+a server.
+
+\paragraph{Two tightenings that keep the Tier~1/Tier~2 line un-gameable.}
+The Tier~2 definition is worth stating precisely
+because two apparently-equivalent constructions
+degrade it back to Tier~1:
+
+\begin{enumerate}
+  \item \emph{Independence covers enforcement, not
+    only signature.} A sender that runs the filter
+    in-process and then hands the resulting log to an
+    outside party for a co-signature has produced an
+    attestation signed by an independent boundary of a
+    filter that ran inside the sender's trust boundary.
+    That is Tier~1 in a Tier~2 envelope. Tier~2
+    requires the independent boundary both to
+    \emph{perform} the filtering and to sign the
+    receipt. An AGRP conformance test suite verifying
+    that a receipt is Tier~2-eligible SHOULD check both
+    conditions. The \texttt{filter\_measurement}
+    field must identify a binary whose execution
+    environment is under the same independent
+    authority as the signing key.
+  \item \emph{Verifier key must be published
+    out-of-band, ahead of the receipt.} A
+    ``verifiable-offline'' receipt is only verifiable
+    if the receiver already has the verifier key by
+    the time the receipt arrives. A key delivered
+    inside the same bundle it is meant to verify is
+    circular: the receiver has to trust the transport
+    to trust the key to trust the receipt. Tier~2
+    requires the mediator's (or TEE's) verifier key to
+    have been published in a location the receiver
+    consults independently of the message. Examples are
+    the mediator's HTTPS-served key endpoint, a DNSSEC
+    record under the mediator operator's zone, a
+    transparency log, or (for the TEE path) the vendor
+    attestation infrastructure. The tightening is a
+    property of the \emph{receiver's} verification
+    procedure, not a prohibition on the receipt bundle
+    carrying any key material: a self-describing
+    receipt may embed the signer's public key for
+    identification without that key being the trust
+    anchor. Pipelock v3.0.0 illustrates the shape the
+    tightening should take. The signer's public key is
+    not carried in the receipt body itself; the verifier
+    and chain layer pin a trusted signer key obtained
+    out-of-band and compare each incoming receipt's
+    signature against the pinned key at validation time.
+    Unpinned verification is labelled structural-only and
+    exits non-zero unless the operator opts in. This
+    preserves the out-of-band-key property by
+    construction: the trust anchor lives at the verifier
+    layer rather than inside the receipt.
+\end{enumerate}
+
+\paragraph{Sub-tier 2$^\star$: log-anchored (defence against mediator rewrite).}
+A Tier~2 receipt gives the receiver evidence that the
+independent boundary attested to a specific state of
+filtering at a specific moment; it does not by itself
+prevent the independent boundary from
+\emph{retrospectively} re-emitting a different receipt
+for the same moment after the fact. Some contexts do not
+fully trust even the mediator: adversarial
+audit, disputes between mediator operator and sender,
+and regulator-driven forensics. For those contexts, AGRP
+defines an optional
+sub-tier in which the mediator commits each receipt to
+an external append-only log (a certificate-transparency
+style Merkle log, an attestation blockchain, a witness
+network) whose inclusion proof is carried in the
+envelope alongside the receipt. Receivers who require
+the sub-tier verify the inclusion proof against the
+log's published root, giving them a receipt the
+mediator cannot rewrite. The append-only-log field is
+optional in the AGRP envelope
+(\S\ref{sec:proposals:agrp:schema}); a future revision
+may promote it to normative for regulated verticals.
+
+\subsubsection{Composition: mapping backends to assurance tiers}
+\label{sec:proposals:agrp:composition}
+
+AGRP composes with three classes of egress-filter
+backend, and each maps cleanly to a tier defined in
+\S\ref{sec:proposals:agrp:tiers}. The mapping, not the
+backend inventory, is what a receiver's ingress policy
+should be written against.
+
+\paragraph{In-process filter (Tier~1).}
+The simplest deployment runs the egress filter inside
+the agent's own process: the runtime calls into a
+filter library, the filter signs the envelope with the
+agent's OWA-bound key, and the envelope is
+transmitted. The threat model is honest about what
+this provides: a compromised agent process can
+forge a clean envelope. That is why the tier
+framing (\S\ref{sec:proposals:agrp:tiers}) locates it
+in Tier~1 rather than describing it as ``weak Tier~2.''
+It is appropriate for \texttt{same\_workspace} traffic
+and for low-sensitivity intra-org \texttt{cross\_workspace}
+traffic; it is not appropriate for \texttt{cross\_org}
+egress or regulated classifications.
+
+\paragraph{Pipelock mediator (Tier~2, mediator path).}
+A Pipelock-style proxy~\cite{pipelock} runs out-of-band
+to the agent process. The agent's egress traffic flows
+through the proxy; the proxy performs the content
+inspection (the enforcement) and emits a signed Action
+Receipt (the evidence). AGRP carries the receipt in its
+\texttt{mediator\_receipt} field; the agent additionally
+signs the outer envelope with its OWA-bound key. Note
+that \texttt{mediator\_receipt} is an AGRP field name,
+not the container Pipelock itself uses on the
+wire.\footnote{Pipelock v3.0.0's own transport encodes
+a Mediation Envelope as an RFC-8941 structured-field
+dictionary carried in a \texttt{Pipelock-Mediation}
+HTTP header (or a \texttt{com.pipelock/mediation} key
+in MCP \texttt{\_meta}), and Pipelock's agent-to-agent
+envelope references a receipt by content digest plus
+\texttt{signer\_key} rather than nesting the receipt
+bytes. AGRP's \texttt{mediator\_receipt} is the carrier
+of the receipt on the AGRP path specifically; the
+Pipelock transport shape is preserved on Pipelock's own
+path.} The receiver verifies both layers independently.
+The agent's signature confirms the named agent endorsed
+the message. The mediator's receipt confirms an
+independent filter actually ran. That receipt is signed
+by a boundary the agent does not control. The receiver
+verifies it against a trusted verifier key obtained
+out-of-band, per the Pipelock verifier's pinning
+discipline~\cite{pipelab_independent_attestation}. This is
+the canonical Tier~2 mediator instantiation and the
+reference point for the tier definition; readers who
+want to reproduce the offline-verification property
+end-to-end can pull a signed receipt and verify it
+in-browser using the Pipelab
+playground~\cite{pipelab_playground}.
+
+\paragraph{SAGA TEE gateway (Tier~2, hardware path).}
+A SAGA-style gateway~\cite{saga2026} runs the filter
+inside a TEE (Intel SGX, AMD SEV-SNP, Apple Secure
+Enclave). The TEE produces a vendor-attested quote that
+the gateway emits as part of the envelope's
+\texttt{tee\_quote} field, and the receiver verifies
+the quote against the TEE vendor's attestation
+infrastructure. That is again a verifier the receiver
+consults independently of the sender. The hardware
+path shares the Tier~2 assurance level with the
+mediator path but shifts the trust root from the
+mediator operator to the TEE vendor, which is the
+right choice for host-operator-untrusted scenarios
+(multi-tenant public infrastructure, adversarial hosting
+environments) even though it is the most operationally
+expensive of the three backends.
+
+\paragraph{Combining backends.}
+The backends compose. An organization that requires
+the strictest posture might deploy a SAGA TEE gateway
+as the outermost AGRP filter, with a Pipelock mediator
+wrapped inside the TEE, with an in-process filter as
+a fallback for \texttt{same\_workspace} traffic.
+Backends may also be combined with the append-only-log
+sub-tier (\S\ref{sec:proposals:agrp:tiers}) to give
+receipts the mediator itself cannot rewrite. AGRP
+specifies the envelope and the tier semantics; the
+backend choice is a deployment decision constrained
+only by the receiver's ingress-policy floor for the
+message's boundary kind and classification tier.
+
+\subsubsection{What AGRP guarantees without a TEE, and when
+a TEE is the right answer}
+\label{sec:proposals:agrp:tee}
+
+The tier definitions above make the TEE one of two Tier~2
+paths. A reader is entitled to ask the sharper question:
+what does AGRP actually guarantee when no TEE is present,
+and what is the case for reaching for one? The
+proof-of-guardrail scheme~\cite{proof_of_guardrail} is the
+right comparator, because it answers the adjacent question
+with hardware and reports what that costs. It runs the agent
+and a named open-source guardrail inside a TEE and emits a
+TEE-signed attestation that the guardrail executed before
+the response was released. A user verifies the attestation
+offline, without contacting the developer. That is a
+per-response execution proof, and it is strictly stronger
+evidence than any signature the sender produces about
+itself.
+
+The comparison is best stated as three claims and who can
+make them.
+
+\begin{description}
+  \item[Tier 1, no TEE, no mediator.] AGRP guarantees the
+    \emph{integrity and attribution of a claim}, not the
+    execution of a filter. A verifying receiver learns four
+    things. It learns which OWA-bound identity signed the
+    envelope. It learns which filter identifier and
+    measurement that identity claims to have run. It learns
+    which spans that identity says it redacted. And it learns
+    that none of this was altered in transit.
+    That is worth having, and it is not enforcement. A
+    sender who never ran the filter can sign the same
+    envelope. What the receiver gains is a
+    \emph{non-repudiable} record. The false claim is signed,
+    attributed, and durable. The failure therefore becomes an
+    accountability question after the fact rather than an
+    invisible one. Tier~1 is therefore appropriate exactly
+    where post-hoc accountability is a sufficient deterrent,
+    which is inside one organization's own trust boundary.
+  \item[Tier 2, mediator path.] AGRP guarantees that a
+    boundary the sender does not control observed the
+    traffic and signed what it saw. The residual trust moves
+    to the mediator operator. This is the right choice when
+    the sender and receiver are different organizations but
+    both accept a common mediator, and it is much cheaper to
+    deploy than hardware attestation.
+  \item[Tier 2, TEE path.] AGRP guarantees that specified
+    code ran on hardware whose measurement the receiver can
+    check against a vendor root. This is the claim
+    proof-of-guardrail makes, and AGRP carries it as one
+    backend rather than re-deriving it.
+\end{description}
+
+\paragraph{When a TEE is the right answer.}
+Three conditions, and we recommend hardware attestation only
+when at least one holds. First, the host operator is
+untrusted: multi-tenant public infrastructure, or a
+counterparty running the agent on infrastructure the
+principal cannot audit. A mediator does not help here if the
+mediator runs on the same untrusted host. Second, the
+receiver's policy floor demands evidence of execution rather
+than a claim, and no mediator is mutually acceptable. That
+is the common case across a competitive boundary. Third, the
+filter's own configuration is the thing at issue. A TEE
+measurement covers the code and its configuration together,
+while a mediator receipt covers only the observed
+output. Absent all three, the mediator path buys the same
+tier at a fraction of the operational cost, and we say so
+rather than recommending hardware by default.
+
+\paragraph{What a TEE does not buy, in AGRP's own terms.}
+The proof-of-guardrail authors are explicit that their
+scheme does not prevent a developer from deliberately
+weakening the guardrail it then faithfully proves it
+ran~\cite{proof_of_guardrail}. AGRP inherits that limit
+exactly, and it is the reason the envelope carries
+\texttt{filter\_measurement} against a receiver-side
+allow-list rather than treating any attested filter as
+acceptable. Attestation answers ``did the named filter
+run?''. It cannot answer ``is that filter adequate?''. The
+allow-list is where the second question is decided, and
+\S\ref{sec:proposals:agrp:open} records that the governance
+of that list is unsolved.
+
+\paragraph{Normalizing receipts across vendors.}
+The practical obstacle to a receiver accepting Tier~2
+evidence is that the evidence is not interchangeable. An
+Intel SGX quote, an AMD SEV-SNP report, an AWS Nitro
+attestation document, and a mediator receipt in the Pipelock
+format~\cite{pipelock} are four different objects. They
+differ in encoding, in signature
+algorithm, in what the trust root is, and in which fields
+carry the measurement. A receiver that hard-codes one of
+them is coupled to a vendor by its ingress policy. AGRP
+therefore treats the vendor-specific artifact as an opaque
+blob inside a thin normalizing wrapper, and specifies the
+wrapper rather than the artifact. The wrapper carries five
+fields. The first is the evidence kind, either
+\texttt{tee\_quote} or \texttt{mediator\_receipt}. The second
+is a vendor and format identifier, which names the
+verification profile to apply. The third is the trust-root
+identifier, which the receiver must already hold out of band.
+The fourth is the measurement value, lifted into a common
+encoding so that allow-list comparison never requires parsing
+the vendor artifact. The fifth is the opaque artifact itself,
+for full verification.
+
+Two rules make the wrapper load-bearing rather than
+decorative. First, a receiver MUST reject evidence whose
+declared measurement disagrees with the measurement inside
+the artifact. That prevents a sender from presenting an
+allow-listed measurement over a different attestation.
+Second, a receiver that holds no verification profile for the
+declared vendor MUST treat the envelope as Tier~1, not as
+Tier~2 with a warning. An unverifiable quote is exactly as
+strong as a self-signed claim. This normalization is
+specified here and unimplemented. The collaboration branch
+of \S\ref{sec:proposals:acsp:pacms} verifies sender
+signatures and measurement allow-lists, but it implements no
+concrete vendor profile. No cross-vendor
+interoperability result is therefore reported. Curating the profile
+registry is the same governance problem as the filter
+allow-list, and belongs in the same venue.
+
+\subsubsection{Threat-model coverage against the 12-class catalogue}
+\label{sec:proposals:agrp:threat}
+
+The 12-threat catalogue of \S\ref{sec:rubric:axis8} and
+\S\ref{sec:security:model} is the natural benchmark for
+AGRP's spec-level coverage. We report AGRP's
+addressed-count informally because the proposals are
+not scored against the rubric
+(\S\ref{sec:proposals}'s opening note).
+
+AGRP \emph{addresses}: agent impersonation (the OWA-bound
+signature in the attestation), message replay (the
+envelope carries a sender-generated nonce in the
+\texttt{filter\_signature}'s scope), message tampering
+(the envelope is signed end-to-end), capability
+escalation (the \texttt{classification.applied\_labels}
+constrains what the receiver accepts), delegation token
+theft (token-bearing fields are flagged
+\texttt{secret:blocked} and rejected at egress),
+registry poisoning (the OWA trust chain authenticates
+the resolution path), audit-log tampering (the
+redaction log is sender-signed, with independent Tier~2
+or log-anchored evidence when receiver policy requires it), and
+cross-agent privilege confusion (the
+\texttt{boundary.kind} field is verified by the
+receiver).
+
+AGRP \emph{partially addresses}: prompt injection
+(content-classification labels can mark a message as
+adversarial-pattern-detected but the filter must run
+before the LLM-receiver processes the content), and
+side-channel privacy (the envelope can encrypt
+metadata fields but the protocol does not specify a
+metadata-privacy primitive normatively at the cutoff).
+
+AGRP \emph{does not address}: side-channel privacy
+specifics beyond metadata-field encryption,
+agentcard supply-chain (which is an OWA concern, not an
+AGRP one), denial-of-service (which is a transport
+concern).
+
+The total is 8 addressed, 2 partial, 2 not-addressed,
+on a 12-class catalogue. The threat-coverage profile
+approaches ACNBP's 10-of-12 (the highest in the
+surveyed set) and substantially exceeds the 1-of-12 that
+A2A, MCP, and ACP each score. The profile is achieved not by
+re-specifying the protocol but by adding the envelope
+extension.
+
+\subsubsection{Open questions and limitations}
+\label{sec:proposals:agrp:open}
+
+\paragraph{Q1: Filter key management.}
+The \texttt{filter\_signature} requires a key tied to
+the agent's OWA URI. The key management discipline
+covers key issuance, rotation, and revocation. It is not
+specified in the AGRP envelope and is deferred to a future
+revision. The natural choice is a binding to the
+organization's DNSSEC-anchored trust chain through the
+OWA \texttt{<org>} segment, but this couples AGRP to
+DNSSEC deployment which not all organizations have.
+
+\paragraph{Q2: Filter approval and allow-list governance.}
+The receiver's allow-list of approved filters is the
+locus of policy decision-making. An organization with
+a single approved filter has a simple allow-list; a
+federation of organizations needs a federated
+allow-list. AGRP does not specify the allow-list
+distribution protocol; the AAIF working group is a
+plausible venue for that work in a future revision.
+
+\paragraph{Q3: Backwards compatibility with non-AGRP A2A clients.}
+An A2A client that does not speak AGRP receives a
+message wrapped in the AGRP envelope and interprets
+the envelope as an extension field it can ignore. The
+\texttt{payload} field carries the unwrapped A2A
+message in the format the client already understands.
+The cost of ignoring AGRP is that the client doesn't
+benefit from the egress-filtering guarantees; the
+cost of \emph{not} ignoring is non-compliance with
+the receiver's ingress policy. The AAIF interoperability
+working group is the natural venue for specifying when
+AGRP becomes a mandatory part of A2A rather than an
+optional extension.
+
+\paragraph{Q4: Filter misclassification, in both
+directions.}
+Every guarantee above is conditional on the filter's
+classifier being right, and no content classifier is right.
+This is the failure mode with the largest practical
+consequence, so we name both directions and say which one
+the design privileges.
+
+A \emph{false negative} is a sensitive span the filter does
+not recognise. The span crosses the boundary, and the
+envelope attests that a filter ran, which is true. The
+receiver, and any auditor reading the log later, sees a
+clean attestation over a leaking message. This is strictly
+worse than no envelope at all in one specific respect: an
+unattested message invites suspicion, and an attested one
+invites trust it has not earned. The design's answer is
+partial and worth stating as partial. The envelope records
+which filter and which version produced the log. A span
+class later found to be missed can therefore be traced to
+every message that filter version signed. That
+converts a silent leak into a bounded, enumerable incident
+after the fact. It does not prevent the leak, and the
+reduced-log discipline of
+\S\ref{sec:proposals:acsp:open} narrows what an
+auditor can reconstruct across an organizational boundary.
+
+A \emph{false positive} is a benign span the filter redacts.
+The cost is task utility, and it is invisible in exactly the
+way the false negative is not. The receiver gets a
+well-formed message with a hole in it. The attestation is
+valid, and nothing indicates that the redaction was wrong.
+Under fail-closed semantics the pressure this creates is
+the dangerous part. An operator whose agents fail often
+enough will loosen the filter. A loosened filter that
+still attests correctly produces exactly the false-negative
+case above. The two failure modes are therefore coupled
+through operator behaviour, and an evaluation that measures
+only one of them will mis-state the risk.
+
+AGRP privileges the false positive deliberately: the
+envelope is fail-closed, and a span the filter cannot
+classify is redacted rather than passed. That is the right
+default for the regulated boundaries the proposal targets.
+It is the wrong default for latency-sensitive or
+utility-sensitive traffic. That is why the tier semantics
+let \texttt{same\_workspace} traffic run at Tier~1 with a
+weaker filter. What the specification does not do is
+quantify either rate. Doing so requires a labelled corpus
+of inter-agent messages with ground-truth sensitive spans,
+and no such corpus exists at the cutoff. Reporting a
+detection rate from an unlabelled corpus would be worse than
+reporting none. Building that corpus is a prerequisite for
+the benchmarking item P11 of
+\S\ref{sec:openproblems:benchmarking}, not a detail of it.
+
+\paragraph{Q5: Performance overhead.}
+The envelope adds a per-message overhead: signature
+computation, fingerprint hashing, and ingress
+verification. The three backend choices
+(\S\ref{sec:proposals:agrp:composition}) span three
+orders of magnitude in expected cost: an in-process
+filter adds roughly the cost of a single signature plus
+the hashes of redacted fields; a proxy-style mediator
+backend (Pipelock~\cite{pipelock} or equivalent) adds a
+network round-trip on top of the in-process work; a TEE
+backend (SAGA~\cite{saga2026} or equivalent) adds the
+vendor-specific attestation overhead, which is typically
+the largest of the three. The envelope itself does not
+specify a target latency budget; AGRP is at
+specification-sketch stage and no benchmarked
+implementation exists at the cutoff. Establishing
+quantitative overhead figures is deferred to the
+benchmarking item P11 of
+\S\ref{sec:openproblems:benchmarking}, which is the
+natural venue for both AGRP and the broader
+rubric-stable benchmark the field needs. One data point from
+the adjacent literature bounds the hardware path. The
+proof-of-guardrail authors report measured latency and
+deployment cost for running an agent and its guardrail
+inside a TEE~\cite{proof_of_guardrail}. That figure is not
+AGRP's, since it measures a different envelope over a
+different workload. It is still the closest published
+estimate of what the Tier~2 hardware path costs.
+
+\subsection{ACSP Context Selection Envelope (Contribution C7)}
+\label{sec:proposals:acsp}
+
+\subsubsection{Problem statement}
+\label{sec:proposals:acsp:problem}
+
+\S\ref{sec:security:privacy} documents that, within the
+coordinator-worker configurations evaluated by AgentLeak,
+conversation-history forwarding is a recurrent
+inter-agent privacy leakage vector: the orchestrator hands
+the remote agent prior context to spare it clarifying
+questions, and the measured cost is that
+\textbf{68.8\%} of inter-agent messages carry
+unauthorised sensitive content under the benchmark's
+ground-truth policy, with output-only audits
+missing \textbf{41.7\%} of those violations
+(AgentLeak~\cite{agentleak}). The contextual-integrity
+framing of \S\ref{sec:security:privacy} isolates the root
+cause: the message boundary is no longer the trust
+boundary. The protocol implication
+\S\ref{sec:security:privacy} leaves open is whether the
+contextual-integrity primitive belongs at the protocol
+layer or at the orchestrator's policy layer.
+
+AGRP (Contribution C6, \S\ref{sec:proposals:agrp})
+addresses one half of the gap by redacting spans within
+forwarded content and attesting that the egress filter
+ran. Span redaction, however, operates on what has
+\emph{already been chosen} to forward; it cannot prevent
+a sender from forwarding an irrelevant item, including an
+item whose sensitive semantics are not captured by the
+configured span detector. The remaining gap is the
+\emph{selection} step that decides which items from the
+sender's context pool are appropriate to cross the
+boundary at all. Common implementations use recency
+truncation (drop oldest items first) or top-k cosine
+retrieval. Recency is not query-anchored; neither baseline
+jointly models token cost, coverage, boundary policy, and
+disclosure risk; and neither leaves a wire-level decision
+record the receiver can audit.
+
+ACSP (Contribution C7) is the protocol-layer answer to
+the selection half of the contextual-integrity question.
+The envelope carries the selection policy the sender
+claims to have applied, the declared candidate log and
+each disposition, and an attestation chain. A receiver can
+authenticate the claim and check observable invariants
+(cardinality, hard-gate decisions, mandatory conflicts,
+and budgets). The envelope alone cannot prove that the
+sender disclosed its complete pre-selection pool, executed
+the claimed objective, or found an optimal set. The
+reference implementation
+(\S\ref{sec:proposals:acsp:pacms}) is the PACMS context
+engine~\cite{pacms_cikm_demo}.
+
+\subsubsection{Related work and differentiation}
+\label{sec:proposals:acsp:related}
+
+Table~\ref{tab:acsp-differentiation} compares ACSP
+against eight prior systems and benchmarks in the
+context-selection space.
+
+\begin{table*}[t]
+  \centering
+  \caption{ACSP differentiation matrix. Among the eight
+    comparators reviewed here, none is documented as
+    simultaneously providing all four of
+    query-anchored selection, budget-bounded selection
+    with a declared solver, a wire-level
+    audit log on the selection, and a boundary-keyed
+    selection policy derived normatively from the
+    sender-recipient naming.}
+  \label{tab:acsp-differentiation}
+  \footnotesize
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{p{2.7cm}p{2.6cm}ccccc p{2.6cm}}
+    \toprule
+    Prior work & Mechanism & Query-anchored? & Budget-bounded solver? & Wire-level audit log? & Boundary-keyed? & Guarantee status & ACSP improvement \\
+    \midrule
+    Recency / last-k truncation
+      & drop-oldest
+      & no & no & no & no & n/a
+      & topic-blind baseline; collapses under paraphrase redundancy \\
+    Top-k cosine retrieval
+      & pairwise similarity
+      & yes & no & no & no & n/a
+      & adds budget-bounded coverage and diversification \\
+    MMR~\cite{mmr_carbonell}
+      & pairwise penalty
+      & yes & no & no & no & heuristic
+      & coverage objective; explicit solver and wire-level envelope \\
+    LangChain LC-MMR
+      & production MMR
+      & yes & no & no & no & heuristic
+      & same gap as MMR; LangChain has no wire envelope \\
+    BGE / cross-encoder rerankers
+      & learned scoring
+      & yes & no & no & no & learned
+      & no budget primitive, no audit, no attestation \\
+    RAG with budget caps
+      & retrieve and truncate
+      & partial & partial & no & no & n/a
+      & principled selection inside the budget instead of cap-truncation \\
+    Pipelock~\cite{pipelock}
+      & egress proxy, span redaction
+      & no (spans) & no & yes (receipt) & no & n/a
+      & operates on items, not spans; complementary, not competing \\
+    NeMo Guardrails
+      & programmable rails
+      & no & no & no & no & n/a
+      & wire-level instead of orchestrator-level \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table*}
+
+Within the eight comparators and sources reviewed for the
+matrix, the four properties of ACSP, namely
+query-anchored selection, budget-bounded selection with a
+declared solver, a wire-level audit log,
+and a boundary-keyed policy derived from OWA naming,
+appear individually but are not documented jointly. This
+is a bounded comparison, not a claim that no other system
+or later version has the combination. The four-property
+argument is intentionally narrower than the
+five-property argument used for OWA
+(\S\ref{sec:proposals:owa}) and the seven-property
+argument used for AGRP
+(\S\ref{sec:proposals:agrp:related}); the co-design
+property is deferred to \S\ref{sec:proposals:codesign} so
+it is not double-counted.
+
+Three cells of the table carry the argument most heavily.
+
+\paragraph{MMR is the closest precedent and the sharpest contrast.}
+The Maximal Marginal Relevance
+algorithm~\cite{mmr_carbonell} is the closest precedent
+in this comparison and is widely used in
+retrieval-augmented systems. The contrast is
+sharp on three axes. First, MMR's objective is
+\emph{pairwise}: it maximises a tradeoff between query
+relevance and pairwise dissimilarity from the
+already-selected set. ACSP's reference objective is
+\emph{facility-location coverage}, which sums over all
+candidate items. The objective is monotone submodular, but
+a constant-factor claim for a token-knapsack implementation
+depends on the exact algorithm and assumptions; the
+wire-level record does not establish that proof. Second, MMR's
+\(\lambda\) parameter is heuristic; ACSP's budget is a
+token knapsack with a principled solver. Third, MMR is a
+library function; ACSP is a wire envelope. The receiver
+does not see what MMR considered or rejected; the
+receiver sees the ACSP selection log as a matter of
+normative specification.
+
+\paragraph{Pipelock is complementary, not competing.}
+Pipelock~\cite{pipelock} is the deployment-layer state of
+the art for content redaction at egress, and the same
+prior work AGRP positions as complementary
+(\S\ref{sec:proposals:agrp:composition}). Pipelock and
+ACSP operate on \emph{different units}: ACSP selects
+\emph{items} (candidate turns, memories, tool outputs)
+that may enter the forwarded context; Pipelock and AGRP
+redact \emph{spans} (matched patterns within selected
+text). The two are sequential, not substitutive: ACSP
+narrows the candidate set; AGRP / Pipelock cleans the
+spans that remain in the items ACSP kept. Together with
+OWA's boundary detection, the three compose into the
+triplet of \S\ref{sec:proposals:codesign}.
+
+\paragraph{NeMo Guardrails sits at the wrong layer.}
+NeMo Guardrails is the most-developed
+orchestrator-layer programmable-rails system. The
+orchestrator declares allow/deny rules against the
+conversational state and NeMo enforces them inside the
+orchestrator process. \S\ref{sec:security:privacy} calls
+out the orchestrator-versus-protocol dispatch
+explicitly: NeMo represents the orchestrator side of
+that dispatch. ACSP is the protocol-side counterpart.
+The two are not in conflict. A NeMo-equipped
+orchestrator can emit ACSP envelopes as part of its
+outgoing-message rule. But the question of which
+layer the primitive \emph{normatively} belongs at is
+what \S\ref{sec:security:privacy} leaves open, and ACSP
+is the survey's protocol-layer answer.
+
+\subsubsection{The ACSP envelope: schema and semantics}
+\label{sec:proposals:acsp:envelope}
+
+The ACSP envelope is a JSON-shaped block sibling to AGRP
+inside the A2A message wrapper. The sender produces ACSP
+before running AGRP over the kept items. The receiver
+verifies AGRP first and then ACSP, as specified in
+\S\ref{sec:proposals:acsp:composition}; it processes no
+payload until both required checks succeed.
+
+\begin{verbatim}
+{
+  "acsp_version": "1.0",
+
+  "sender":    "agent+owa://acme.com/w/finance/c/billing/a/agent-01",
+  "recipient": "agent+owa://acme.com/w/support/c/chat/a/agent-02",
+
+  "boundary": {
+    "kind": "cross_workspace"
+  },
+
+  "selection_policy": {
+    "policy_id":           "acme/finance.context.v2",
+    "objective":           "submodular_facility_location",
+    "budget_tokens":       3800,
+    "risk_budget":         1.25,
+    "risk_weight":         0.50,
+    "mandatory_set_kind":  "plan_edges",
+    "hard_gate":           "credential-egress-v1"
+  },
+
+  "selection_log": {
+    "pool_size":      2,
+    "selected":       1,
+    "dropped":        0,
+    "hard_blocked":   1,
+    "dropped_tokens": 38,
+    "commitment_scheme": "HMAC-SHA-256",
+    "commitment_status": "present",
+    "commitment_key_id": "acme-context-key-2026q3",
+    "commitment_nonce": "4f7c...32-hex-chars...",
+    "declared_pool_commitment": "hmac-sha256:a123...",
+    "candidates": [
+      { "index": 0, "candidate_ref": "candidate-0000",
+        "kind": "tool_output", "classification": "internal",
+        "tokens": 142, "mandatory": false,
+        "selected": true, "decision": "selected",
+        "risk_score": 0.08,
+        "commitment": "hmac-sha256:9d3f..." },
+      { "index": 1, "candidate_ref": "candidate-0001",
+        "kind": "user_message", "classification": "restricted",
+        "tokens": 38, "mandatory": false,
+        "selected": false, "decision": "hard_blocked",
+        "risk_score": 1.00,
+        "commitment": "hmac-sha256:c41a..." }
+    ]
+  },
+
+  "attestation": {
+    "selector_id":          "pacms-v0.1.0",
+    "selector_measurement": "sha256:6ec4...64-hex-chars...",
+    "signing_key_id":       "owa-key-2026q3",
+    "assurance_tier":       1,
+    "evidence_status":      "self_attested_claim",
+    "selector_signature":   "ed25519:base64url...",
+    "mediator_receipt":     "... optional ...",
+    "tee_quote":            "... optional ..."
+  },
+
+  "payload": { /* A2A message carrying only the selected items */ }
+}
+\end{verbatim}
+
+The fields carry the following semantics. The
+\texttt{sender} and \texttt{recipient} fields are OWA
+URIs (Contribution C5). The \texttt{boundary.kind} field
+is derived by prefix comparison of the sender and
+recipient URIs, identical to AGRP's procedure
+(\S\ref{sec:proposals:agrp:boundary}); the same boundary
+detection routine serves both envelopes.
+
+The \texttt{selection\_policy} block declares the
+selection contract the sender claims to have honoured.
+The \texttt{objective} field is an enum of admissible
+optimisation objectives; the protocol specifies the enum,
+not the implementation. At the 2026-Q1 cutoff the enum
+contains \texttt{submodular\_\allowbreak{}facility\_\allowbreak{}location} (the
+PACMS reference; coverage maximisation under a token
+knapsack),
+\texttt{mmr\_lambda} (MMR with declared
+\(\lambda\); heuristic, no approximation guarantee), and
+\texttt{topk\_cosine} (no diversification). The
+\texttt{budget\_tokens} field is the token knapsack
+budget. The \texttt{mandatory\_set\_kind} field declares
+how the sender derived the items the selector was not
+permitted to drop. Its values are \texttt{plan\_edges}
+(items the sender's plan declared task-critical),
+\texttt{system\_prompt}, \texttt{user\_pinned} (items the
+user marked must-include), and \texttt{none}.
+
+The \texttt{selection\_log} is the operationally
+consequential field. The \texttt{pool\_size} declares the
+candidate count the selector saw; \texttt{selected},
+\texttt{dropped}, and \texttt{hard\_blocked} declare the
+three decision counts; \texttt{dropped\_tokens} is the gross
+token volume the selector did not select. The
+\texttt{candidates} array records each candidate's index,
+kind (\texttt{user\_message}, \texttt{assistant\_message},
+\texttt{memory}, \texttt{tool\_output}), classification,
+token count, mandatory flag, decision
+(\texttt{selected}, \texttt{dropped},
+or \texttt{hard\_blocked}), optional utility score, risk
+score, and a keyed HMAC commitment. A bare content hash is
+insufficient: low-entropy candidate text is vulnerable to
+dictionary recovery. The \texttt{commitment\_key\_id}
+selects a key provisioned to an authorised verifier by an
+out-of-band mechanism; ACSP~1.0 does not define key
+negotiation. The \texttt{commitment\_nonce} is fresh for
+each envelope and is included in the HMAC input to prevent
+replay of an otherwise valid commitment. If no key is
+configured, the implementation records
+\texttt{key\_not\_configured} and omits the commitment
+rather than silently emitting an unkeyed hash. The
+per-candidate commitment binds candidate content, index,
+and kind. The declared-pool commitment additionally binds
+those commitments, candidate decision metadata, and policy
+context. Together they make those declared fields
+tamper-evident to a verifier holding the key; they do not
+prove that the selector optimised the declared objective or
+that the sender disclosed its complete pre-selection pool.
+AgentLeak's empirical
+finding that output-only audits miss 41.7\% of violations~\cite{agentleak}
+motivates evidence beyond final output; it does not by
+itself establish that the absence of a selection envelope
+caused those missed violations.
+
+The \texttt{attestation} block records the sender's signed
+selection claim and optional independent evidence that the
+selector ran. The \texttt{selector\_id} and
+\texttt{selector\_measurement} identify the claimed
+selector binary; the \texttt{selector\_signature} is
+signed by the sender's OWA-bound key. That signature alone
+is Tier~1 self-attestation: it authenticates the claim but
+does not prove execution. The optional
+\texttt{mediator\_receipt} and \texttt{tee\_quote} fields
+reuse AGRP's Tier~2 independence and verification rules
+(\S\ref{sec:proposals:agrp:tiers}). This parallel is
+deliberate: a receiver that verifies AGRP envelopes can
+reuse the same trust roots and cryptographic infrastructure
+for ACSP envelopes.
+
+The receiver's verification procedure on an inbound ACSP
+envelope, \emph{fail-closed} on any mismatch, comprises
+eight checks:
+
+\begin{enumerate}
+  \item Verify the \texttt{selector\_signature} against
+    the sender's OWA-bound public key. If invalid, fail
+    closed.
+  \item Check the \texttt{selector\_measurement} against
+    the receiver's allow-list of approved selectors for
+    the boundary kind. If the selector is not on the
+    allow-list, fail closed.
+  \item Determine and verify the attestation tier using
+    AGRP's independence rules. If receiver policy requires
+    Tier~2, validate the mediator receipt or TEE quote
+    against a trust root provisioned out of band; a
+    sender-only signature MUST NOT satisfy that policy.
+  \item Cross-check the cardinality of the
+    \texttt{selection\_log}: the count of
+    \texttt{selected}, \texttt{dropped}, and
+    \texttt{hard\_blocked} candidates must equal
+    \texttt{pool\_size}. If not, fail closed.
+  \item Validate the budget: the sum of \texttt{tokens}
+    over the \texttt{selected} candidates must not exceed
+    \texttt{budget\_tokens}. If exceeded, fail closed.
+  \item Apply the receiver's ingress policy to the
+    \texttt{mandatory\_set\_kind} field and per-candidate
+    \texttt{mandatory} flags. Every declared mandatory
+    candidate must have decision \texttt{selected}; a
+    mandatory candidate marked \texttt{dropped} or
+    \texttt{hard\_blocked} is a
+    fail-closed conflict. Proving that the sender omitted no
+    mandatory candidate requires an independently anchored
+    mandatory-set manifest and is outside envelope-only
+    verification.
+  \item Verify keyed candidate commitments when the
+    boundary policy requires them. A receiver that lacks
+    the verification key records the check as unavailable;
+    it MUST NOT treat an unkeyed hash as equivalent.
+  \item Check per-objective invariants that are observable
+    from the envelope (hard-gate exclusions, token and risk
+    budgets, and mandatory-set conflicts). Recomputing
+    optimality or an approximation ratio requires the full
+    candidate pool, scoring model, and solver configuration
+    and is outside envelope-only verification.
+\end{enumerate}
+
+Fail-closed is normative: an ACSP-aware receiver MUST
+refuse to process the payload if any of the eight
+verification steps fail. A receiver that downgrades to
+``process anyway with a warning'' breaks the protocol's
+guarantees, and SHOULD be flagged non-compliant by an
+ACSP conformance test suite.
+
+\subsubsection{Security-gated selection and four-channel evaluation}
+\label{sec:proposals:acsp:security-eval}
+
+The ACSP envelope makes the selection decision visible,
+but visibility alone does not make the decision safe. We
+therefore add a security-gating profile that separates
+\emph{non-negotiable constraints} from \emph{graded risk}.
+This distinction avoids two opposite errors: allowing a
+high-utility credential because its relevance score is
+large, and blocking every benign discussion that contains
+the word ``password.''
+
+\paragraph{Hard and soft gating.}
+Let $V$ be the candidate pool, $c_i$ the token cost of
+candidate $i$, $F_q(S)$ the query-conditioned PACMS
+coverage utility, $H_b(i)$ an allow/deny hard-policy
+decision for boundary $b$, and $r_b(i) \in [0,1]$ a soft
+risk score. The security-aware selection problem is
+
+\begin{equation}
+  \max_{S \subseteq V}
+    F_q(S) - \lambda_r \sum_{i \in S} r_b(i)
+  \quad \text{s.t.} \quad
+    \sum_{i \in S} c_i \leq B,\quad
+    \sum_{i \in S} r_b(i) \leq R,\quad
+    H_b(i)=\mathrm{allow}\;\forall i\in S.
+  \label{eq:acsp-security-selection}
+\end{equation}
+
+In the envelope, the \texttt{risk\_budget} field in
+\texttt{selection\_policy} instantiates $R$, while its
+\texttt{risk\_weight} field instantiates $\lambda_r$.
+
+The prompt has its own hard decision $H_b(q)$. If
+$H_b(q)=\mathrm{deny}$, the request is rejected before selection. A
+candidate for which $H_b(i)=\mathrm{deny}$ is excluded even if the
+orchestrator marked it mandatory: mandatory status cannot
+override a confidentiality policy. The current PACMS
+prototype realises Equation~\ref{eq:acsp-security-selection}
+as a risk penalty on marginal utility plus independent
+token and cumulative-risk feasibility checks. We describe
+this as a solver implementation, not as a new approximation
+guarantee.
+
+The deterministic first tier hard-blocks explicit
+credential-exfiltration intent, assigned credential values,
+and private-key material. Credential topics and email
+addresses contribute soft risk. A benign request about key
+rotation is therefore scored but not rejected unless a
+deployment explicitly chooses a keyword-only policy. These
+rules are auditable and reproducible, but intentionally
+incomplete: paraphrase, multilingual intent, encoded
+secrets, and domain-specific privacy semantics require
+additional detectors and red-team evaluation. The policy
+interface accepts their scores without coupling the
+selector to one detector implementation.
+
+\paragraph{Lifecycle stages and disclosure channels.}
+Selection-time controls see the request and candidate pool;
+they do not observe every later disclosure. The model and
+operational runtime can disclose an item that was safely
+selected, transform it into a newly sensitive value, or
+leak it through a fallback. The evaluation therefore uses
+a two-dimensional model. Lifecycle stages are input,
+candidate-pool construction, selection, execution, and
+output. AgentLeak channels describe where data is observed:
+\texttt{user\_input} and \texttt{tool\_response} are
+sources, while the four channels of
+Table~\ref{tab:acsp-four-channel} are the core disclosure
+frame.
+
+\begin{table}[t]
+  \centering
+  \caption{Core disclosure channels for ACSP security
+    evaluation. A channel
+    marked not observed is missing evidence, not a clean
+    result.}
+  \label{tab:acsp-four-channel}
+  \footnotesize
+  \begin{tabular}{p{3.0cm}p{3.0cm}p{4.2cm}}
+    \toprule
+    Disclosure surface & AgentLeak channel & Question \\
+    \midrule
+    Agent handoff & \texttt{inter\_agent\_message} & Did a selected item reach another agent across the declared boundary? \\
+    Persistent context & \texttt{shared\_memory} & Was a selected or generated sensitive item persisted for later agents or turns? \\
+    Tool arguments & \texttt{tool\_call} & Did sensitive content enter an invocation payload or external action? \\
+    User-facing answer & \texttt{final\_output} & Did selected or newly generated sensitive content reach the principal? \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The \texttt{log} and \texttt{generated\_file} channels are
+additional operational surfaces when the runtime exposes
+them. The selection API emits a content-free decision
+record for the input and candidate pool, not an AgentLeak
+channel verdict. A later trace join links each selected
+\texttt{candidate\_ref} to zero or more disclosure-channel
+findings. This status discipline prevents an unavailable
+detector or absent trace from being counted as a
+non-disclosure.
+
+\paragraph{Benchmark protocol and metrics.}
+The post-cutoff collaboration artefact includes a
+deterministic feasibility harness with controlled canaries,
+fixed embeddings, the real PACMS selector, and the real
+AgentLeak trace analyser. It exercises the four core
+disclosure channels plus the \texttt{log} and
+\texttt{generated\_file} paths. Its deterministic
+forced channel-injection simulator is deliberately not an
+LLM and does not model runtime causality. It validates the measurement path with three
+arms: no controls, hard gating only, and hard plus soft
+gating. The generated report carries the evidence label
+\texttt{synthetic\_harness\_validation} and contains no raw
+canary values. It MUST NOT be interpreted as evidence of
+PACMS security effectiveness, LLM utility, OpenClaw
+fidelity, or a Nasiko deployment.
+
+The empirical study will replace the forced channel-injection simulator with a
+version-locked reader and will cross the security arms with
+PACMS, top-k, last-k, MMR, and fixed-$N$ RAG. For each
+scenario and seed it reports, separately:
+
+\begin{enumerate}
+  \item required-context recall and end-task utility;
+  \item unauthorised-sensitive keep rate at selection;
+  \item disclosure incidence and severity by observed
+    channel;
+  \item malicious-request block rate and benign-request
+    false-positive rate;
+  \item selected tokens, latency, and cumulative risk;
+  \item fail-closed versus explicitly configured fail-open
+    behavior under sidecar and logging faults.
+\end{enumerate}
+
+AgentRisk is not yet published as an independent method.
+Its global, per-channel, and level-profile values may be
+retained under an explicitly labelled exploratory field,
+but they are not cited or used as primary evidence in this
+study. Primary disclosure and utility metrics are defined
+directly in the protocol above.
+
+No single scalar combines these outcomes. In particular, a
+privacy improvement does not compensate for unusable task
+performance, and a utility improvement does not compensate
+for a hard-policy violation. Effect estimates are paired by
+scenario and seed with confidence intervals. A preregistered
+capture-completeness rule marks incomplete observations
+\texttt{not\_observed}, excludes them from the primary
+estimator, and reports missingness plus conservative
+sensitivity analyses. Captured selector or runtime failures
+remain in the intention-to-test denominator.
+
+\paragraph{Integration with the survey rubric.}
+Axis~8 remains the count of threats addressed at the
+\emph{specification} level. A PACMS deployment test must not
+increase a protocol's Axis~8 count. The four-channel record
+is instead an empirical companion to three catalogue items:
+side-channel privacy leakage (Threat~6), foundation-model
+prompt injection (Threat~10), and audit-trail tampering or
+omission (Threat~11). Each benchmark record binds the threat
+identifier, boundary, policy version, selector version,
+experimental arm, and evidence status. This lets the
+rubric-based comparison distinguish ``the specification
+addresses the threat'' from ``this implementation resisted
+these controlled cases.''
+
+\paragraph{Implementation boundary.}
+\begin{itemize}
+  \item \textbf{Implemented.} The collaboration branch
+    implements deterministic hard and soft assessments,
+    token and risk constraints, MMR parity, nonce-bound
+    content-free HMAC candidate and declared-pool
+    commitments, a portable logger with explicit
+    audit-failure behavior, a content-free OTLP selection
+    lineage exporter, and the synthetic PACMS/AgentLeak
+    harness. Its OpenClaw plugin is version-pinned,
+    configuration-validated, timeout-bounded, buildable, and
+    fail-closed by default. The branch also contains a Nasiko
+    adapter on both production history-assembly paths; it is
+    disabled when no PACMS URL is configured, uses the same
+    explicit failure modes, ignores selector-returned text in
+    favour of local messages, and emits content-free
+    selection spans. A shared RFC~8785/Ed25519 profile signs
+    complete ACSP and AGRP envelopes and verifies sender
+    signatures, measurement allow-lists, declared tiers, and
+    observable ACSP invariants. Its default is explicitly
+    Tier~1 self-attestation.
+
+  \item \textbf{Tested.} Unit, HTTP-contract, TypeScript,
+    mocked lifecycle, Rust adapter, cryptographic, and
+    synthetic integration checks exercise the stated paths.
+    A real pinned OpenClaw Gateway smoke loads the plugin as
+    the active context engine and passes authenticated
+    health. It performs no model call and is therefore not
+    an end-to-end fidelity or effectiveness result. Nasiko
+    unit tests exercise configuration, HTTP contract,
+    response validation, and fallback semantics; no deployed
+    Nasiko experiment is reported.
+
+  \item \textbf{Still gated.} A Tier~2 result requires a
+    caller-supplied independent evidence verifier; the branch
+    does not implement a concrete mediator-receipt or TEE
+    vendor verifier, OWA key discovery, automatic sidecar
+    envelope emission, or remote attestation. A
+    version-locked model run, deployed Nasiko run, and fresh
+    LongMemEval/security evaluation remain gates before any
+    effectiveness claim.
+\end{itemize}
+
+\subsubsection{Composition with OWA and AGRP}
+\label{sec:proposals:acsp:composition}
+
+ACSP composes \emph{upstream} of AGRP. The processing
+pipeline at the sender is:
+
+\begin{enumerate}
+  \item OWA's boundary detection
+    (\S\ref{sec:proposals:agrp:boundary}) classifies the
+    sender-recipient pair as \texttt{same\_workspace},
+    \texttt{cross\_workspace}, or \texttt{cross\_org}.
+  \item The sender's selection-policy table maps the
+    boundary kind to an ACSP policy (objective, budget,
+    mandatory-set kind).
+  \item The selector runs over the candidate pool and
+    emits the ACSP envelope's selection log.
+  \item AGRP's egress filter runs over the items ACSP
+    kept and emits the AGRP envelope's redaction log.
+  \item Both envelopes are bound to the same OWA-rooted
+    identity and travel with the A2A message.
+\end{enumerate}
+
+The receiver verifies in reverse order: AGRP first (was
+the egress filter run on what arrived?), then ACSP (was
+the selection that produced the arriving items
+consistent with the declared policy?), then the payload
+itself. The two envelopes are normatively independent:
+an A2A message can carry AGRP without ACSP or vice
+versa. But \S\ref{sec:proposals:codesign} argues that
+the deployment posture that closes the
+contextual-integrity loop is the one carrying both
+together with OWA.
+
+\subsubsection{Reference implementation: PACMS}
+\label{sec:proposals:acsp:pacms}
+
+The PACMS system~\cite{pacms_cikm_demo} is an operational context
+selector that instantiates part of the contract ACSP
+specifies. PACMS formulates context selection as
+budget-constrained submodular maximisation of a
+facility-location coverage objective, solved by a CELF
+lazy-greedy procedure. The paper associates the objective
+with the classical submodular guarantee; the present survey
+does not independently prove that the specific
+token-knapsack implementation satisfies all conditions
+required for that bound. The mandatory-set abstraction
+(\emph{plan edges}) maps directly to the
+\texttt{mandatory\_set\_kind} field of the ACSP envelope's
+selection policy.
+
+PACMS is packaged as a FastAPI sidecar that exposes a
+\texttt{POST /select} endpoint. The post-cutoff
+collaboration branch adds risk inputs and a content-free
+decision ledger, bringing the request and response closer
+to ACSP's \texttt{selection\_policy} and
+\texttt{selection\_log} fields. A separate module implements
+the Tier~1 ACSP/AGRP signer and core receiver verifier, but
+the \texttt{/select} endpoint does not yet emit a complete
+signed ACSP wire envelope. Concrete Tier~2 evidence
+verification, OWA key discovery and boundary derivation,
+and receiver deployment remain unimplemented; PACMS
+therefore remains a reference selector plus a partial
+conformance profile, not a complete ACSP deployment.
+
+PACMS reports a LongMemEval evaluation of retrieval and
+downstream QA~\cite{pacms_cikm_demo}. During the
+collaboration audit, the PDF, adjacent TeX source, and
+runner were found to encode non-identical protocol details
+(including strategy support, model configuration, and
+redundancy injection). A canonical configuration and a
+fresh reproduction are therefore required before this
+survey reuses any numerical result. The security subsection
+reports no LongMemEval or model result.
+
+The audited OpenClaw prototype originally failed open when
+the sidecar was unreachable. The collaboration branch now
+defaults to \emph{fail-closed}: no historical context is
+forwarded when selection fails. An operator can explicitly
+choose an availability-first fail-open mode, which the
+benchmark treats as a distinct experimental condition.
+The ACSP envelope specification likewise requires
+\emph{fail-closed at the receiver}
+because a verifiable wire-layer primitive whose absence
+is interpreted as ``no selection happened'' would amount
+to a forwarding-by-default policy at exactly the layer
+\S\ref{sec:security:privacy} identifies as the leakage
+vector. Sender fallback and receiver verification remain
+separate decisions, but neither is silently inferred.
+
+\subsubsection{Open questions and limitations}
+\label{sec:proposals:acsp:open}
+
+Four open questions warrant explicit treatment.
+
+\paragraph{Q1: Selector-binary approval governance.}
+ACSP's receiver verification (step 2) requires the
+receiver to maintain an allow-list of acceptable
+selector binaries by \texttt{selector\_measurement}.
+Within a single organisation this is tractable. Across
+an inter-organisational boundary it requires either
+(a)~an industry-curated allow-list maintained by the
+AAIF or W3C working groups, or (b)~a federation pattern
+in which each organisation publishes its acceptable
+measurement set through a DNS-rooted manifest the
+receiver can discover. Neither pattern is specified at
+the cutoff, and the choice between them is the same
+governance question OWA leaves open for inter-org trust
+anchoring (\S\ref{sec:proposals:owa}).
+
+\paragraph{Q2: Objective enum extensibility.}
+The \texttt{objective} enum at the cutoff is small
+(\texttt{submodular\_\allowbreak{}facility\_\allowbreak{}location},
+\texttt{mmr\_lambda}, \texttt{topk\_cosine}). A new
+admissible objective requires a spec revision; the
+working-groups path (AAIF / W3C) is the natural venue.
+The open question is whether the spec should additionally
+reserve a prefixed namespace for organisation-specific
+objectives
+(\texttt{x-acme/learned-reranker-v3}) that a receiver
+can opt to accept. The trade-off is between
+extensibility at deployment time and the cross-vendor
+verifiability the spec aims to provide.
+
+\paragraph{Q3: The selection log discloses candidate-set
+membership, which is a privacy cost of the design.}
+The envelope's central claim is that a receiver can check a
+selection it did not perform. That check requires the
+receiver to learn something about items the sender chose not
+to send, and this is a real disclosure, not an artefact of a
+sloppy schema. It should be stated as a cost of the design
+rather than left for a reader to notice.
+
+Concretely, an ACSP envelope tells the receiver at least
+four things about the withheld items. It says how many there
+were (\texttt{pool\_size} minus \texttt{selected}). It says
+what kind each was (\texttt{user\_message}, \texttt{memory},
+\texttt{tool\_output}). It says what classification band the
+sender assigned it, and how many tokens it occupied. It also
+says which were \texttt{hard\_blocked} rather than merely
+\texttt{dropped}. That is the most informative field of the
+set, because a hard block announces that the sender held an
+item its own policy marks as credential-bearing or regulated.
+Three attacks follow. A receiver can \emph{probe}. By varying
+its request and watching \texttt{pool\_size} and the
+classification histogram move, it learns which topics cause
+the sender's pool to contain restricted material. It can
+\emph{fingerprint}. Token counts plus kinds plus ordering
+form a distinguishing signature. A receiver that sees the
+same sender repeatedly can then tell whether a particular
+sensitive item is still in the pool from one session to the
+next. And it can \emph{confirm}. Given an external guess
+about a specific item, a matching token count and
+classification raises confidence in the guess considerably,
+even though the content itself never crossed.
+
+None of this is fixed by the keyed commitments. Those
+protect integrity of the declared record, and the leakage
+here is in the metadata the record is supposed to declare.
+The tension is structural: verifiability of an omission and
+confidentiality of what was omitted pull in opposite
+directions, and the envelope as specified resolves that
+tension toward verifiability.
+
+ACSP~1.0 therefore specifies the leakage as
+boundary-conditional rather than pretending it away. The
+full per-candidate array is permitted for
+\texttt{same\_workspace} traffic. For
+\texttt{cross\_workspace} and \texttt{cross\_org}
+boundaries, the sender MAY emit a \emph{reduced log}. It
+keeps only the fields the receiver's checks actually need:
+the cardinality counts, the aggregate
+selected-token total against the budget, the mandatory-set
+conflict flag, and the declared-pool commitment. It omits
+per-candidate kinds, classifications, and token counts.
+Every check of \S\ref{sec:proposals:acsp:envelope} except
+the per-candidate commitment verification survives that
+reduction, because those checks are aggregate. The
+per-candidate commitments remain available to an auditor
+holding the key, out of band, which is the party that
+actually needs them.
+
+Three limits on this mitigation, stated plainly. The reduced
+log still discloses cardinality, and cardinality alone
+supports the probing attack in weakened form. We have not
+quantified the residual leakage. Doing so needs a defined
+adversary and a measured experiment, and no such experiment
+is reported here. And a receiver that requires the full log
+before it will trust a sender can force the disclosure by
+policy, so the choice is not entirely the sender's. A
+privacy-preserving proof of the aggregate counts would let
+the receiver check cardinality without learning it. Whether
+that is the right answer is open, and it is the most
+interesting open question the envelope raises.
+
+\paragraph{Q4: Cross-org embedding-model agreement.}
+A receiver cannot independently recompute selection
+scores if the sender's embedding model is private or
+proprietary. The keyed-commitment discipline is the fallback:
+the receiver verifies that the selection log is
+internally consistent with the declared scores and that
+mandatory items are present, but does not re-run the
+selector. Whether this is sufficient for high-assurance
+deployments (regulated finance, clinical multi-agent
+systems) or whether the spec should additionally require
+a \texttt{model\_attestation} field analogous to AGRP's
+\texttt{filter\_measurement} remains open. The trade-off
+is between independent verifiability and IP protection
+of the sender's embedding model.
+
+ACSP, like OWA and AGRP, is at specification-sketch
+stage at the 2026-Q1 cutoff: the PACMS reference
+implementation exists, but no inter-organisational
+deployment has been benchmarked end-to-end. The
+benchmarking item P11 of
+\S\ref{sec:openproblems:benchmarking} is the natural
+venue for both ACSP and the broader triplet of
+\S\ref{sec:proposals:codesign}.
+
+\subsection{Why C5, C6, and C7 are co-designed}
+\label{sec:proposals:codesign}
+
+The closing observation of \S\ref{sec:proposals} is that
+the three proposals are co-designed. They specify a
+single load-bearing operation, \emph{naming, selection,
+attestation}, at three layers of one loop. And no single
+piece preserves the invariant the triplet
+preserves.
+
+OWA without ACSP and AGRP gives an inter-agent naming
+scheme with a workspace tier but no protocol-layer
+enforcement of the policy boundaries the workspace
+identifies. The naming improvement is real (the
+workspace tier is absent from \texttt{agent://}, ANS,
+A2A, and DIDs) but the practical adoption case is weaker.
+An organisation that wants per-workspace policy must
+implement both \emph{which items cross} and \emph{which
+spans are cleaned} at the deployment layer. That is
+where the contemporary protocols already leave them.
+
+ACSP without OWA and AGRP gives a query-anchored,
+budget-bounded selection envelope with a verifiable
+selection log, but no normative way to derive what
+policy the selection should apply (the boundary kind
+that keys the policy is OWA-derived) and no companion
+span-level cleaning of the items it kept. The envelope
+would either specify its own boundary notion (duplicating
+OWA) or accept span-level leakage in the items it
+forwarded (re-opening the gap
+\S\ref{sec:security:privacy} documents).
+
+AGRP without OWA and ACSP gives a span-level redaction
+envelope with attestation, but no way to derive the
+boundary kind (OWA's role) and no way to minimise the
+items forwarded in the first place (ACSP's role). Span
+redaction handles the \emph{a selected item carries a
+recognised PII span} case but not an item whose sensitive
+semantics fall outside the configured detector, nor a
+later disclosure through an internal operational channel.
+Those channels motivate the four-channel evaluation of
+\S\ref{sec:proposals:acsp:security-eval}.
+
+Together, the three proposals close a single loop:
+\textbf{OWA names the boundary; ACSP selects which items
+cross it; AGRP redacts the spans within those items}.
+Each step is normatively specified, each step is
+receiver-verifiable, and the chain composes into the
+invariant that \S\ref{sec:security:privacy} calls for and
+that no contemporary protocol provides:
+\emph{contextual integrity at the wire layer, end-to-end
+and receiver-verifiable}. The triplet is the
+protocol-layer answer to the question
+\S\ref{sec:security:privacy} leaves open. That question is
+whether the contextual-integrity primitive belongs at the
+protocol layer or at the orchestrator's policy layer. The
+triplet answers it without
+pre-closing the orchestrator-side alternatives the
+open-problems agenda catalogues
+(\S\ref{sec:openproblems:regulation}, P5).
+
+The adoption case for the triplet is the case
+\S\ref{sec:adoption:healthcare} to \ref{sec:adoption:finance}
+identifies as the principal cross-organisational
+deployment blocker: organisations in regulated verticals
+need per-workspace contextual-integrity policies they
+can verify at the receiver's side. OWA gives them the
+name; ACSP gives them the selection contract; AGRP
+gives them the span-level verification. No pair alone is
+sufficient; together they are.
+
+The survey's broader argument
+(\S\ref{sec:governance:survival}) is that the AAIF
+working groups are the institutional venue most likely
+to elevate the contemporary protocols toward closing the
+open problems of \S\ref{sec:openproblems}. The triplet
+of proposals here is the survey's contribution to that
+venue: three specification-sketches the working groups
+can adopt, extend, or reject, derived from the gaps the
+rubric identifies and the deployment evidence
+\S\ref{sec:adoption} catalogues.
+\setlength{\emergencystretch}{0pt}

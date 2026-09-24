@@ -1,0 +1,30 @@
+% Commerce-settlement co-stack: hand-authored from \S6.3 source material.
+% Not generated from YAML; the peer-messaging rubric does not apply to
+% these protocols. See manuscript/sections/06-emerging-protocols.tex
+% (\S\ref{sec:emerging:commerce}) for the structural analysis.
+
+\begin{table}[h!]
+  \centering
+  \caption{Commerce-settlement co-stack at the 2026-Q1 cutoff. The first four
+  protocols share the intent-mandate-receipt envelope pattern
+  (\S\ref{sec:emerging:commerce}) but bind it to different settlement
+  substrates and mandate encodings. UCP is the exception and is listed last:
+  it binds no substrate of its own and consumes AP2's mandate through an
+  optional extension, which is why its row reads \emph{none of its own}. The
+  peer-messaging rubric (\S\ref{sec:rubric}) does not apply to any of the
+  five; this table captures the structural axes on which they actually
+  differentiate.}
+  \label{tab:commerce-stack}
+  \footnotesize
+  \begin{tabular}{lllll}
+    \toprule
+    Protocol & Steward & Settlement Substrate & Mandate Encoding & Anchor \\
+    \midrule
+    AP2                  & PayPal + Google           & PayPal payment rails (ref.\ impl.) & Typed off-chain envelope          & off-chain \\
+    Visa TAP             & Visa                      & Visa card network                  & EMVCo-aligned authorization       & off-chain \\
+    Mastercard Agent Pay & Mastercard                & Mastercard card network            & Mirrors Visa TAP pattern          & off-chain \\
+    ERC-8004             & Ethereum (EIP authors)    & Ethereum / EVM blockchain          & Smart contract + tx receipt       & on-chain  \\
+    UCP                  & Google + Shopify councils & none of its own (delegated)        & AP2 mandate, optional extension   & off-chain \\
+    \bottomrule
+  \end{tabular}
+\end{table}

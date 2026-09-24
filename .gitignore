@@ -1,0 +1,54 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+
+# biblatex/biber artifacts. The JAIR class uses biblatex, so a build leaves a
+# .bcf control file and a .run.xml behind, plus *-SAVE-ERROR copies when a run
+# is interrupted. None of them is source.
+*.bcf
+*.run.xml
+*-SAVE-ERROR
+
+# The JAIR AuthorKit, if unpacked locally. The four files the build needs are
+# vendored into manuscript/ and tracked; the kit itself is not.
+JAIR AuthorKit/
+
+# Local working notes are not part of this repository.
+notes/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Python
+__pycache__/
+.venv/
+*.pyc
+
+# Build outputs
+build/
+a2a-survey-draft.pdf
+AtoA-survey-draft.pdf
+manuscript/main.pdf
+a2a-survey-overleaf.zip
+a2a-survey-arxiv.zip
+
+comment.cut
+
+# Generated artifacts that ARE checked in (override .gitignore)
+!manuscript/figures/fig5-heatmap.pdf
+!manuscript/figures/fig6-radar.pdf

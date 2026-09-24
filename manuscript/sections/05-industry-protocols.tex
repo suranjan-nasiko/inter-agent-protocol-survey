@@ -1,0 +1,501 @@
+\section{Industry-Standard Protocols}
+\label{sec:industry-protocols}
+
+This section applies the rubric of \S\ref{sec:rubric} to the
+five inter-agent protocols that have either been adopted into
+a formal standards body, ship with named production
+deployments, or both: Google A2A, the Model Context Protocol,
+IBM ACP, Cisco-led AGNTCY/SLIM, the Agent Network Protocol,
+and Coral. The commerce-settlement industry-led
+protocols (AP2, Visa TAP, Mastercard Agent Pay, ERC-8004, UCP) are
+treated as a co-stack in \S\ref{sec:emerging:commerce} because
+their design intent and rubric alignment differ from the
+peer-messaging and tool-binding members of this group. Each
+sub-section names the protocol's design intent, summarizes
+the rubric scores, and identifies the open issues that
+implementations and successor specifications must address.
+
+\subsection{Google A2A}
+\label{sec:industry:a2a}
+
+A2A was introduced by Google in April 2025 as the canonical
+peer-messaging protocol for inter-agent
+coordination~\cite{spec_a2a}, and was donated to the Linux
+Foundation under the AAIF umbrella in late 2025~\cite{lf_aaif}.
+The protocol's defining structural choice is to treat the
+\texttt{Task} as a first-class lifecycle-bearing object with
+explicit submitted, working, input-required, auth-required,
+completed, failed, and canceled states, and to pair the
+task object
+with a typed \texttt{Part} content model (TextPart,
+FilePart, DataPart) that supports inline and by-reference
+delivery. The discovery convention is a well-known endpoint
+at \texttt{/.well-known/agent-card.json} returning a typed
+AgentCard descriptor.
+
+Rubric scores at the 2026-Q1 cutoff: Axis 1 = 1 (well-known
+endpoint discovery), Axis 2 = 1 (OAuth-mediated bearer
+identity), Axis 3 = 1 (advertised authentication schemes
+and an in-task authorization flow, but no standardised
+delegation credential), Axis 5 = 3 (full task object
+with artifacts and sub-task delegation), Axis 6 = 3 (push
+notifications combined with durable resumable tasks),
+Axis 7 = 3 (typed parts with inline-or-reference model),
+Axis 8 = 1 of 12 (transport encryption is the only
+spec-level mitigation; bearer identity, push-notification
+replay verification, and transport-layer DoS resistance are
+partial and so do not count; injection, registry poisoning,
+and delegation token theft are not addressed), Axis 9 = 1 (free-text Skill
+descriptions over typed Skill objects), Axis 10
+observability sub-score = 2 (SSE event stream supports
+tracing; no standardized audit primitives).
+
+The transport tuple is rich: HTTPS/JSON-RPC 2.0 as the
+primary binding, optional gRPC and REST, JSON
+serialization, SSE streaming, push notifications for async
+delivery~\cite{spec_a2a}. The protocol composes naturally
+with MCP for the tool-binding layer of each agent and with
+AP2 or Visa TAP for the commerce-settlement layer
+(\S\ref{sec:taxonomy:complementary}).
+
+The specification does address authorization, and the
+survey's Axis 3 score should not be read as saying
+otherwise. \S7 states security requirements, the AgentCard
+advertises authentication schemes, and \S7.6 defines
+in-task authorization: an agent that needs further
+authorization mid-task moves to the auth-required state and
+delegates fulfilment of the request to its
+client~\cite{spec_a2a}. What the specification leaves to
+the surrounding identity architecture is authorization
+policy (\S7.5 makes it implementation-specific) and the
+choice of delegation mechanism. The score records that
+absent credential format, not an absent security model.
+
+The exclusion is deliberate and the specification says so
+in normative language. \S7.6.4 states that A2A does not
+define the scope, representation, validity, or revocation
+semantics of the credential attached to the auth-required
+state. It requires that the state transition alone must not
+be treated as authorization for any operation, and that a
+credential obtained through it must not be assumed to
+authorize later messages on the same task. Meaning and scope
+must come from the implementation, the credential issuer, or
+an A2A extension~\cite{spec_a2a}. So A2A specifies
+authorization \emph{knobs} rather than an authorization
+model, and does it on purpose, so that many authorization
+solutions can be plugged in above it. The survey reads that
+as a scoping decision rather than an oversight. The Axis 3
+score measures what a receiver can verify from the protocol
+alone, which is why a deliberate exclusion and an accidental
+omission land on the same level, and why
+\S\ref{sec:security:authz} separates the two in prose.
+
+The open issues against A2A at the cutoff are at the
+identity and authorization layers. Eight named weaknesses
+are documented in the security
+literature~\cite{a2a_weaknesses}: AgentCard supply-chain
+attacks, registry poisoning against the discovery convention,
+delegation token theft, sensitive-data leakage through
+free-text Skill descriptions, prompt-injection vectors via
+DataPart payloads, replay attacks on push notifications,
+side-channel privacy leakage from task lifecycle
+transitions, and absent cryptographic delegation chains.
+The A2ASecBench protocol-aware
+evaluation~\cite{a2asecbench} catalogues several of these
+empirically. Mitigations under discussion in the
+Linux Foundation working group include the
+ANP-style DID overlay for identity, the agentic-JWT
+delegation pattern~\cite{agentic_jwt}, and the
+authorization-propagation chain
+proposed in~\cite{authz_propagation}; none has been
+adopted into the spec as of 2026-Q1.
+
+\subsection{Model Context Protocol (MCP)}
+\label{sec:industry:mcp}
+
+MCP is the canonical tool-binding
+protocol~\cite{spec_mcp}: the asymmetric two-party
+specification by which an agent (the client) invokes
+external capabilities exposed as tools, resources, and
+prompts. It was introduced by Anthropic in late 2024,
+adopted by every major model vendor within months, and
+governed under the Linux Foundation AAIF alongside
+A2A~\cite{lf_aaif}.
+
+Rubric scores: Axis 1 = 1 (server config-based discovery
+with an emerging registry, mostly out-of-band), Axis 2 = 1
+(OAuth 2.1 for HTTP transport, stdio relies on parent-process
+trust), Axis 3 = 1 (OAuth scopes only, no agent-delegation
+primitives), Axis 5 = 1 (request/response with sessions
+but no protocol-level state machine; the emerging MCP Tasks
+extension begins to add task semantics), Axis 6 = 2
+(notifications plus emerging MCP Tasks; long-running
+operations supported but not durably resumable across
+connection loss), Axis 7 = 2 (typed content blocks for
+text, image, and resource; structured JSON-Schema tool
+input), Axis 8 = 1 of 12 (transport encryption is the
+only spec-level mitigation; OAuth 2.1 identity is partial,
+because the stdio transport falls back to process trust;
+injection and tool poisoning remain
+unaddressed at spec level~\cite{zhan2024injecagent,
+protocol_exploits}), Axis 9 = 1 (JSON Schema for tool
+input combined with free-text tool descriptions),
+Axis 10 observability = 1 (logging hooks emerging; no
+standardized audit primitives).
+
+The transport tuple distinguishes MCP from A2A most
+clearly: stdio, HTTP+SSE, and streamable-HTTP bindings; the
+JSON-RPC 2.0 serialization shared with A2A; SSE or chunked
+HTTP streaming; notifications and emerging MCP Tasks for
+async delivery~\cite{spec_mcp}. The stdio binding is
+particularly important in production: it allows a sandboxed
+agent process to invoke a tool process within the same
+trust boundary without the network attack surface of an
+HTTP binding. The trade-off is that stdio inherits the
+parent process's identity completely; the identity axis
+score of 1 hides a sub-distinction between HTTP+OAuth and
+stdio+process-trust that the Axis 4 tuple makes explicit.
+
+The principal open issues at the cutoff are tool poisoning,
+indirect prompt injection through tool results, and the
+need for richer authorization primitives than OAuth
+scopes can express. The InjecAgent
+benchmark~\cite{zhan2024injecagent} establishes that
+indirect injection is a measurable threat against deployed
+MCP servers; the protocol does not currently specify
+mitigations. The AAIF working group has begun discussing
+an MCP-level authorization extension that would carry
+agent-principal-delegation chains alongside OAuth scopes;
+this would raise the Axis 3 score and align MCP with the
+emerging chain-of-custody pattern that the
+commerce-settlement layer requires.
+
+\subsection{IBM ACP / BeeAI}
+\label{sec:industry:acp}
+
+IBM's Agent Communication Protocol (ACP), incubated under
+the BeeAI project, occupies the tool-binding layer
+alongside MCP but with structurally different
+choices~\cite{spec_acp}. The transport is REST over HTTP,
+in contrast to MCP's JSON-RPC 2.0. Serialization is JSON,
+with streaming delivered as Server-Sent Events. The
+positioning is stateless by design, in the sense that HTTP
+is stateless: sessions are available when an agent needs
+to carry state across runs.
+
+ACP requires a status caveat that no other row in
+Table~\ref{tab:rubric-matrix} needs. The specification is
+\emph{complete but terminated}. The upstream repository was
+archived in August 2025, and the project merged into A2A
+under the Linux Foundation umbrella~\cite{spec_acp}. The
+scores we report describe the specification as published,
+not an effort still competing for adoption. We retain the
+row because ACP is the survey's clearest evidence for
+Finding~5 (\S\ref{sec:conclusion:governance}): it scores at
+the top of the set on the task axis and still lost.
+
+Rubric scores: Axis 1 = 1 (a well-known manifest at
+\texttt{/.well-known/agent.yml} plus a live
+\texttt{GET /agents} endpoint; registry-based discovery is
+named but unspecified, and no descriptor is signed),
+Axis 2 = 1 (the OpenAPI document declares no security
+schemes at all; Basic, Bearer, and JWT appear only in prose,
+enforced at a reverse proxy), Axis 3 = 1 (no authorization
+primitive whatsoever), Axis 5 = 3 (a first-class
+\texttt{Run} object with an eight-state lifecycle,
+two-phase cancellation, and named artifacts), Axis 6 = 2
+(asynchronous accept-and-poll, event backfill, and
+distributed sessions portable across servers by URL
+descriptor), Axis 7 = 2 (typed parts with inline-or-reference
+duality and manifest-level content-type negotiation),
+Axis 8 = 1 of 12 (transport encryption only, and that from
+prose rather than specification text; the other eleven
+threat classes are not addressed even partially, which is
+unique in the set), Axis 9 = 1 (typed
+manifest with free-text descriptions), Axis 10
+observability = 2 (OpenTelemetry integration with default
+exporters, plus trajectory and citation metadata carried in
+the wire format).
+
+Two features distinguish ACP, and neither is a content
+format. The first is the run lifecycle. ACP defines an
+\texttt{Await} mechanism by which an agent pauses execution
+to request input from its client, then resumes on a
+subsequent call. Combined with the eight-state machine and
+named artifacts, this puts ACP at the same level as A2A on
+the task axis and two levels above MCP. The second is
+distributed sessions: session history and state are
+referenced by URL on arbitrary resource servers, so a
+session migrates between independent ACP servers by
+forwarding only its descriptor, with no shared
+infrastructure.
+
+The gap between Axis 5 (level 3) and Axis 8 (1 of 12) is the
+widest of any protocol we score, tied with A2A, and in ACP's
+case it is deliberate rather
+than accidental. ACP is HTTP-native by design, and its
+answer to security is that the surrounding HTTP
+infrastructure already provides one. That is a defensible
+engineering position and a weak specification position. ACP
+documents four multi-agent composition patterns, including
+hierarchical delegation, while specifying no way for a
+receiver to establish on whose authority a caller acts. It
+is the sharpest instance in the survey of the
+authorisation-propagation gap that Finding~3 names.
+
+\subsection{AGNTCY / SLIM (Cisco-led)}
+\label{sec:industry:agntcy}
+
+AGNTCY is a Cisco-led collective effort hosted within the
+Linux Foundation umbrella. It positions itself as a
+``directory plus identity plus observability stack'' rather
+than a single protocol, and that positioning has a
+methodological consequence for this survey: AGNTCY is not
+one specification but four. We score it across the Open
+Agentic Schema Framework (OASF) for agent records, the
+Agent Directory Service (ADS) for publication and
+discovery, the Secure Low-latency Interactive Messaging
+protocol (SLIM) for the messaging substrate, and a separate
+identity specification~\cite{spec_agntcy}. ADS and SLIM are
+each published as IETF Internet-Drafts. Both are individual
+Independent Submissions with informational intended status,
+so neither carries working-group adoption or IETF
+endorsement.
+
+OASF is the descriptor contribution, and its capability
+model is stronger than free-text schemas. Records must
+declare skills drawn from a published hierarchical
+taxonomy, currently eighteen skill categories with nested
+subcategories, alongside a parallel taxonomy of twenty
+domain verticals. The framework is explicitly modelled on
+OCSF, the Open Cybersecurity Schema Framework, and its
+schema server is a derivative of the OCSF server. A
+controlled vocabulary that constrains capability
+descriptors to a shared term space is our Axis 9 level-2
+anchor, so OASF scores 2. It does not reach level 3:
+matching is taxonomic lookup, not semantic-similarity
+search or logic-based reasoning producing verifiable
+alignments.
+
+ADS is the discovery contribution, and it is the only
+industry-led effort in the survey to reach Axis 1 level 3.
+Records are content-addressed by CID, so a descriptor's
+identifier is a digest of its contents. Independent
+directory nodes federate over a distributed hash table with
+no central registry: publication announces
+(CID, skills) pairs into the routing layer, and lookup
+queries the skill taxonomy to retrieve matching CIDs and
+their hosting nodes. Records are signed as
+Cosign-compatible artifacts, with keyless OIDC, self-managed,
+and KMS-backed signing flows all specified. Verifiable
+names bind a signing key to a claimed domain by requiring a
+JSON Web Key Set at that domain's well-known endpoint.
+Discovery therefore returns cryptographically verifiable
+descriptors resolvable independently of any single
+authority, which is the level-3 descriptor.
+
+SLIM is the messaging substrate, and its security
+architecture is two-tier rather than transport-only. At the
+network layer, HTTP/2 and HTTP/3 provide hop-by-hop TLS 1.3
+encryption. HTTP/2 is the deliberate primary choice, for
+compatibility with deployed load balancers, gateways, and
+CDNs. Above it, Message Layer Security~\cite{rfc9420}
+provides an application-layer encryption envelope
+independent of the underlying TLS sessions. The consequence
+is that routing nodes are zero-trust intermediaries: they
+forward opaque encrypted blobs and cannot read message
+content even after TLS terminates. SLIM names entities with
+decentralized identifiers rather than transport
+credentials. Node names are \texttt{did:key} values, client
+locators compose an organization DID, namespace, service,
+and client DID, and a channel is keyed to the DID of its
+MLS group moderator, derived as a hash of that moderator's
+public key.
+
+Rubric scores: Axis 1 = 3 (content-addressed records over
+a federated DHT with signed descriptors), Axis 2 = 2
+(W3C Verifiable Credential agent badges verified through
+resolver metadata, plus SPIFFE workload identity),
+Axis 3 = 1 (MLS group membership plus short-lived OAuth
+bearer tokens; no delegation chain), Axis 5 = 1 (sessions,
+not tasks), Axis 6 = 3 (session state, group membership,
+subscriptions, and pending queues survive disconnection and
+node failure, with automatic reconnection and subscription
+recovery), Axis 8 = 6 of 12, Axis 9 = 2 (the OASF
+taxonomy), Axis 10 observability = 3, the highest of the
+industry-led set, on the strength of a dedicated
+observability sub-project shipping an OpenTelemetry SDK.
+
+Two scores warrant explanation. Axis 2 sits at 2 rather
+than 3 despite the use of Verifiable Credentials, because
+the specification explicitly disclaims being bound by the
+DID and VC standards, and its worked examples anchor agent
+identifiers to enterprise identity providers whose keys
+resolve from a tenant key-set endpoint. That is
+issuer-anchored identity with signed credentials, not
+self-sovereign control of keys. Axis 7 is 0, and the score
+is an artefact of scope rather than a deficiency: a
+substrate whose intermediaries cannot decrypt payloads has
+no place for a content model, and MLS makes that opacity a
+design guarantee. We report it as not applicable in
+substance, consistent with design goal D1
+(\S\ref{sec:rubric:goals}).
+
+The AGNTCY scores make the composition argument concrete
+rather than merely asserted. AGNTCY supplies discovery at
+level 3, async durability at level 3, and the strongest
+supply-chain posture in the survey, precisely where A2A
+scores 1, 3, and partial. A2A supplies a task model and a
+content model at level 3, precisely where AGNTCY scores 1
+and 0. The two are complementary by construction: an
+A2A-speaking agent, published as an OASF record in a
+federated directory, addressed over SLIM. The open issue at
+the cutoff is not whether they overlap but which stack an
+adopter depends on at each layer, and the literature is not
+yet mature enough to answer that.
+
+\subsection{Agent Network Protocol (ANP)}
+\label{sec:industry:anp}
+
+ANP is the most identity-forward of the peer-messaging
+protocols~\cite{spec_anp}. Its design center is the
+proposition that agent identity should be decentralized,
+cryptographically verifiable, and resolvable independently
+of any single registry. The protocol builds on the W3C
+DID and Verifiable Credentials specifications, and is the
+only surveyed protocol that scores level 3 on both
+Axis 1 (DID-resolver-based discovery) and Axis 2 (DIDs +
+VCs for identity).
+
+Rubric scores: Axis 1 = 3 (DID resolver plus Agent
+Description Protocol), Axis 2 = 3 (DIDs and VCs as W3C
+standards), Axis 3 = 2 (VC-scoped capabilities but
+chain-of-custody patterns are not fully standardized),
+Axis 5 = 1 (multi-turn but lightly specified at the
+protocol layer), Axis 6 = 1 (polling primarily; no
+push-notification standard), Axis 7 = 1 (text plus file
+references), Axis 8 = 5 of 12 (identity, authentication,
+integrity, audit, and non-repudiation are strong through
+DIDs; operational threats are weaker, namely prompt
+injection, registry poisoning, and capability escalation),
+Axis 9 = 2 (JSON-LD ontology base, ADP enables semantic
+discovery), Axis 10 observability = 1 (built-in
+non-repudiation logs but no standardized audit dashboard).
+
+The transport tuple is the lightest of the surveyed
+peer-messaging protocols: HTTPS only, JSON-LD over JSON
+serialization, no native streaming, polling for async
+delivery. ANP's design accepts the latency cost of polling
+in exchange for the decentralization properties that
+push-notification-based architectures complicate. The
+white paper~\cite{spec_anp} explicitly positions ANP for
+peer-to-peer deployments where no central registry can be
+assumed.
+
+The Axis 5 and Axis 6 scores need a word on intent,
+because the low numbers are a design choice rather than an
+unfinished edge. The account below follows the
+specification, and the ANP Community confirmed the reading
+in correspondence with the authors. ANP does not treat a
+task as a
+protocol-level concept at all. Its first-class concepts are
+Information and Interface: Information is data the agent
+publishes, and Interface is an API it exposes, either
+natural-language or structured. A task is then one form of
+an Interface rather than an abstraction the protocol
+defines. The stated reason is generality. The task concept
+is useful in many settings but is not universal enough to
+carry every agent interaction, so ANP keeps its primary
+abstractions broader. Asynchrony follows the same rule: an
+Interface defines its own asynchronous model where it needs
+one, and the protocol layer defines no separate primitive.
+This is the same deliberate-exclusion pattern the survey
+records for A2A on Axis 3
+(\S\ref{sec:security:authz}). The axis measures what the
+protocol itself specifies, so a considered omission and an
+unfinished one land on the same level, and the survey
+separates them in prose rather than in the number.
+
+The open issues at the cutoff are therefore operational
+maturity and the consequence of that scoping choice rather
+than the choice itself. ANP's strengths are at the identity
+and authentication layers; the dimensions it leaves to the
+Interface are precisely those on which A2A scores highest
+(tasks, async, and multi-modal handling). The natural
+composition pattern (ANP for identity, A2A for task
+semantics) would require bridging machinery the cutoff
+specifications do not yet provide.\footnote{Post-cutoff, and
+recorded here because it bears on Axis 6 and Axis 9 rather
+than to revise them. ANP published a 1.1 release line in
+June 2026, after the 2026-Q1 cutoff, adding a released
+end-to-end instant messaging suite (ANP-09) for direct and
+group agent-to-agent messages with attachments and optional
+end-to-end encryption~\cite{spec_anp_v11}. Its premise is
+that identity plus messaging carries a large share of
+collaboration without modelling each interaction as a
+structured task, which is the Information-and-Interface
+position above followed to its conclusion. The same release
+narrows the JSON-LD commitment: the Agent Description
+document (ANP-07) moved to plain JSON for readability,
+while the Discovery specification (ANP-08) keeps JSON-LD
+and its \texttt{@context} mechanism. The community
+describes the underlying Linked Data philosophy as
+retained. Section~\ref{sec:semantic:ontology} records what
+this would do to the Axis 9 reading.}
+
+\subsection{Coral Protocol}
+\label{sec:industry:coral}
+
+Coral~\cite{spec_coral} occupies the peer-messaging layer
+with two distinguishing choices: persistent multi-participant
+threads as the conversational primitive, and an explicit
+integration with MCP for the tool-binding layer. Coral
+positions itself as ``the Internet of Agents'' substrate
+and supports both off-chain coordination (over standard
+HTTP and SSE) and on-chain settlement (via Solana wallets
+and signed team contracts) where the deployment requires
+it.
+
+Rubric scores: Axis 1 = 2 (\texttt{list\_agents} MCP tool
+resolves from a server-mediated Coral Server;
+blockchain-anchored but discovery is server-mediated
+rather than DID-resolver), Axis 2 = 3 (each agent has a
+DID and cryptographic credentials with Solana wallets as
+authenticator), Axis 3 = 2 (Team Contracts as signed
+multi-agent agreements, optionally on-chain; not RFC 8693,
+not a fully specified delegation chain), Axis 5 = 2
+(stateful persistent multi-participant threads; sub-task
+delegation deferred to a future Task Management service),
+Axis 6 = 2 (\texttt{wait\_for\_mentions} is an explicit
+push primitive; no durable resumable spec), Axis 7 = 0
+(natural-language message content with mention metadata
+only; no typed parts or content negotiation), Axis 8 = 3
+of 12 (DIDs and wallets for auth, on-chain immutable
+audit, and thread-scoped privilege confusion are
+addressed; team-contract capability escalation,
+delegation token theft, and signed-transaction integrity
+are partial, the last because signatures cover the payment
+path rather than the message path; replay, supply-chain,
+side-channel, DoS, prompt injection, and registry
+poisoning not addressed), Axis 9 = 1 (Coraliser adapters
+enforce uniform schemas but no formal capability
+descriptor or ontology), Axis 10 observability = 2
+(blockchain audit trail is mandatory for payments and
+team contracts; no separate trace or metric spec).
+
+The transport tuple is HTTP, WebSocket, and SSE
+bindings; JSON via MCP serialization; SSE streaming; push
+via \texttt{wait\_for\_mentions}~\cite{spec_coral}. The
+choice to deliver tool semantics through MCP rather than
+re-specifying them is structurally important: Coral
+explicitly accepts the layer composition argument of
+\S\ref{sec:taxonomy:complementary} and builds on top of
+MCP rather than alongside it.
+
+The open issues at the cutoff are content-model
+poverty (Axis 7 = 0 is the lowest score in the surveyed
+set), the absent task lifecycle (Axis 5 stops at level 2),
+and the dependency on blockchain primitives for the
+strongest security claims. Deployments that do not want
+to commit to Solana settlement infrastructure inherit a
+weaker version of Coral's threat model.

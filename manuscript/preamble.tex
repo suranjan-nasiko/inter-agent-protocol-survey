@@ -1,0 +1,32 @@
+% Preamble: shared packages and custom macros.
+
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{microtype}
+\usepackage{longtable}
+\usepackage{array}
+
+% Rubric axis macro (italicized + indexable). Used throughout sections 5 to 7.
+\newcommand{\rubricAxis}[1]{\textit{#1}}
+
+% Protocol badge (colored chip). Used in tables and inline references.
+\newcommand{\protocolBadge}[1]{\textsc{#1}}
+
+% Heatmap color palette (used in Table 1 + Figures 5 and 6).
+\definecolor{HeatLow}{HTML}{f7fbff}
+\definecolor{HeatMidLow}{HTML}{c6dbef}
+\definecolor{HeatMid}{HTML}{6baed6}
+\definecolor{HeatMidHigh}{HTML}{2171b5}
+\definecolor{HeatHigh}{HTML}{08306b}
+
+% Companion repository URL. JAIR review is single-blind, so the link is
+% printed in the submission. Defined once here so a rename edits one line.
+% PROPOSED NAME: the public repo does not exist yet.
+\newcommand{\companionrepo}{\url{https://github.com/suranjan-nasiko/inter-agent-protocol-survey}}
+
+% Score formatting (ordinal 0 to 3 with anchored descriptors).
+\newcommand{\score}[1]{\textbf{#1}}
