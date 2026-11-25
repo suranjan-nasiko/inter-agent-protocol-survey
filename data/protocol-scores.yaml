@@ -73,7 +73,7 @@ a2a:
     evidence: "Typed Skill objects but free-text descriptions; no ontology alignment"
     citation: "spec_a2a"
   axis_10:
-    governance: "Linux Foundation"
+    governance: "Linux Foundation (A2A Project)"
     license: "Apache 2.0"
     observability: 2
     evidence: "SSE event stream supports tracing; no standardized audit primitives"
@@ -123,7 +123,7 @@ mcp:
     evidence: "JSON Schema for tool input; tool descriptions free-text NL"
     citation: "spec_mcp"
   axis_10:
-    governance: "Linux Foundation AAIF"
+    governance: "Linux Foundation (AAIF)"
     license: "MIT-equivalent"
     observability: 1
     evidence: "Logging hooks emerging; no standardized audit primitives"
@@ -202,9 +202,10 @@ acp:
     evidence: "OpenAPI declares no securitySchemes at all; Basic/Bearer/JWT named only in prose, enforced by reverse proxy; identity federation under development"
     citation: "spec_acp"
   axis_3:
-    score: 1
-    evidence: "No authorization primitive in the spec: no scopes, no capability tokens, no propagation across the four documented composition patterns"
+    score: 0
+    evidence: "No authorization primitive in the spec: no scopes, no capability tokens, no propagation across the four documented composition patterns. That is the level-0 anchor (no protocol-level authorization primitives; authorization, if any, at the application layer); see revision_2026_09_30"
     citation: "spec_acp"
+    revision_2026_09_30: "RESOLVED, score lowered from 1 to 0. The evidence sentence above already described the level-0 anchor, and the cell carried 1. Flagged by Faouzi El Yagoubi in a consistency check of the HAL v1 text (hal-05751265v1). No finding changes: the Axis 3 column still tops out at 2."
   axis_4:
     tuple:
       transports: ["HTTP/REST"]
@@ -289,7 +290,7 @@ agntcy:
     evidence: "OASF skills and domains are published hierarchical taxonomies (18 skill categories with subcategories, 20 domain verticals); records MUST declare taxonomy skills, and DHT routing announces and queries (CID, skills) pairs. Not 3: taxonomic lookup, not semantic matching"
     citation: "spec_agntcy"
   axis_10:
-    governance: "Linux Foundation"
+    governance: "Linux Foundation (AGNTCY Project)"
     license: "Apache 2.0"
     observability: 3
     evidence: "Published charter, operating model, working-group process, five working groups; dedicated observe sub-project shipping an OTel SDK (ioa-observe-sdk), telemetry-hub, observe-and-eval WG, OpenSSF Scorecard on dir"
@@ -468,6 +469,7 @@ acnbp:
 ap2:
   name: "AP2 (Agent Payments Protocol)"
   layer: commerce-settlement
+  steward: "Google, developed with 60+ organizations (launch Sep 17, 2025, cite ap2_launch); contributed to the FIDO Alliance Apr 28, 2026 (cite ap2_fido_google, fido_agentic). Earlier versions of the paper framed AP2 as PayPal plus Google; corrected 2026-09-30 after correspondence with Google's UCP and AP2 contacts."
 
 visa_tap:
   name: "Visa Trusted Agent Protocol"
@@ -502,5 +504,5 @@ ucp:
   evidence_transport: "four bindings: rest (OpenAPI 3.x), mcp (OpenRPC), a2a (endpoint is the Agent Card URL), embedded (OpenRPC)"
   evidence_settlement: "no settlement substrate of its own; payment authorization is delegated to the AP2 Mandates extension (dev.ucp.shopping.ap2_mandate). Once that extension is in the negotiated capability intersection the session is Security Locked, so neither party may revert to an unprotected checkout. Shopify's specification authors, contacted about this survey, confirmed on 2026-09-19 that the orchestration-layer reading is correct: UCP specifies the commerce transaction around the payment and is not a fifth competitor to AP2, Visa TAP, Mastercard Agent Pay and ERC-8004."
   evidence_capabilities: "three standard capabilities at the surveyed version: Checkout (incl. cart and tax), Order (async lifecycle webhooks), Identity Linking. The four domain Tech Councils and the wider capability set advertised on ucp.dev are post-cutoff and are not the basis of any statement in the paper."
-  evidence_governance: "no formal SDO. Tech Council holds spec authority: 12 votes, 8 reserved 4 each to the two founding organisations (Google, Shopify), 4 elected every 6 months from any org. Governing Council holds project authority: 3 seats (1 Google, 1 Shopify, 1 elected annually, unfilled at the surveyed version with Google holding the proxy). Google is custodian of the ucp.dev domain. Domain Working Groups chartered by 3+ orgs, all artifacts subject to TC approval. Apache 2.0; signed contributor licence required. MAINTAINERS.md at tag v2026-01-23 lists 11 named Tech Council members (Google, Shopify, Etsy, Target, Wayfair) plus one open seat, and 2 named Governance Council members plus one open seat."
+  evidence_governance: "at surveyed tag v2026-01-23 (ucp repo GOVERNANCE.md): one Tech Council, 12 votes, 8 reserved 4 each to Google and Shopify, 4 elected every 6 months; Governing Council of 3 (Google, Shopify, 1 elected seat open with Google holding the proxy). Replaced by the model at Universal-Commerce-Protocol/.github commit 94277095 (2026-09-21), which the paper now describes (cite ucp_governance): four Domain Tech Councils (Shopping, Food, Lodging, Payments), 16 votes each, majority vote, permanent founding-organization seats 8/10/12/12 of 16 with no end date, remaining seats elected by the GC every 6 months; Shopify absent from Food and Lodging, Google on all four. Governing Council of 5: permanent Google and Shopify, 3 elected (Stripe plus 2 open); Google holds proxy for open seats until Dec 2028; GC elects DTC members, can add/remove them by simple majority, and may veto a DTC decision. Google is custodian of ucp.dev. DWGs chartered by 3+ orgs, artifacts subject to DTC approval. Apache 2.0; signed contributor license required. Public minutes at Universal-Commerce-Protocol/meeting-minutes (repo created 2026-02-04, after the surveyed tag). Correction requested by Google's UCP team in correspondence, 2026-09-30; their email's claims of consensus decision-making and a time-limited reserved majority are not in GOVERNANCE.md, which says majority vote and time-limits only the proxy."
   citation: "spec_ucp"
